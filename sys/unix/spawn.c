@@ -71,7 +71,6 @@ spawn (char *program, char *args[])
 	  basename = p + 1;
       /*      printf("\n\nbase name is %s\n\n", basename); */
       cshell = strcmp (basename, "csh") == 0
-        || strcmp (basename, "bash") == 0
 	|| strcmp (basename, "tcsh") == 0;
     }
   if (cshell)

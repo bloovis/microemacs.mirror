@@ -1,4 +1,4 @@
-/* $Header: /home/bloovis/cvsroot/pe/paragraph.c,v 1.1.1.1 2003/11/06 02:51:52 bloovis Exp $
+/* $Header: /home/bloovis/cvsroot/pe/paragraph.c,v 1.1 2003-11-06 02:51:52 bloovis Exp $
  *
  * Name:	MicroEMACS
  *		Paragraph and filling commands
@@ -8,8 +8,8 @@
  * and GNU-ified by mwm@ucbvax.  Several bug fixes by blarson@usc-oberon.
  *
  * $Log: paragraph.c,v $
- * Revision 1.1.1.1  2003/11/06 02:51:52  bloovis
- * Imported sources
+ * Revision 1.1  2003-11-06 02:51:52  bloovis
+ * Initial revision
  *
  * Revision 1.5  2001/03/05 16:04:13  malexander
  * (killpara): Use structure assignments for brevity.

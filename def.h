@@ -1,4 +1,4 @@
-/* $Header: /home/bloovis/cvsroot/pe/def.h,v 1.3 2004/04/20 15:18:22 bloovis Exp $
+/* $Header: /home/bloovis/cvsroot/pe/def.h,v 1.1 2003-11-06 02:51:52 bloovis Exp $
  *
  * Name:	MicroEMACS
  *		Common header file.
@@ -15,14 +15,8 @@
  * the definition of CVMVAS or BACKUP.
  *
  * $Log: def.h,v $
- * Revision 1.3  2004/04/20 15:18:22  bloovis
- * (ereadv): Declare new function.
- *
- * Revision 1.2  2003/12/03 22:14:36  bloovis
- * (vmwareindent): Declare new function.
- *
- * Revision 1.1.1.1  2003/11/06 02:51:52  bloovis
- * Imported sources
+ * Revision 1.1  2003-11-06 02:51:52  bloovis
+ * Initial revision
  *
  * Revision 1.11  2003/05/14 23:09:21  malexander
  * (mouse_event): Rename to mouseevent to avoid conflict with
@@ -36,7 +30,7 @@
  *
  * Revision 1.9  2001/03/05 16:04:10  malexander
  * (MARKRING): New structure for mark ring.
- * (BUFFER, EWINDOW): Add mark ring.
+ * (BUFFER, WINDOW): Add mark ring.
  * (popring, topring, pushring, clearring): Declare new functions.
  *
  * Revision 1.8  2001/02/28 21:07:40  malexander
@@ -329,9 +323,9 @@ BUFFER;
  * terms of decoupling, the full blown redisplay is just too
  * expensive to run for every input character.
  */
-typedef struct EWINDOW
+typedef struct WINDOW
 {
-  struct EWINDOW *w_wndp;	/* Next window                  */
+  struct WINDOW *w_wndp;	/* Next window                  */
   struct BUFFER *w_bufp;	/* Buffer displayed in window   */
   struct LINE *w_linep;		/* Top line in the window       */
   struct POS w_dot;		/* The "." (dot) position	*/
@@ -344,7 +338,7 @@ typedef struct EWINDOW
   char w_flag;			/* Flags.                       */
   int w_leftcol;		/* left column of window        */
 }
-EWINDOW;
+WINDOW;
 
 /*
  * Window flags are set by command processors to
@@ -442,11 +436,11 @@ extern int thisflag;
 extern int lastflag;
 extern int curgoal;
 extern int epresf;
-extern int enoecho;
+extern int noecho;
 extern int sgarbf;
-extern EWINDOW *curwp;
+extern WINDOW *curwp;
 extern BUFFER *curbp;
-extern EWINDOW *wheadp;
+extern WINDOW *wheadp;
 extern BUFFER *bheadp;
 extern BUFFER *blistp;
 extern short kbdm[];
@@ -578,7 +572,7 @@ int popblist (void);			/* Display special buffer.	*/
 int bclear (BUFFER *bp);		/* Blow away all text in buffer	*/
 int anycb (void);			/* Look for changed buffers.	*/
 int addline (const char *text);		/* Append text to list buffer.	*/
-void addwind (EWINDOW *wp, int n);	/* Bump ref. count for window.	*/
+void addwind (WINDOW *wp, int n);	/* Bump ref. count for window.	*/
 
 /*
  * Defined by "cinfo.c".
@@ -613,7 +607,6 @@ void eprintf (const char *, ...);
 int egetfname (const char *fp, char *buf, int nbuf);
 					/* Read filename from echo line	*/
 int eread (const char *fp, char *buf, int nbuf, int flag, va_list ap);
-int ereadv (const char *fp, char *buf, int nbuf, int flag, ...);
 					/* Read input from echo line.	*/
 int eyesno (const char *sp);		/* Ask "yes" or "no" question.	*/
 void eputc (int c);			/* Put a character to screen.	*/
@@ -678,7 +671,7 @@ int readprofile (int f, int n, int k);	/* Read profile command file    */
 int getinp (void);			/* Get next input char.		*/
 void ungetinp (int c);			/* Put back one input char.	*/
 int getkey (void);			/* Get next keyboard char.	*/
-void ekeyname (char *cp, int k);		/* Convert key code to name	*/
+void keyname (char *cp, int k);		/* Convert key code to name	*/
 
 /*
  * Defined by "line.c".
@@ -731,7 +724,6 @@ int delwhite (int f, int n, int k);	/* Delete extra whitespace      */
 int indent (int f, int n, int k);	/* Insert CR-LF, then indent    */
 int gnuindent (int f, int n, int k);	/* Indent by GNU coding rules   */
 int borlandindent (int f, int n, int k);/* Indent by Borland rules	*/
-int vmwareindent (int f, int n, int k);	/* Indent by VMware rules	*/
 int forwdel (int f, int n, int k);	/* Forward delete               */
 int backdel (int f, int n, int k);	/* Backward delete              */
 int killline (int f, int n, int k);	/* Kill forward                 */
@@ -845,7 +837,7 @@ int getkbd (void);			/* Get keyboard character	*/
  * Defined by "window.c".
  */
 int reposition (int f, int n, int k);	/* Reposition window            */
-int erefresh (int f, int n, int k);	/* Refresh the screen           */
+int refresh (int f, int n, int k);	/* Refresh the screen           */
 int nextwind (int f, int n, int k);	/* Move to the next window      */
 int prevwind (int f, int n, int k);	/* Move to the previous window  */
 int mvdnwind (int f, int n, int k);	/* Move window down             */
@@ -867,4 +859,4 @@ int delfword (int f, int n, int k);	/* Delete forward word.         */
 int delbword (int f, int n, int k);	/* Delete backward word.        */
 
 int inword (void);			/* Is dot in a word?		*/
-EWINDOW * wpopup (void);			/* Pick window for a pop-up	*/
+WINDOW * wpopup (void);			/* Pick window for a pop-up	*/

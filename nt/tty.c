@@ -1,4 +1,4 @@
-/* $Header: /home/bloovis/cvsroot/pe/nt/tty.c,v 1.1.1.1 2003/11/06 02:51:52 bloovis Exp $
+/* $Header: /home/bloovis/cvsroot/pe/nt/tty.c,v 1.1 2003-11-06 02:51:52 bloovis Exp $
  *
  * Name:        MicroEMACS
  *              OS/2 80x25 to 80x50 text-mode display
@@ -6,8 +6,8 @@
  *              alexande@borland.com
  *
  * $Log: tty.c,v $
- * Revision 1.1.1.1  2003/11/06 02:51:52  bloovis
- * Imported sources
+ * Revision 1.1  2003-11-06 02:51:52  bloovis
+ * Initial revision
  *
  * Revision 1.1  2001/04/19 20:26:08  malexander
  * New files for NT version of MicroEMACS.

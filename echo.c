@@ -1,4 +1,4 @@
-/* $Header: /home/bloovis/cvsroot/pe/echo.c,v 1.2 2004/04/20 15:18:19 bloovis Exp $
+/* $Header: /home/bloovis/cvsroot/pe/echo.c,v 1.1 2003-11-06 02:51:52 bloovis Exp $
  *
  * Name:	MicroEMACS
  *		Echo line reading and writing.
@@ -10,13 +10,8 @@
  * known universe.
  *
  * $Log: echo.c,v $
- * Revision 1.2  2004/04/20 15:18:19  bloovis
- * (egetfname): Use ereadv instead of passing NULL arg list
- * pointer to eread; this is necessary for compiling on x86_64.
- * (ereadv): New wrapper for eread that takes a variable number of args.
- *
- * Revision 1.1.1.1  2003/11/06 02:51:52  bloovis
- * Imported sources
+ * Revision 1.1  2003-11-06 02:51:52  bloovis
+ * Initial revision
  *
  * Revision 1.3  2000/09/29 00:19:38  malexander
  * Numerous changes to eliminate warnings and add prototypes.
@@ -58,7 +53,7 @@
 #include	"def.h"
 
 int epresf = FALSE;		/* Stuff in echo line flag.     */
-int enoecho = FALSE;		/* True if echo line disabled   */
+int noecho = FALSE;		/* True if echo line disabled   */
 int nmsg = 0;			/* Size of occupied msg. area.  */
 int curmsgf = FALSE;		/* Current alert state.         */
 int newmsgf = FALSE;		/* New alert state.             */
@@ -90,42 +85,42 @@ char *bufsearch ();		/* buffer.c */
 static void
 ettmove (int row, int col)
 {
-  if (!enoecho)
+  if (!noecho)
     ttmove (row, col);
 }
 
 static void
 ettputc (int c)
 {
-  if (!enoecho)
+  if (!noecho)
     ttputc (c);
 }
 
 static void
 etteeol (void)
 {
-  if (!enoecho)
+  if (!noecho)
     tteeol ();
 }
 
 static void
 ettflush (void)
 {
-  if (!enoecho)
+  if (!noecho)
     ttflush ();
 }
 
 static void
 ettcolor (int color)
 {
-  if (!enoecho)
+  if (!noecho)
     ttcolor (color);
 }
 
 static void
 ettbeep (void)
 {
-  if (!enoecho)
+  if (!noecho)
     ttbeep ();
 }
 
@@ -252,15 +247,15 @@ echo (void)
 
   if ((s = ereply ("Echo: ", echoline, NCOL)) != TRUE)
     return (s);
-  oldecho = enoecho;		/* save noecho flag     */
-  enoecho = FALSE;		/* enable echoing       */
+  oldecho = noecho;		/* save noecho flag     */
+  noecho = FALSE;		/* enable echoing       */
   ettcolor (CTEXT);
   ettmove (nrow - 1, 0);
   eputs (echoline);
   etteeol ();
   ettflush ();
   epresf = TRUE;
-  enoecho = oldecho;		/* restore noecho flag  */
+  noecho = oldecho;		/* restore noecho flag  */
   return (TRUE);
 }
 
@@ -270,7 +265,7 @@ echo (void)
 void
 eerase (void)
 {
-  if (enoecho == FALSE)
+  if (noecho == FALSE)
     {
       ettcolor (CTEXT);
       ettmove (nrow - 1, 0);
@@ -366,7 +361,7 @@ ereplyf (const char *fp, char *buf, int nbuf, int flag, ...)
 int
 egetfname (const char *fp, char *buf, int nbuf)
 {
-  return ereadv (fp, buf, nbuf, EFNEW | EFCR | EFFILE);
+  return (eread (fp, buf, nbuf, EFNEW | EFCR | EFFILE, (va_list) NULL));
 }
 
 /*
@@ -709,23 +704,6 @@ done:
 }
 
 /*
- * An interface to eread that allows it to be called with
- * a variable number of arguments after flag (to be formatted using
- * the format string fp)
- */
-int
-ereadv (const char *fp, char *buf, int nbuf, int flag, ...)
-{
-  va_list ap;
-  int ret;
-
-  va_start (ap, flag);
-  ret = eread (fp, buf, nbuf, flag, ap);
-  va_end (ap);
-  return ret;
-}
-
-/*
  * Special "printf" for the echo line.
  * Each call to "eprintf" starts a new line in the
  * echo area, and ends with an erase to end of the
@@ -740,13 +718,13 @@ eprintf (const char *fp, ...)
 
   va_start (ap, fp);
 
-  if (enoecho && *fp == '[')
+  if (noecho && *fp == '[')
     {				/* echo disabled, and   */
       va_end (ap);
       return;			/*  it's not an error   */
     }
-  oldecho = enoecho;		/* save noecho flag     */
-  enoecho = FALSE;		/* enable echoing       */
+  oldecho = noecho;		/* save noecho flag     */
+  noecho = FALSE;		/* enable echoing       */
   ettcolor (CTEXT);
   ettmove (nrow - 1, 0);
   eformat (fp, ap);
@@ -754,7 +732,7 @@ eprintf (const char *fp, ...)
   etteeol ();
   ettflush ();
   epresf = TRUE;
-  enoecho = oldecho;		/* restore noecho flag  */
+  noecho = oldecho;		/* restore noecho flag  */
 }
 
 static char digit[] = "0123456789ABCDEF";

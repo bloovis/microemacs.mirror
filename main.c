@@ -1,4 +1,4 @@
-/* $Header: /home/bloovis/cvsroot/pe/main.c,v 1.2 2005/05/31 18:18:22 bloovis Exp $
+/* $Header: /home/bloovis/cvsroot/pe/main.c,v 1.1 2003-11-06 02:51:52 bloovis Exp $
  *
  * Name:	MicroEMACS
  *		Mainline, macro commands.
@@ -7,11 +7,8 @@
  *		decvax!decwrl!dec-rhea!dec-rex!conroy
  *
  * $Log: main.c,v $
- * Revision 1.2  2005/05/31 18:18:22  bloovis
- * (bufinit): w_savep was uninitialized; clear it.
- *
- * Revision 1.1.1.1  2003/11/06 02:51:52  bloovis
- * Imported sources
+ * Revision 1.1  2003-11-06 02:51:52  bloovis
+ * Initial revision
  *
  * Revision 1.7  2002/01/23 22:36:02  malexander
  * (mouse): New variable for mouse support, set by -m option.
@@ -52,9 +49,9 @@ int thisflag;			/* Flags, this command          */
 int lastflag;			/* Flags, last command          */
 int curgoal;			/* Goal column                  */
 BUFFER *curbp = 0;		/* Current buffer               */
-EWINDOW *curwp = 0;		/* Current window               */
+WINDOW *curwp = 0;		/* Current window               */
 BUFFER *bheadp;			/* BUFFER listhead              */
-EWINDOW *wheadp;			/* EWINDOW listhead              */
+WINDOW *wheadp;			/* WINDOW listhead              */
 BUFFER *blistp;			/* Buffer list BUFFER           */
 short kbdm[NKBDM] = { KCTLX | ')' };	/* Macro                        */
 short *kbdmip;			/* Input  for above             */
@@ -187,7 +184,7 @@ main (int argc, char *argv[])
     }
   lastflag = 0;			/* Fake last flags.     */
 
-  inprof = enoecho = (ffpopen (proptr) == FIOSUC);
+  inprof = noecho = (ffpopen (proptr) == FIOSUC);
   /* open default profile */
   if (!inprof && proptr != NULLPTR)	/* -p option failed?    */
     eprintf ("Unable to open profile %s", proptr);
@@ -290,7 +287,7 @@ bufinit (const char *fname)
   char bname[NBUFN];		/* Buffer name          */
   char *mod;			/* Ptr to name modifier */
   register BUFFER *bp;
-  register EWINDOW *wp;
+  register WINDOW *wp;
 
   makename (bname, fname);	/* Get buffer name      */
   if (bfind (bname, FALSE))	/* if names conflict    */
@@ -305,7 +302,7 @@ bufinit (const char *fname)
   curbp = bp;			/* Current buffer       */
   if (++nbuf <= 2)		/* If 2 or less buffers */
     {				/* Get a new window     */
-      if ((wp = (EWINDOW *) malloc (sizeof (EWINDOW))) == NULL)
+      if ((wp = (WINDOW *) malloc (sizeof (WINDOW))) == NULL)
 	abort ();		/* Out of memory        */
       curwp = wp;		/* Current window       */
       if (nbuf == 1)		/* First window?        */
@@ -332,7 +329,6 @@ bufinit (const char *fname)
       wp->w_force = 0;
       wp->w_flag = WFMODE | WFHARD;	/* Full.                */
       wp->w_leftcol = 0;	/* Display at left edge */
-      wp->w_savep = NULL;
     }
 }
 

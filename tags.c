@@ -1,4 +1,4 @@
-/* $Header: /exit14/home/marka/tools/pe/RCS/tags.c,v 1.1 2007/01/17 20:51:17 marka Exp marka $
+/* $Header: /home/bloovis/cvsroot/pe/tags.c,v 1.1 2003-11-06 02:51:52 bloovis Exp $
  *
  * Name:	MicroEMACS
  * 		Tagscommands.
@@ -6,11 +6,8 @@
  * By:		marka@pepper.com (Mark Alexander)
  *
  * $Log: tags.c,v $
- * Revision 1.1  2007/01/17 20:51:17  marka
+ * Revision 1.1  2003-11-06 02:51:52  bloovis
  * Initial revision
- *
- * Revision 1.1.1.1  2003/11/06 02:51:52  bloovis
- * Imported sources
  *
  * Revision 1.7  2001/02/28 21:07:40  malexander
  * * def.h (POS): New structure for holding line position, which replaces
@@ -381,8 +378,8 @@ getcursorword (char *buffer, int size)
   /* Scan back to the beginning of this word.
    */
   doto    = curwp->w_dot.o;
-  linep   = curwp->w_dot.p;
   linelen = llength (linep);
+  linep   = curwp->w_dot.p;
   if (!inwordpos (linep, doto))
     return;
   while (doto >= 0 && inwordpos (linep, doto-1))

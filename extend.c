@@ -24,7 +24,7 @@ bindtokey (f, n, k)
   register int c;
   char xname[NXNAME];
 
-  if ((s = ereadv ("Function: ", xname, NXNAME, EFAUTO)) != TRUE)
+  if ((s = eread ("Function: ", xname, NXNAME, EFAUTO, NULL)) != TRUE)
     return (s);
   if ((sp = symlookup (xname)) == NULL)
     {
@@ -43,7 +43,7 @@ bindtokey (f, n, k)
       eputc (' ');
       ttflush ();
       c = getkey ();		/* Read key.            */
-      ekeyname (xname, c);	/* Display ekeyname.     */
+      keyname (xname, c);	/* Display keyname.     */
       eputs (xname);
       ttflush ();
     }
@@ -77,7 +77,7 @@ extend (f, n, k)
   register int s;
   char xname[NXNAME];
 
-  if ((s = ereadv (": ", xname, NXNAME, EFNEW | EFAUTO)) != TRUE)
+  if ((s = eread (": ", xname, NXNAME, EFNEW | EFAUTO, NULL)) != TRUE)
     return (s);
   if ((sp = symlookup (xname)) != NULL)
     {
@@ -113,7 +113,7 @@ help (f, n, k)
   char b[20];
 
   c = getkey ();
-  ekeyname (b, c);
+  keyname (b, c);
   if ((sp = binding[c]) == NULL)
     eprintf ("[%s is unbound]", b);
   else
@@ -147,7 +147,7 @@ wallchart (f, n, k)
       sp = binding[key];
       if (sp != NULL && (f != FALSE || strcmp (sp->s_name, "ins-self") != 0))
 	{
-	  ekeyname (buf, key);
+	  keyname (buf, key);
 	  cp1 = &buf[0];	/* Find end.            */
 	  while (*cp1 != 0)
 	    ++cp1;
@@ -310,7 +310,7 @@ insertmacro (f, n, k)
   /* Read the name of the symbol to use, store the name in
    * a local array.
    */
-  if ((named = ereadv ("Macro name: ", xname, NXNAME, EFAUTO)) == ABORT)
+  if ((named = eread ("Macro name: ", xname, NXNAME, EFAUTO, NULL)) == ABORT)
     return (named);
   if (named == FALSE)		/* no name given?       */
     mp = &kbdm[0];		/* use current macro    */
@@ -340,7 +340,7 @@ insertmacro (f, n, k)
     {
       if (k > 0x00 && k <= 0x1F)	/* Relocate control.    */
 	k = KCTRL | (k + '@');
-      ekeyname (xname, k);	/* Get key name.        */
+      keyname (xname, k);	/* Get key name.        */
       if ((k >= 0x20 && k <= 0x7e) || (strlen (xname) <= 1))
 	{			/* Simple ASCII?        */
 	  if (outstrchr (k) == FALSE)

@@ -1,4 +1,4 @@
-/* $Header: /exit14/home/marka/tools/pe/RCS/symbol.c,v 1.1 2006/09/15 16:29:46 marka Exp marka $
+/* $Header: /home/bloovis/cvsroot/pe/symbol.c,v 1.1 2003-11-06 02:51:52 bloovis Exp $
  *
  * Name:	MicroEMACS
  *		Symbol table stuff.
@@ -10,21 +10,8 @@
  * keymap has been moved to a better place.
  *
  * $Log: symbol.c,v $
- * Revision 1.1  2006/09/15 16:29:46  marka
+ * Revision 1.1  2003-11-06 02:51:52  bloovis
  * Initial revision
- *
- * Revision 1.3  2004/04/20 15:18:18  bloovis
- * (namemacro):  Use ereadv instead of passing NULL arg list
- * pointer to eread.
- *
- * Revision 1.2  2003/12/03 22:14:35  bloovis
- * (USE_VMWAREINDENT): New macro to control whether to use
- * VMware-style indenting by default, initially enabled.
- * (USE_GNUINDENT): Disable.
- * (key): If USE_VMWAREINDENT enabled, bind C-J to vmwareindent.
- *
- * Revision 1.1.1.1  2003/11/06 02:51:52  bloovis
- * Imported sources
  *
  * Revision 1.8  2003/05/14 23:09:19  malexander
  * (mouse_event): Rename to mouseevent to avoid conflict with
@@ -74,15 +61,8 @@
  */
 #include	"def.h"
 
-#define USE_VMWAREINDENT	/* Define to use VMware indent	*/
-/* #define USE_GNUINDENT */	/* Define to use gnu indent	*/
+#define USE_GNUINDENT		/* Define to use gnu indent	*/
 /* #define USE_BORLANDINDENT */	/* Define to use Borland indent	*/
-
-#if defined(__linux__) || defined(__APPLE__)
-  #define HAS_CSCOPE 1
-#else
-  #define HAS_CSCOPE 0
-#endif
 
 #define	DIRLIST	0		/* Disarmed!                    */
 
@@ -125,26 +105,18 @@ KEY key[] = {
 #if defined(USE_BORLANDINDENT)
   {KCTRL | 'J',		borlandindent,	"borland-indent"},
   {-1,			gnuindent,	"gnu-indent"},
-  {-1,			vmwareindent,	"vmware-indent"},
   {-1,			indent,		"ins-nl-and-indent"},
 #elif defined(USE_GNUINDENT)
   {-1,			borlandindent,	"borland-indent"},
   {KCTRL | 'J',		gnuindent,	"gnu-indent"},
-  {-1,			vmwareindent,	"vmware-indent"},
-  {-1,			indent,		"ins-nl-and-indent"},
-#elif defined(USE_VMWAREINDENT)
-  {-1,			borlandindent,	"borland-indent"},
-  {-1,			gnuindent,	"gnu-indent"},
-  {KCTRL | 'J',		vmwareindent,	"vmware-indent"},
   {-1,			indent,		"ins-nl-and-indent"},
 #else
   {-1,			borlandindent,	"borland-indent"},
   {-1,			gnuindent,	"gnu-indent"},
-  {-1,			vmwareindent,	"vmware-indent"},
   {KCTRL | 'J',		indent,		"ins-nl-and-indent"},
 #endif
   {KCTRL | 'K',		killline,	"kill-line"},
-  {KCTRL | 'L',		erefresh,	"refresh"},
+  {KCTRL | 'L',		refresh,	"refresh"},
   {KCTRL | 'M',		newline,	"ins-nl"},
   {KCTRL | 'N',		forwline,	"forw-line"},
   {KCTRL | 'O',		openline,	"ins-nl-and-backup"},
@@ -204,7 +176,7 @@ KEY key[] = {
   {KMETA | KCTRL | 'S', forwregsearch,	"forw-regexp-search"},
   {KMETA | KCTRL | 'V', showversion,	"display-version"},
   {KMETA | '.',		findtag,	"find-tag"},
-#if HAS_CSCOPE
+#ifdef __linux__
   {KMETA | ',',		findcscope,	"find-cscope"},
 #endif
   {KMETA | '!',		reposition,	"reposition-window"},
@@ -217,7 +189,7 @@ KEY key[] = {
   {KMETA | 'C',		capword,	"cap-word"},
   {KMETA | 'D',		delfword,	"forw-del-word"},
   {KMETA | 'F',		forwword,	"forw-word"},
-#if HAS_CSCOPE
+#ifdef __linux__
   {KMETA | 'G',		findgrep,	"find-grep"},
 #endif
   {KMETA | 'H',		searchagain,	"search-again"},
@@ -244,7 +216,7 @@ KEY key[] = {
   {-1,			insertmacro,	"ins-macro"},
   {-1,			setoverstrike,	"set-overstrike"},
   {-1,			freetags,	"free-tags"},
-#if HAS_CSCOPE
+#ifdef __linux__
   {-1,			nextcscope,	"next-cscope"},
 #endif
   {-1,			mouseevent,	"mouse-event"},
@@ -437,7 +409,7 @@ namemacro (f, n, k)
   /* Read the name of the symbol to use, store the name in
    * a local array.
    */
-  if ((s = ereadv ("Macro name: ", xname, NXNAME, EFAUTO)) != TRUE)
+  if ((s = eread ("Macro name: ", xname, NXNAME, EFAUTO, NULL)) != TRUE)
     return (s);
 
   /* Compute the size of the macro, then allocate space

@@ -1,4 +1,4 @@
-/* $Header: /home/bloovis/cvsroot/pe/file.c,v 1.2 2005/05/31 18:18:20 bloovis Exp $
+/* $Header: /home/bloovis/cvsroot/pe/file.c,v 1.1 2003-11-06 02:51:52 bloovis Exp $
  *
  * Name:	MicroEMACS
  * 		File commands.
@@ -7,12 +7,8 @@
  *		decvax!decwrl!dec-rhea!dec-rex!conroy
  *
  * $Log: file.c,v $
- * Revision 1.2  2005/05/31 18:18:20  bloovis
- * (filesave): Add debug output to try to catch weird bug
- * where casefold gets zapped sometimes.
- *
- * Revision 1.1.1.1  2003/11/06 02:51:52  bloovis
- * Imported sources
+ * Revision 1.1  2003-11-06 02:51:52  bloovis
+ * Initial revision
  *
  * Revision 1.5  2001/03/05 16:04:05  malexander
  * (visit_file): Use structure assignments for brevity.
@@ -83,7 +79,7 @@ fileread (f, n, k)
 static int
 insertf (const char *fname)
 {
-  register EWINDOW *wp;
+  register WINDOW *wp;
   register BUFFER *bp;
   register LINE *lp1, *lp2;
   register int doto;
@@ -190,7 +186,7 @@ int
 visit_file (char *fname)
 {
   register BUFFER *bp;
-  register EWINDOW *wp;
+  register WINDOW *wp;
   register LINE *lp;
   register int i;
   register int s;
@@ -330,7 +326,7 @@ checkreadonly (void)
 int
 readin (const char *fname)
 {
-  register EWINDOW *wp;
+  register WINDOW *wp;
   register BUFFER *bp;
   register LINE *lp1;
   register LINE *lp2;
@@ -486,7 +482,7 @@ makename (char *bname, const char *fname)
 static void
 updatemode (void)
 {
-  register EWINDOW *wp;
+  register WINDOW *wp;
 
   ALLWIND (wp)			/* Update mode lines.   */
     if (wp->w_bufp == curbp)
@@ -675,7 +671,6 @@ int
 filesave (int f, int n, int k)
 {
   register int s;
-  int oldcasefold = casefold;
 
   if ((curbp->b_flag & BFCHG) == 0)	/* Return, no changes.  */
     return (TRUE);
@@ -704,8 +699,6 @@ filesave (int f, int n, int k)
 #if	BACKUP
   curbp->b_flag &= ~BFBAK;	/* No backup.           */
 #endif
-  if (casefold != oldcasefold)
-    eprintf ("casefold is false!");
   return (s);
 }
 

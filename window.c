@@ -44,9 +44,9 @@ reposition (int f, int n, int k)
  * everything will get fixed!
  */
 int
-erefresh (int f, int n, int k)
+refresh (int f, int n, int k)
 {
-  register EWINDOW *wp;
+  register WINDOW *wp;
   register int oldnrow;
   register int oldncol;
 
@@ -84,7 +84,7 @@ erefresh (int f, int n, int k)
 int
 nextwind (int f, int n, int k)
 {
-  register EWINDOW *wp;
+  register WINDOW *wp;
 
   if ((wp = curwp->w_wndp) == NULL)
     wp = wheadp;
@@ -103,8 +103,8 @@ nextwind (int f, int n, int k)
 int
 prevwind (int f, int n, int k)
 {
-  register EWINDOW *wp1;
-  register EWINDOW *wp2;
+  register WINDOW *wp1;
+  register WINDOW *wp2;
 
   wp1 = wheadp;
   wp2 = curwp;
@@ -191,7 +191,7 @@ mvupwind (int f, int n, int k)
 int
 onlywind (int f, int n, int k)
 {
-  register EWINDOW *wp;
+  register WINDOW *wp;
   register LINE *lp;
   register int i;
 
@@ -233,22 +233,22 @@ onlywind (int f, int n, int k)
 int
 splitwind (int f, int n, int k)
 {
-  register EWINDOW *wp;
+  register WINDOW *wp;
   register LINE *lp;
   register int ntru;
   register int ntrl;
   register int ntrd;
-  register EWINDOW *wp1;
-  register EWINDOW *wp2;
+  register WINDOW *wp1;
+  register WINDOW *wp2;
 
   if (curwp->w_ntrows < 3)
     {
       eprintf ("Cannot split a %d line window", curwp->w_ntrows);
       return (FALSE);
     }
-  if ((wp = (EWINDOW *) malloc (sizeof (EWINDOW))) == NULL)
+  if ((wp = (WINDOW *) malloc (sizeof (WINDOW))) == NULL)
     {
-      eprintf ("Cannot allocate EWINDOW block");
+      eprintf ("Cannot allocate WINDOW block");
       return (FALSE);
     }
   ++curbp->b_nwnd;		/* Displayed twice.     */
@@ -305,7 +305,6 @@ splitwind (int f, int n, int k)
   wp->w_linep = lp;		/* if necessary.        */
   curwp->w_flag |= WFMODE | WFHARD;
   wp->w_flag |= WFMODE | WFHARD;
-  wp->w_savep = NULL;
   return (TRUE);
 }
 
@@ -320,7 +319,7 @@ splitwind (int f, int n, int k)
 int
 enlargewind (int f, int n, int k)
 {
-  register EWINDOW *adjwp;
+  register WINDOW *adjwp;
   register LINE *lp;
   register int i;
 
@@ -374,7 +373,7 @@ enlargewind (int f, int n, int k)
 int
 shrinkwind (int f, int n, int k)
 {
-  register EWINDOW *adjwp;
+  register WINDOW *adjwp;
   register LINE *lp;
   register int i;
 
@@ -427,10 +426,10 @@ shrinkwind (int f, int n, int k)
  * might be better. Return a pointer, or
  * NULL on error.
  */
-EWINDOW *
+WINDOW *
 wpopup (void)
 {
-  register EWINDOW *wp;
+  register WINDOW *wp;
 
   if (wheadp->w_wndp == NULL && splitwind (FALSE, 0, KRANDOM) == FALSE)
     return (NULL);
