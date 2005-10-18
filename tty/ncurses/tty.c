@@ -4,7 +4,10 @@
  * By:      	Mark Alexander
  *              marka@pobox.com
  *
- * $Log$
+ * $Log: tty.c,v $
+ * Revision 1.1  2005-10-18 02:18:44  bloovis
+ * New files to implement ncurses screen handling.
+ *
  *
  */
 
@@ -118,7 +121,6 @@ void
 ttresize (void)
 {
   setttysize ();		/* found in "ttyio.c",  */
-  wrefresh (curscr);
 }
 
 /*
@@ -127,5 +129,5 @@ ttresize (void)
 void
 putline(int row, int col, const char *buf)
 {
-  mvaddnstr(row - 1, col - 1, buf, ncol - col + 1);
+  mvaddnstr(row - 1, col - 1, buf, ncol - col);
 }
