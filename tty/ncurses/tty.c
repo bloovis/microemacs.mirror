@@ -4,13 +4,7 @@
  * By:      	Mark Alexander
  *              marka@pobox.com
  *
- * $Log: tty.c,v $
- * Revision 1.2  2005-10-19 02:06:27  bloovis
- * (putline): Fix off-by-one bug.
- *
- * Revision 1.1  2005/10/18 02:18:44  bloovis
- * New files to implement ncurses screen handling.
- *
+ * $Log$
  *
  */
 
@@ -124,6 +118,7 @@ void
 ttresize (void)
 {
   setttysize ();		/* found in "ttyio.c",  */
+  wrefresh (curscr);
 }
 
 /*

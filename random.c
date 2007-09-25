@@ -1,4 +1,4 @@
-/* $Header: /home/bloovis/cvsroot/pe/random.c,v 1.3 2005-10-18 02:17:58 bloovis Exp $
+/* $Header: /home/bloovis/cvsroot/pe/random.c,v 1.2 2003/12/03 22:14:34 bloovis Exp $
  * Name:	MicroEMACS
  *		Assorted commands.
  * Version:	29
@@ -11,9 +11,6 @@
  * that they are all command processors.
  *
  * $Log: random.c,v $
- * Revision 1.3  2005-10-18 02:17:58  bloovis
- * Rename some things to avoid conflict with ncurses.
- *
  * Revision 1.2  2003/12/03 22:14:34  bloovis
  * (vmwareindent): New function to do VMware-style indenting.
  *

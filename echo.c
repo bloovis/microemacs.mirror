@@ -1,4 +1,4 @@
-/* $Header: /home/bloovis/cvsroot/pe/echo.c,v 1.3 2005-10-18 02:18:01 bloovis Exp $
+/* $Header: /home/bloovis/cvsroot/pe/echo.c,v 1.2 2004/04/20 15:18:19 bloovis Exp $
  *
  * Name:	MicroEMACS
  *		Echo line reading and writing.
@@ -10,9 +10,6 @@
  * known universe.
  *
  * $Log: echo.c,v $
- * Revision 1.3  2005-10-18 02:18:01  bloovis
- * Rename some things to avoid conflict with ncurses.
- *
  * Revision 1.2  2004/04/20 15:18:19  bloovis
  * (egetfname): Use ereadv instead of passing NULL arg list
  * pointer to eread; this is necessary for compiling on x86_64.

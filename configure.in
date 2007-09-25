@@ -36,7 +36,7 @@ LIBS="-ltermcap"],
 [ttydir=tty/ncurses
 LIBS="-lncurses"])
 
-# Set the default compiler switches based on the --enable-debug option
+# Set the default compiler switches based on the --enable-symbols option
 
 AC_ARG_ENABLE(debug,
 [  --enable-debug          Build with debugging symbols],

@@ -5,10 +5,7 @@
  * By:		Mark Alexander
  *		marka@pobox.com
  *
- * $Log: ttykbd.c,v $
- * Revision 1.1  2005-10-18 02:18:44  bloovis
- * New files to implement ncurses screen handling.
- *
+ * $Log$
  * 
  */
 

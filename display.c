@@ -1,4 +1,4 @@
-/* $Header: /home/bloovis/cvsroot/pe/display.c,v 1.2 2005-10-18 02:18:08 bloovis Exp $
+/* $Header: /home/bloovis/cvsroot/pe/display.c,v 1.1.1.1 2003/11/06 02:51:52 bloovis Exp $
  *
  * Name:	MicroEMACS
  *		Gosling style redisplay.
@@ -18,9 +18,6 @@
  * both off, the terminal is a VT52.
  *
  * $Log: display.c,v $
- * Revision 1.2  2005-10-18 02:18:08  bloovis
- * Rename some things to avoid conflict with ncurses.
- *
  * Revision 1.1.1.1  2003/11/06 02:51:52  bloovis
  * Imported sources
  *

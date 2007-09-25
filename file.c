@@ -1,4 +1,4 @@
-/* $Header: /home/bloovis/cvsroot/pe/file.c,v 1.4 2005-11-11 17:30:26 bloovis Exp $
+/* $Header: /home/bloovis/cvsroot/pe/file.c,v 1.2 2005/05/31 18:18:20 bloovis Exp $
  *
  * Name:	MicroEMACS
  * 		File commands.
@@ -7,13 +7,6 @@
  *		decvax!decwrl!dec-rhea!dec-rex!conroy
  *
  * $Log: file.c,v $
- * Revision 1.4  2005-11-11 17:30:26  bloovis
- * (filesave): Improve the detection of the elusive bug that
- * corrupts the casefold variable on file saves.
- *
- * Revision 1.3  2005/10/18 02:18:12  bloovis
- * Rename some things to avoid conflict with ncurses.
- *
  * Revision 1.2  2005/05/31 18:18:20  bloovis
  * (filesave): Add debug output to try to catch weird bug
  * where casefold gets zapped sometimes.
@@ -712,7 +705,7 @@ filesave (int f, int n, int k)
   curbp->b_flag &= ~BFBAK;	/* No backup.           */
 #endif
   if (casefold != oldcasefold)
-    eprintf ("casefold corrupted!");
+    eprintf ("casefold is false!");
   return (s);
 }
 

@@ -1,4 +1,4 @@
-/* $Header: /home/bloovis/cvsroot/pe/main.c,v 1.3 2005-10-18 02:18:05 bloovis Exp $
+/* $Header: /home/bloovis/cvsroot/pe/main.c,v 1.2 2005/05/31 18:18:22 bloovis Exp $
  *
  * Name:	MicroEMACS
  *		Mainline, macro commands.
@@ -7,9 +7,6 @@
  *		decvax!decwrl!dec-rhea!dec-rex!conroy
  *
  * $Log: main.c,v $
- * Revision 1.3  2005-10-18 02:18:05  bloovis
- * Rename some things to avoid conflict with ncurses.
- *
  * Revision 1.2  2005/05/31 18:18:22  bloovis
  * (bufinit): w_savep was uninitialized; clear it.
  *

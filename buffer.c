@@ -1,4 +1,4 @@
-/* $Header: /home/bloovis/cvsroot/pe/buffer.c,v 1.2 2005-10-18 02:18:07 bloovis Exp $
+/* $Header: /home/bloovis/cvsroot/pe/buffer.c,v 1.1.1.1 2003/11/06 02:51:52 bloovis Exp $
  *
  * Name:	MicroEMACS
  *		Buffer handling.
@@ -9,9 +9,6 @@
  *		drivax!alexande
  *
  * $Log: buffer.c,v $
- * Revision 1.2  2005-10-18 02:18:07  bloovis
- * Rename some things to avoid conflict with ncurses.
- *
  * Revision 1.1.1.1  2003/11/06 02:51:52  bloovis
  * Imported sources
  *

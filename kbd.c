@@ -1,4 +1,4 @@
-/* $Header: /home/bloovis/cvsroot/pe/kbd.c,v 1.2 2005-10-18 02:18:03 bloovis Exp $
+/* $Header: /home/bloovis/cvsroot/pe/kbd.c,v 1.1.1.1 2003/11/06 02:51:52 bloovis Exp $
  *
  * Name:	MicroEMACS
  *		Terminal independent keyboard handling.
@@ -6,9 +6,6 @@
  * Modified by:	Mark Alexander (amdahl!drivax!alexande)
  *
  * $Log: kbd.c,v $
- * Revision 1.2  2005-10-18 02:18:03  bloovis
- * Rename some things to avoid conflict with ncurses.
- *
  * Revision 1.1.1.1  2003/11/06 02:51:52  bloovis
  * Imported sources
  *

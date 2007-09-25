@@ -1,4 +1,4 @@
-/* $Header: /home/bloovis/cvsroot/pe/search.c,v 1.2 2005-10-18 02:18:06 bloovis Exp $
+/* $Header: /home/bloovis/cvsroot/pe/search.c,v 1.1.1.1 2003/11/06 02:51:52 bloovis Exp $
  *
  * Name:	MicroEMACS
  * 		Search commands.
@@ -17,9 +17,6 @@
  * and the query-replace code, is by Rich Ellison.
  *
  * $Log: search.c,v $
- * Revision 1.2  2005-10-18 02:18:06  bloovis
- * Rename some things to avoid conflict with ncurses.
- *
  * Revision 1.1.1.1  2003/11/06 02:51:52  bloovis
  * Imported sources
  *
