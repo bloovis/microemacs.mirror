@@ -48,6 +48,7 @@
 
 static struct termios oldtty;	/* Old tty state		*/
 static struct termios newtty;	/* New tty state		*/
+static struct termios shelltty;	/* tty state for spawning shell	*/
 
 int nrow;			/* Terminal size, rows.         */
 int ncol;			/* Terminal size, columns.      */
@@ -75,6 +76,12 @@ setttysize (void)
 void
 ttopen (void)
 {
+  cc_t cc[] = { 0x3, 0x1c, 0x7f, 0x15,
+		0x4, 0x0, 0x1, 0x0,
+		0x11, 0x13, 0x1a, 0x0,
+		0x12, 0xf, 0x17, 0x16
+	      };
+
   setlocale (LC_ALL, "");
   tcgetattr (0, &oldtty);
   initscr ();			/* initialize the curses library */
@@ -85,6 +92,17 @@ ttopen (void)
   raw ();
   setttysize ();
   tcgetattr (0, &newtty);
+
+  /* Initialize the shelltty structure.  These values were
+   * determined empirically with a test program run from a shell.
+   */
+  shelltty.c_iflag = ICRNL | IXON | IUTF8;
+  shelltty.c_oflag = OPOST | ONLCR;
+  shelltty.c_cflag = CBAUD | CSIZE | CREAD;
+  shelltty.c_lflag = ISIG | ICANON | ECHO | ECHOE |
+		     ECHOK | ECHOCTL | ECHOKE |
+		     IEXTEN;
+  memcpy(shelltty.c_cc, cc, sizeof(cc));
 }
 
 
@@ -111,6 +129,18 @@ int
 ttnew (void)
 {
   return tcsetattr (0, TCSANOW, &newtty) >= 0;
+}
+
+
+/*
+ * Set the tty to a state suitable for spawning a shell.
+ * Return TRUE if successful, FALSE otherwise.
+ */
+
+int
+ttshell (void)
+{
+  return tcsetattr (0, TCSANOW, &shelltty) >= 0;
 }
 
 

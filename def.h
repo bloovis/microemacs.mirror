@@ -945,6 +945,7 @@ void putpad (const char *str);
 void ttopen (void);
 int ttold (void);
 int ttnew (void);
+int ttshell (void);
 void setttysize (void);
 void ttclose (void);
 int ttstat (void);

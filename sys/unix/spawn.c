@@ -51,7 +51,6 @@ extern struct termios newtty;
 
 static int saw_sigpipe;
 
-
 /*
  * Get the name of the parent process, and return a pointer to a
  * static buffer containing the first 31 characters of the name,
@@ -181,7 +180,7 @@ spawn (char *program, const char *args[])
 	}
     }
   ttflush ();
-  if (ttold () == FALSE)
+  if (ttshell () == FALSE)
     {
       eprintf ("Unable to restore terminal state");
       return (FALSE);
