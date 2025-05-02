@@ -35,6 +35,10 @@ def showdir(dir)
   # the dot to the first entry other than . or ..
   fulldir = File.expand_path(dir)
   output, stderr_str, status = Open3.capture3('ls', '-laF', fulldir)
+  if status != 0
+    echo "Unable to open directory"
+    return EFALSE
+  end
   stderr_str += ""	# suppress warning about unused variable
   insert fulldir + ":\n"
   insert output
