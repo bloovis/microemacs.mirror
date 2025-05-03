@@ -1,7 +1,7 @@
 microemacs.pdf : microemacs.md template.latex
 	pandoc -s --template=template.latex -o microemacs.tex microemacs.md
-	latex microemacs.tex
-	latex -output-format=pdf microemacs.tex
+	latex microemacs.tex >/dev/null
+	latex -output-format=pdf microemacs.tex >/dev/null
 
 # The imakeidx package must be loaded before the hyperref package.
 # This rule modifies Pandoc's latex template to allow that to happen.

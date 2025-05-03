@@ -1342,6 +1342,11 @@ searches using a subset of POSIX regular expressions:
 
 * `+` (one or more occurrences)
 
+If you configure MicroEMACS with the `--with-pcre2` option, MicroEMACS
+will use the PCRE2 library to support Perl-compatible regular expressions.  See
+[Building with GCC] below.
+
+
 C-S, M-S
 
 :   **forw-search**\index{C-S}\index{M-S}\index{forw-search}
@@ -3013,6 +3018,11 @@ You can supply one or more optional parameters to the `configure` command:
 :   Use this option to build support for Ruby extensions into MicroEMACS.
     This option will not work on Windows or FreeBSD.
     See the [**Ruby Extensions**](#ruby-extensions) section above for more information.
+
+`--with-pcre2`
+
+:   Use this option to use the PCRE2 library for Perl-compatible regular expressions,
+    instead of the default Henry Spencer (circa 1986) regular expressions.
 
 \newpage
 

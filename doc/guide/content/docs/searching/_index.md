@@ -48,6 +48,11 @@ searches using a subset of POSIX regular expressions:
 
 * `+` (one or more occurrences)
 
+If you configure MicroEMACS with the `--with-pcre2` option, MicroEMACS
+will use the PCRE2 library to support Perl-compatible regular expressions.  See
+[Building a MicroEMACS]({{< relref "building" >}}).
+
+
 C-S, M-S
 
 :   **forw-search**
