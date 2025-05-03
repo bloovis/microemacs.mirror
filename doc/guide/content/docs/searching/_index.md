@@ -213,13 +213,34 @@ M-R
     You can defeat this "feature"
     if you prefix this command with an argument (the argument value is ignored).
 
-M-/
+M-?
 
-:   **reg-replace**
+:   **reg-query-replace**
 
     Similar to **query-replace**, except that the search string is a
-    regular expression, and the replacement string can contain
-    the following special characters:
+    regular expression.  If MicroEMACS was built with PCRE2 suport,
+    the replacement string can contain the following special sequences:
+
+    * `$$`: insert a dollar character
+
+    * `$n` or `${n}`: insert the contents of group n
+
+    * `$0` or `$&`: insert the entire matched substring
+
+    * `` $` ``: insert the substring that precedes the match
+
+    * `$'`: insert the substring that follows the match
+
+    * `$_`: insert the entire input string
+
+    * `$*MARK` or `${*MARK}`  insert a control verb name
+
+    See the
+    [PCRE2 documentation for substitions](https://www.pcre.org/current/doc/html/pcre2api.html#SEC37)
+    for details.
+
+    If MicroEMACS was *not* built with PCRE2 support, the replacement
+    string can contain the following special sequences:
 
     * `&` stands for the entire matched string.
 
@@ -230,12 +251,12 @@ M-/
     * `\` followed  by either `\` or `&` stands for that character itself,
       without the leading `\`.
 
-M-?
+M-/
 
-:   **rep-query-replace**
+:   **reg-replace**
 
-    Similar to **reg-replace**, except that the user is prompted
-    to confirm each replacement, as in **query-replace**.
+    Similar to **reg-query-replace**, except that the user is *not* prompted
+    to confirm each replacement, as in **replace-string**.
 
 C-X I
 
