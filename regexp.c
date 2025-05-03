@@ -52,8 +52,71 @@
 
 #include <string.h>
 #include <stdlib.h>
-
 #include "regexp.h"
+
+#define	FAIL(m)	{ regerror(m); return(NULL); }
+
+#if USE_PCRE2
+
+regexp *
+regcomp (const char *exp)
+{
+  regexp *r;
+  int errornumber;
+  PCRE2_SIZE erroroffset;
+
+  if (exp == NULL)
+    FAIL ("NULL argument");
+  r = calloc (1, sizeof (regexp));
+  if (r == NULL)
+    FAIL ("out of space");
+  r->re = pcre2_compile ((PCRE2_SPTR)exp, PCRE2_ZERO_TERMINATED, 0,
+			 &errornumber, &erroroffset, NULL);
+  if (r->re == NULL) {
+    PCRE2_UCHAR buffer[256];
+    pcre2_get_error_message(errornumber, buffer, sizeof(buffer));
+    FAIL ((const char *)buffer);
+  }
+  r->md = pcre2_match_data_create_from_pattern(r->re, NULL);
+  return r;
+}
+
+int
+regexec (regexp * prog, const char *string)
+{
+  int i, rc;
+  PCRE2_SIZE *ovector;
+
+  rc = pcre2_match(
+    prog->re,                   /* the compiled pattern */
+    (PCRE2_SPTR)string,         /* the subject string */
+    (PCRE2_SIZE)strlen(string), /* the length of the subject */
+    0,                          /* start at offset 0 in the subject */
+    0,                          /* default options */
+    prog->md,                   /* block for storing the result */
+    NULL);                      /* use default match context */
+
+  if (rc < 0)
+    return 0;			/* no match */
+
+  ovector = pcre2_get_ovector_pointer(prog->md);
+  for (i = 0; i < rc; i++) {
+    prog->startp[i] = (const char *) string + ovector[2*i];
+    prog->endp[i]   = (const char *) string + ovector[2*i+1];
+  }
+  return 1;
+}
+
+void
+regfree (regexp * reg)
+{
+  pcre2_match_data_free(reg->md);   /* Release memory used for the match */
+  pcre2_code_free(reg->re);         /*   data and the compiled pattern. */
+  free (reg);
+}
+
+#else	/* !USE_PCRE2 */
+
 #include "regmagic.h"
 
 #undef min
@@ -297,6 +360,15 @@ regcomp (const char *exp)
     }
 
   return (r);
+}
+
+/*
+ - regfree - free up a previously compiled regular expression
+ */
+void
+regfree (regexp * reg)
+{
+  free (reg);
 }
 
 /*
@@ -1283,3 +1355,5 @@ strcspn (s1, s2)
   return (count);
 }
 #endif
+
+#endif /* USE_PCRE2 */

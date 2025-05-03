@@ -50,6 +50,13 @@ LIBS="$LIBS -ldl"],
 [CFLAGS_RUBY=""
 ])
 
+AC_ARG_WITH(pcre2,
+[  --with-pcre2            Use PCRE2 for regular expressions],
+[CFLAGS_PCRE2="-DUSE_PCRE2=1"
+LIBS="$LIBS -lpcre2-8"],
+[CFLAGS_PCRE2=""
+])
+
 dnl Set host-specific system and tty directories
 case "${host}" in
 *mingw*)	ttydir=tty/mingw;
@@ -74,6 +81,7 @@ AC_SUBST(CFLAGS_DEBUG)
 AC_SUBST(CFLAGS_DEFAULT)
 AC_SUBST(CFLAGS_OPTIMIZE)
 AC_SUBST(CFLAGS_RUBY)
+AC_SUBST(CFLAGS_PCRE2)
 
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT

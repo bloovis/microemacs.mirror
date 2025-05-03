@@ -647,6 +647,7 @@ ac_includes_default="\
 ac_header_c_list=
 ac_subst_vars='LTLIBOBJS
 LIBOBJS
+CFLAGS_PCRE2
 CFLAGS_RUBY
 CFLAGS_OPTIMIZE
 CFLAGS_DEFAULT
@@ -720,6 +721,7 @@ with_linux
 with_termcap
 with_ntconsole
 with_ruby
+with_pcre2
 enable_debug
 '
       ac_precious_vars='build_alias
@@ -1360,6 +1362,7 @@ Optional Packages:
   --with-termcap          Use termcap instead of ncurses for screen I/O
   --with-ntconsole        Use NT-specific console I/O instead of generic UNIX I/O
   --with-ruby             Add Ruby scripting support
+  --with-pcre2            Use PCRE2 for regular expressions
 
 Some influential environment variables:
   CC          C compiler command
@@ -3513,6 +3516,18 @@ else $as_nop
 fi
 
 
+
+# Check whether --with-pcre2 was given.
+if test ${with_pcre2+y}
+then :
+  withval=$with_pcre2; CFLAGS_PCRE2="-DUSE_PCRE2=1"
+LIBS="$LIBS -lpcre2-8"
+else $as_nop
+  CFLAGS_PCRE2=""
+
+fi
+
+
 case "${host}" in
 *mingw*)	ttydir=tty/mingw;
 		sysdir=sys/mingw;
@@ -3528,6 +3543,7 @@ then :
 else $as_nop
   CFLAGS_DEFAULT=CFLAGS_OPTIMIZE
 fi
+
 
 
 

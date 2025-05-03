@@ -287,7 +287,7 @@ regsearch (char *prompt, int dir)
   /* Compile the pattern into a regexp program.
    */
   if (regpat != NULL)
-    free (regpat);
+    regfree (regpat);
   if ((regpat = regcomp ((const char *) pat)) == NULL)	/* regerror shows message */
     return (FALSE);
 
@@ -981,10 +981,19 @@ searchandreplace (int f, int query, int dir)
   int rcnt = 0;			/* Replacements made so far     */
   int plen;			/* length of found string       */
   int c;			/* input character		*/
+  const char *oldprompt;	/* regexp or string?		*/
+  const char *newprompt;	/* new string or replacement?	*/
 
-  if ((s = readpattern ("Old string")) != TRUE)
+  if (dir == SRCH_REGFORW || dir == SRCH_REGBACK) {
+    oldprompt = "Regexp";
+    newprompt = "Replacement: ";
+  } else {
+    oldprompt = "Old string";
+    newprompt = "New string: ";
+  }
+  if ((s = readpattern (oldprompt)) != TRUE)
     return (s);
-  if ((s = ereply ("New string: ", news, NPAT)) == ABORT)
+  if ((s = ereply (newprompt, news, NPAT)) == ABORT)
     return (s);
   if (s == FALSE)
     news[0] = '\0';
@@ -995,7 +1004,7 @@ searchandreplace (int f, int query, int dir)
   if (dir == SRCH_REGFORW || dir == SRCH_REGBACK)
     {
       if (regpat != NULL)
-	free (regpat);
+	regfree (regpat);
       if ((regpat = regcomp ((const char *) pat)) == NULL)	/* regerror shows message */
 	return (FALSE);
     }

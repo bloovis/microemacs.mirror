@@ -44,6 +44,32 @@
 #include <string.h>
 #include <ctype.h>
 #include <regexp.h>
+
+#if USE_PCRE2
+
+int
+regsub (const regexp * rp, const char *source, char *dest, int destlen)
+{
+  int rc;
+  PCRE2_SIZE outlen = destlen;
+
+  rc = pcre2_substitute(
+	rp->re,				/* compiled regexp */
+	(PCRE2_SPTR)rp->startp[0],	/* subject */
+	rp->endp[0] - rp->startp[0],	/* subject length */
+	0,				/* start offset */
+	0,				/* options */
+	rp->md,				/* match data */
+	NULL,				/* match context */
+	(PCRE2_SPTR)source,		/* replacement */
+	PCRE2_ZERO_TERMINATED,		/* replacement length */
+	(PCRE2_UCHAR *)dest,		/* output buffer */
+	&outlen);			/* output buffer length */
+  return rc > 0;
+}
+
+#else	/* !USE_PCRE2 */
+
 #include "regmagic.h"
 
 /*
@@ -121,3 +147,5 @@ regsub (const regexp * rp, const char *source, char *dest, int destlen)
   *dst++ = '\0';
   return 1;
 }
+
+#endif	/* USE_PCRE2 */

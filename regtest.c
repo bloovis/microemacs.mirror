@@ -71,6 +71,7 @@ main (int argc, const char *argv[])
       else
 	printf ("Error in replacement pattern '%s'\n", repl);
     }
+  regfree (r);
   return 0;
 }
 

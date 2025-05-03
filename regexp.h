@@ -23,16 +23,26 @@
  * Caveat:  this is V8 regexp(3) [actually, a reimplementation thereof],
  * not the System V one.
  */
+#if USE_PCRE2
+#define PCRE2_CODE_UNIT_WIDTH 8
+#include <pcre2.h>
+#endif
+
 #define NSUBEXP  10
 typedef struct regexp
 {
   const char *startp[NSUBEXP];
   const char *endp[NSUBEXP];
+#if USE_PCRE2
+  pcre2_code *re;		/* compiled regular expression */
+  pcre2_match_data *md;		/* result of a match */
+#else
   char regstart;		/* Internal use only. */
   char reganch;			/* Internal use only. */
   const char *regmust;		/* Internal use only. */
   int regmlen;			/* Internal use only. */
   char program[1];		/* Unwarranted chumminess with compiler. */
+#endif
 }
 regexp;
 
@@ -40,3 +50,4 @@ extern regexp *regcomp (const char *exp);
 extern int regexec (regexp * prog, const char *string);
 extern int regsub (const regexp * prog, const char *source, char *dest, int destlen);
 extern void regerror (const char *s);
+extern void regfree (regexp * prog);
