@@ -36,7 +36,13 @@
 #include	"def.h"
 
 char *version[] = {
-  "MicroEMACS version 34, 09 Feb 2019, source from marka@pobox.com",
-  "Released under the terms of the GNU General Public Licence Version 3",
+  "MicroEMACS version 2025-05-03"
+#if USE_RUBY
+  " (ruby)"
+#endif
+#if USE_PCRE2
+  " (pcre2)"
+#endif
+  ,"Released under the terms of the GNU General Public Licence Version 3",
   NULL
 };
