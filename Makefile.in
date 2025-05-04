@@ -9,7 +9,7 @@ srcdir		= @srcdir@
 SYS		= @srcdir@/@sysdir@
 TTY		= @srcdir@/@ttydir@
 VPATH		= $(srcdir):$(SYS):$(TTY)
-INC		= -I$(srcdir) -I$(SYS) -I$(TTY)
+INC		= -I$(srcdir) -I$(SYS) -I$(TTY) -I.
 
 # Compilers, linkers, and their flags.
 
@@ -67,9 +67,18 @@ OBJ :=	@EXTRA_OBJS@ \
 
 # How to link MicroEMACS.
 
-pe@EXEEXT@:		$(OBJ)
+pe@EXEEXT@ : gitrev $(OBJ)
 	$(LD) -o pe $(LDFLAGS) $(OBJ) $(LIBS)
 #	strip pe@EXEEXT@
+
+# Generate gitrev.h, which contains the git HEAD revision number.
+
+.PHONY: gitrev
+gitrev :
+	echo "#define DATE \"`date -I`\"" >gitrev.h
+	git rev-parse HEAD  | sed -n 's/^\(.......\).*/#define GITREV "\1"/p' >>gitrev.h
+
+version.o : gitrev
 
 # Test programs
 
