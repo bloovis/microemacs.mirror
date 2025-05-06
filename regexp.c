@@ -104,7 +104,7 @@ regexec (regexp * prog, const char *string)
   n = rc;
   if (n > NSUBEXP) {
     char buf[256];
-    snprintf(buf, sizeof(buf), "[%d groups exceeds limit %d]", n - 1, NSUBEXP);
+    snprintf(buf, sizeof(buf), "[%d groups exceeds limit %d]", n, NSUBEXP);
     regerror (buf);
     n = NSUBEXP;
   }
