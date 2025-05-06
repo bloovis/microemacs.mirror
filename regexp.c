@@ -50,6 +50,7 @@
 #include <stdio.h>
 #endif
 
+#include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include "regexp.h"
@@ -84,7 +85,7 @@ regcomp (const char *exp)
 int
 regexec (regexp * prog, const char *string)
 {
-  int i, rc;
+  int i, rc, n;
   PCRE2_SIZE *ovector;
 
   rc = pcre2_match(
@@ -99,8 +100,17 @@ regexec (regexp * prog, const char *string)
   if (rc < 0)
     return 0;			/* no match */
 
+  /* Make sure we don't exceed the maximum number of groups. */
+  n = rc;
+  if (n > NSUBEXP) {
+    char buf[256];
+    snprintf(buf, sizeof(buf), "[%d groups exceeds limit %d]", n - 1, NSUBEXP);
+    regerror (buf);
+    n = NSUBEXP;
+  }
+
   ovector = pcre2_get_ovector_pointer(prog->md);
-  for (i = 0; i < rc; i++) {
+  for (i = 0; i < n; i++) {
     prog->startp[i] = (const char *) string + ovector[2*i];
     prog->endp[i]   = (const char *) string + ovector[2*i+1];
   }
