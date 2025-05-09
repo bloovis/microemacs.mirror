@@ -75,9 +75,7 @@ pe@EXEEXT@ : rev $(OBJ)
 
 .PHONY: rev
 rev :
-	echo "#define DATE \"`date -I`\"" >rev.h
-	git rev-parse HEAD  | sed -n 's/^\(.......\).*/#define REV "\1"/p' >>rev.h
-	#fossil info | sed -n 's/checkout: *\(..........\).*/#define REV "\1"/p' >>rev.h
+	$(srcdir)/get_version.sh $(srcdir)
 
 version.o : rev
 
