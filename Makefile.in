@@ -67,18 +67,19 @@ OBJ :=	@EXTRA_OBJS@ \
 
 # How to link MicroEMACS.
 
-pe@EXEEXT@ : gitrev $(OBJ)
+pe@EXEEXT@ : rev $(OBJ)
 	$(LD) -o pe $(LDFLAGS) $(OBJ) $(LIBS)
 #	strip pe@EXEEXT@
 
-# Generate gitrev.h, which contains the git HEAD revision number.
+# Generate rev.h, which contains the git head or fossil leaf revision number.
 
-.PHONY: gitrev
-gitrev :
-	echo "#define DATE \"`date -I`\"" >gitrev.h
-	git rev-parse HEAD  | sed -n 's/^\(.......\).*/#define GITREV "\1"/p' >>gitrev.h
+.PHONY: rev
+rev :
+	echo "#define DATE \"`date -I`\"" >rev.h
+	git rev-parse HEAD  | sed -n 's/^\(.......\).*/#define REV "\1"/p' >>rev.h
+	#fossil info | sed -n 's/checkout: *\(..........\).*/#define REV "\1"/p' >>rev.h
 
-version.o : gitrev
+version.o : rev
 
 # Test programs
 

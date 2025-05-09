@@ -33,10 +33,10 @@
  * configured features (Ruby and PCRE2).
  */
 #include	"def.h"
-#include	"gitrev.h"
+#include	"rev.h"
 
 char *version[] = {
-  "MicroEMACS " DATE " git-" GITREV
+  "MicroEMACS " DATE " " REV
 #if USE_RUBY
   " (ruby)"
 #endif
