@@ -52,7 +52,7 @@ and Control-Q while editing.
 You can get around this problem by
 reassigning the functions that normally are invoked with these
 keys to other keys.  These key assignments could be placed in
-your startup profile (see the [**Profiles**](profiles.md) section).
+your startup profile (see the [Profiles](profiles.md) section).
 
 **-z**
 
@@ -66,7 +66,7 @@ editors and language processors.  It has no effect on VMS or UNIX.
 
 Tells MicroEMACS to read the specified
 *profile*  at startup,
-instead of the default profile.  See the [**Profiles**](profiles.md) section for
+instead of the default profile.  See the [Profiles](profiles.md) section for
 more information about profiles.
 
 **-r**
@@ -85,7 +85,7 @@ MicroEMACS will create up to two
 split-screen windows to view the first two files you specify.
 If you specify only one file, MicroEMACS will create one full-screen
 window.  The commands for manipulating windows are described in the
-[**Window Management**](window-management.md) section.
+[Window Management](window.md) section.
 
 Any changes you make to a file while it is in a buffer will not affect
 the original file until you tell MicroEMACS to save the file.
@@ -95,7 +95,7 @@ with an empty buffer called "main", which has no associated filename.
 You can give this buffer a filename, or read a file into it,
 or you can read files
 into their own separate buffers.  The commands for reading and saving files
-are described in the [**Files**](files.md) section.
+are described in the [Files](files.md) section.
 
 After MicroEMACS reads in the files you specify (if any), but before
 it accepts any keyboard entries,

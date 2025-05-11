@@ -23,7 +23,7 @@ always advisable.
 
 Word wrapping can be performed by binding a key
 to the **ins-self-with-wrap** function.
-This function is described in the [**Paragraphs**](#paragraphs) section below.
+This function is described in the [Paragraphs](paragraphs.md) section.
 
 **C-M, Return** (**ins-nl**)
 

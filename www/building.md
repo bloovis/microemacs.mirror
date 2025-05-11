@@ -86,7 +86,7 @@ it can be debugged with gdb.
 
 Use this option to build support for Ruby extensions into MicroEMACS.
 This option will not work on Windows or FreeBSD.
-See the [**Ruby Extensions**](#ruby-extensions) section above for more information.
+See the [Ruby Extensions](ruby.md) section for more information.
 
 `--with-pcre2`
 

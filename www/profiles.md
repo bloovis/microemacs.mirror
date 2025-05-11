@@ -80,7 +80,7 @@ name.
 
     You can use the **display-bindings**
     extended command to get a partial
-    list of key names, or see the [**Wall Chart**](wall-chart.md) section.
+    list of key names, or see the [Wall Chart](wall-chart.md) section.
 
     MicroEMACS converts the key name to the corresponding internal key code.
     Only one key name is allowed within a single pair of brackets.

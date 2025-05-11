@@ -225,7 +225,7 @@ line breaks.
 
 This function deletes the current buffer's mode, if any.
 It then creates a mode called `name`, with an empty key binding table, and attaches
-it to the buffer.  See the [**Modes**](#modes) section below for
+it to the buffer.  See the [Modes](modes.md) section for
 more information about modes.
 
 `bind(name, key, mode=false)`

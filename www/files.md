@@ -33,7 +33,7 @@ buffer has not been changed since the last write.
 If you used the **-b** option when you invoked MicroEMACS, and
 this is first time a **file-save** command has been performed
 on the file, MicroEMACS will create a backup of the file.
-See the section [**Starting**](#starting) for more information on backups.
+See the [Starting](starting.md) section for more information on backups.
 
 The **C-X C-S** form of the command is not usable if the terminal being used
 required XON/XOFF support.

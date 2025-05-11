@@ -15,7 +15,7 @@ line on the screen, which is used to display messages and
 ask one line questions, is called the *echo line* .
 Typing in the echo line
 is like typing commands to the operating system.  More details later
-in the section **The Echo Line**.
+in the section [The Echo Line](#echo).
 
 The remainder of the screen is filled with text *windows* .
 When MicroEMACS is first started, there will be one or two text windows,
@@ -166,7 +166,7 @@ holding down `ALT` and `CTRL`, while pressing
 On the VME/10, some of the cursor keys are not available, due to
 the inherent physical limitations of the keyboard itself.
 
-See the [**Wall Chart**](wall-chart.md) section of this manual for the
+See the [Wall Chart](wall-chart.md) section of this manual for the
 predefined bindings of some the special PC keys.
 
 ### The Zenith Z-19/29 Keyboard
@@ -183,7 +183,7 @@ When preceded by the F6 key (BLUE on Z-19), the arrow keys
 move to the beginning
 or end of the current line or buffer.
 The 5 key is the same as **C-S** (forw-search), and shift-5 is
-search-again.  See the [**Wall Chart**](wall-chart.md) section of this manual
+search-again.  See the [Wall Chart](wall-chart.md) section of this manual
 for further key bindings for the Z-19/29.
 
 Not all of the key bindings that allow the shifted arrows to work like EDT
@@ -195,7 +195,7 @@ If you want MicroEMACS
 to read these bindings when it starts up, and you don't care about
 losing the old meanings of **M-B** and **M-C**, then
 copy **edt.pro** to the default profile name, as described below
-in the **Profiles** section.
+in the [Profiles](profiles.md) section.
 
 ### The VT-100 Keyboard
 
@@ -259,7 +259,6 @@ The `F20` key is the same as **C-X C-Z** (shrink window).
 
 ## Key Bindings
 
-
 Normally when you type a key, MicroEMACS attempts to
 interprets the key as a command.  Internally, MicroEMACS keeps a table
 of each possible key, and the command assocated
@@ -274,14 +273,16 @@ key.  These commands can still be entered by using
 the (**M-X**) (`ESC X`) "extended-command"
 prefix, or by binding them to a key
 with the "bind-to-key" command.
-See the section **Key Binding Commands**
-below for more information.
+See the section [Key Binding Commands](key-binding.md)
+for more information.
 
 In subsequent sections, the command descriptions will give not only the
 key that the command is normally bound to, but also the command name,
 which is useful when you want to change the key bindings.
 
+<span id="echo">
 ## The Echo Line
+</span>
 
 The echo line has two purposes; displaying messages and asking one
 line questions.
