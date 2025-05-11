@@ -1,4 +1,4 @@
-# MicroEMACS User's Guide
+# MicroEMACS User's Guide (web version)
 
 This is the web version of the MicroEMACS User's Guide.
 It uses Hugo to generate a static HTML web site for the guide.
