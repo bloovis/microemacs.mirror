@@ -169,7 +169,7 @@ It contains information about what is being displayed in the
 window. Mode lines separate windows from each other and from the
 echo line.
 
-Three important bits of information are displayed in the mode line.
+Four important bits of information are displayed in the mode line.
 These are the buffer *mode* \index{Mode} (if any) in parentheses,
 the *buffer name* \index{Buffer name},
 the *file name* \index{File name},
@@ -542,7 +542,7 @@ meanings:
     name and moves the original file into that directory.  If you haven't
     defined XBACKUP, MicroEMACS renames the original file in one of two ways:
 
-    * On UNIX-like operating systems, such as Linux,\index{UNIX}, it appends a "~" character to the filename.
+    * On UNIX-like operating systems, such as Linux\index{UNIX}, it appends a "~" character to the filename.
 
     * On PC-DOS\index{PC-DOS} and FlexOS\index{FlexOS},
     it changes the extension to ".BAK".
@@ -652,7 +652,7 @@ C-C
     is cleared and repainted.
 
     Subjobs are implemented in FlexOS\index{FlexOS},
-    PC-DOS\index{PC-DOS}
+    PC-DOS\index{PC-DOS},
     VMS\index{VMS}, and UNIX-like operating systems, such as Linux\index{UNIX}.
     Users of CP/M\index{CP/M} are out of luck.
 
@@ -912,7 +912,7 @@ C-J
 
     This command is like a **ins-nl-and-indent**, but also attempts to indent
     according to the GNU coding standards in use at Cygnus in the 1990s.
-    If the previous line starts with `{`, `if`, `while`, `for`, `else`, `case, or an argument
+    If the previous line starts with `{`, `if`, `while`, `for`, `else`, `case`, or an argument
     of four (i.e. a single `Control-U`) is specified, indent by two spaces. If an
     argument of 16 (i.e. two `Control-U`s) is specified, reduce indentation by two
     spaces.  Otherwise retain the same indentation.
