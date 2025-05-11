@@ -128,7 +128,7 @@ only the Linux\index{Linux} version now.
 
 In the 80s, MicroEMACS was small enough to run easily from a floppy disk, but the amount of text that
 could be edited was limited by the very small amount of available RAM
-(640kb on PCs running MS-DOS).  Nowadays this limit is effectly non-existent, give the huge amount of memory
+(640kb on PCs running MS-DOS).  Nowadays this limit is effectively non-existent, give the huge amount of memory
 found in modern computers, but MicroEMACS is still small enough to be run from a floppy disk
 (if one could be found); its code size is about the same as `/bin/ls` on a current 64-bit
 Linux distribution.
