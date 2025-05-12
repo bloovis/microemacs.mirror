@@ -1,5 +1,11 @@
 # Introduction
 
+(**Note**: this document was originally written around 1986 by
+either Dave Conroy, the original author of MicroEMACS, or Brian Straight; my memory
+of its exact origin is not clear.  I have updated it since then,
+but it still retains historical information about computers and
+terminals no longer in use.)
+
 This document describes MicroEMACS, a
 public-domain[^1] display editor, loosely based on EMACS, that runs on little
 computers.
@@ -14,8 +20,7 @@ fundamental mode EMACS commands (actually, it implements a set of
 rebindings used by a group of users at Digital Equipment
 Corporation[^2]).
 
-[^2]: Further modified at DRI to more closely resemble, but not
-completely emulate, MINCE..
+[^2]: Further modified by me at Digital Research in the late 80s to more closely resemble, but not completely emulate, MINCE..
 
 We call it *Micro* EMACS to emphasize the fact that it is
 but a shadow of full EMACS. No attempt has been made to make MicroEMACS
@@ -37,15 +42,8 @@ mod.sources.  Since then it has undergone a fair number of bug fixes
 and performance improvements, and a few minor enhancements.
 
 This version of MicroEMACS is not to be confused with other popular
-versions that are derived from Conroy's November 1985 release.  These
-other versions of MicroEMACS have version numbers like 3.8 or 3.9, are
-considerably larger and feature-rich, are copyrighted, and are now
-being maintained by Daniel Lawrence. 
-
-I (Mark Alexander) converted this document from TeX to Scribe to FinalWord
-1.15 to Borland Sprint, and finally to Pandoc/Latex, since Sprint
-is no longer available and doesn't run on Linux.  I added new material
-to bring the document up to date with the program itself.
+versions that are derived from Conroy's 1986 release, including
+the once-popular Daniel Lawrence version, and the Linus Torvalds version.
 
 ### 2018 Update
 
