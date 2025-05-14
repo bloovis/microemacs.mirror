@@ -1,13 +1,22 @@
 # MicroEMACS (Dave Conroy version with enhancements)
 
-This is a small version of MicroEMACS that is little changed from
-the version originally posted by Dave Conroy to USENET in 1986.  It
+This is an enhanced version of the MicroEMACS that was
+originally posted by Dave Conroy to USENET in 1986.  It
 predates the very popular Daniel Lawrence version of MicroEMACS, which
 is much larger.
 
-I have added a few features over the years, most recently support for
-etags, cscope, ispell, undo, UTF-8, regular expression search and
-replace, and extensions written in Ruby.  In the past I ported it to
+I have added support for many new features over the years:
+
+* etags
+* scope
+* ispell
+* undo
+* UTF-8
+* regular expression search and replace
+* optional PCRE2 (Perl-compatible regular expressions)
+* extensions written in Ruby
+
+In the past I ported it to
 numerous operating systems, but currently this source tree supports
 only Linux and Windows (using MinGW).  I seem to have lost the source
 for the MS-DOS and OS/2 versions, but they are unlikely to be useful in
@@ -31,5 +40,7 @@ Dave Conroy released his source code into the public domain.  I have
 changed my version to use the GNU General Public License Version 3.
 
 There is a web version of the MicroEMACS manual [here](https://www.bloovis.com/meguide/).
+If you are viewing this README in a Fossil repository, click
+on the Docs link to view the manual.
 
 --Mark Alexander (marka@pobox.com)
