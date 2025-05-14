@@ -24,9 +24,10 @@ the future.
 
 MicroEMACS is still very "micro", even with all the new features I've
 added.  Back in the 80s, as a 16-bit MS-DOS executable, it contained
-about 57K of code.  Now, as a 64-bit Linux executable, it contains
-about 145K of code.  By comparison, vim-tiny contains about 1.4MB of
-code, and nano contains about 262K of code.
+about 57K of code.  Now, as a 64-bit Linux executable with all of the
+new features mentioned above, it contains about 120K of code.  By
+comparison, vim-tiny contains about 1.4MB of code, and nano contains
+about 262K of code.
 
 To build a non-debug version with no Ruby support on Linux,
 FreeBSD, or Windows with MinGW or Cygwin:
