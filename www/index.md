@@ -1,5 +1,6 @@
 # MicroEMACS Manual
 
+* [Installation](install.md)
 * [Introduction](intro.md)
 * [Basic Concepts](concepts.md)
 * [Starting](starting.md)
