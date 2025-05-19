@@ -42,6 +42,6 @@ changed my version to use the GNU General Public License Version 3.
 
 There is a web version of the MicroEMACS manual [here](https://www.bloovis.com/meguide/).
 If you are viewing this README in a Fossil repository, click
-on the Docs link to view the manual.
+on the Docs link above (or click [here](../trunk/www/index.md)) to view the manual.
 
 --Mark Alexander (marka@pobox.com)
