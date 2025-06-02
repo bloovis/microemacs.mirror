@@ -5,6 +5,18 @@ require 'open3'
 $nameoffset = 46
 
 def viewfile(filename, kind)
+  # Check that the file is plain text.
+  stdout_s, status = Open3.capture2('file', '-E', '-b', '--mime-type', filename)
+  str = stdout_s.chomp
+  if status.to_i != 0
+    echo str
+    return EFALSE
+  end
+  if str != 'text/plain'
+    if reply("#{filename} is not plain text.  Hit enter to continue: ") == nil
+      return EFALSE
+    end
+  end
   case kind
   when :visit
     file_visit filename
@@ -20,6 +32,7 @@ def viewfile(filename, kind)
     file_visit filename
     back_window
   end
+  return ETRUE
 end
 
 def showdir(dir)
