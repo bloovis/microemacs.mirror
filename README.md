@@ -8,7 +8,7 @@ is much larger.
 I have added support for many new features over the years:
 
 * etags
-* scope
+* cscope
 * ispell
 * undo
 * UTF-8
