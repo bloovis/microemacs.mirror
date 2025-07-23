@@ -1,5 +1,8 @@
 # MicroEMACS (Dave Conroy version with enhancements)
 
+(*Note*: If you are reading this on Github, you can find the
+original Fossil repository [here](https://www.bloovis.com/fossil/home/marka/fossils/pe/home)).
+
 This is an enhanced version of the MicroEMACS that was
 originally posted by Dave Conroy to USENET in 1986.  It
 predates the very popular Daniel Lawrence version of MicroEMACS, which
