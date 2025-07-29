@@ -47,4 +47,11 @@ There is a web version of the MicroEMACS manual [here](https://www.bloovis.com/m
 If you are viewing this README in a Fossil repository, click
 on the Docs link above (or click [here](../trunk/www/index.md)) to view the manual.
 
+
+To clone this repository:
+
+```
+fossil clone https://chiselapp.com/user/bloovis/repository/MicroEMACS MicroEMACS.fossil
+```
+
 --Mark Alexander (marka@pobox.com)
