@@ -51,7 +51,7 @@ on the Docs link above (or click [here](../trunk/www/index.md)) to view the manu
 To clone this repository:
 
 ```
-fossil clone https://chiselapp.com/user/bloovis/repository/MicroEMACS MicroEMACS.fossil
+fossil clone https://www.bloovis.com/fossil/home/marka/fossils/pe
 ```
 
 --Mark Alexander (marka@pobox.com)
