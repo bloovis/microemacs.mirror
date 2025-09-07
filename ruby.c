@@ -72,6 +72,8 @@ const char *fnames[] =		/* Do not change this line */
   "rb_protect",
   "rb_load",
   "rb_ruby_verbose_ptr",
+  "rb_timespec_now",
+  "rb_time_timespec_new",
 #if __i386__
   "rb_num2long",
   "rb_int2big",
@@ -489,6 +491,21 @@ set_bflag (VALUE val, ID id, VALUE *var)
 }
 
 /*
+ * Get the current local time.
+ */
+static VALUE
+my_now (VALUE self)
+{
+  struct timespec ts;
+  VALUE now;
+
+  rb_timespec_now (&ts);
+  now = rb_time_timespec_new (&ts, INT_MAX);
+  return now;
+}
+
+
+ /*
  * Get the current buffer's name (not filename).
  */
 static VALUE
@@ -950,6 +967,7 @@ rubyinit (int quiet)
   rb_define_global_function("reply", my_reply, 1);
   rb_define_global_function("cgetkey", my_getkey, 0);
   rb_define_global_function("setmode", my_setmode, 1);
+  rb_define_global_function("timenow", my_now, 0);
 
   /* Define some virtual global variables, along with
    * their getters and setters.

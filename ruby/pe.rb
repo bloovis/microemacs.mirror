@@ -267,3 +267,13 @@ end
 
 # Set the default encoding for strings.
 Encoding.default_internal = 'UTF-8'
+
+# On Ruby systems that don't have Time.now available in the C API,
+# define it using our own timenow variable (defined in ruby.c).
+class Time
+  unless Time.respond_to?(:now)
+    class << self
+      define_method(:now) { timenow }
+    end
+  end
+end

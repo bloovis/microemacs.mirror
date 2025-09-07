@@ -10,7 +10,6 @@
 # that is included in ledger.dat.
 
 require 'open3'
-require 'date'
 
 def readaliases
   $aliases = {}
@@ -93,7 +92,7 @@ def getdate
   elsif line =~ /^(\d+)\/(\d+)\/(20\d\d)$/
     return sprintf("%04d/%02d/%02d", $3, $1, $2)
   elsif line =~ /^(\d+)\/(\d+)$/
-    return DateTime.now.strftime('%Y') + sprintf('/%02d/%02d', $1, $2)
+    return Time.now.strftime('%Y') + sprintf('/%02d/%02d', $1, $2)
   else
     echo "Date must be in format YYYY/MM/DD"
     return nil
@@ -281,7 +280,7 @@ bind "finddate", ctlx('f')
 # Set up some global variables used by the commands.
 
 readaliases
-$date = DateTime.now.strftime("%Y/%m/%d")	# Used by the insdate command
+$date = Time.now.strftime("%Y/%m/%d")	# Used by the insdate command
 $accts = {
   'tbtf' => 'Assets:TBTF Bank',
   'big' => 'Assets:Huge Bank'
