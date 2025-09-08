@@ -23,7 +23,7 @@ each system that has a different version of Ruby.
 
 In order for Ruby commands to run correctly, you will need to
 copy a helper file called `pe.rb`, located in the `ruby` subdirectory
-of the source code, to `/etc`. Running `sudo make install` after
+of the source code, to the directory `/usr/local/share/pe`. Running `sudo make install` after
 building a Ruby-enabled MicroEMACS will perform the copy.
 MicroEMACS will attempt to load the helper file when it starts.
 If it cannot load the file, you will not be able to use the Ruby
