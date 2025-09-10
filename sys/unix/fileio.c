@@ -37,11 +37,7 @@
 #include	<dirent.h>
 #include	<pwd.h>
 #include	<unistd.h>
-
-/*
- * External declarations.
- */
-char *getenv ();
+#include	<stdlib.h>
 
 /*
  * Forward declarations.

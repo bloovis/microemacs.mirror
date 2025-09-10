@@ -295,6 +295,16 @@ typedef enum UKIND
 typedef struct UNDOSTACK UNDOSTACK;
 
 /*
+ * Command function pointer.
+ * Parameters:
+ *  f - flag (Ctrl-U prefix)
+ *  n - number
+ *  c - keycode
+ * Returns TRUE if success.
+ */
+typedef int (*FUNCPTR)(int, int, int);
+
+/*
  * The symbol table links editing functions
  * to names. Entries in the key map point at the symbol
  * table entry. A reference count is kept, but it is
@@ -309,7 +319,7 @@ typedef struct SYMBOL
   struct SYMBOL *s_symp;	/* Hash chain.			*/
   short s_nkey;			/* Count of keys bound here.    */
   const char *s_name;		/* Name.                        */
-  int (*s_funcp) ();		/* Function.                    */
+  FUNCPTR s_funcp;		/* Function.                    */
   int *s_macro;			/* Macro definition.            */
 }
 SYMBOL;
@@ -660,7 +670,7 @@ int mouseevent (int f, int n, int k);	/* Handle mouse button event.	*/
  */
 int readmsg (void);			/* Read next line of message.   */
 int writemsg (const char *sp);		/* Send string to message line.	*/
-int eecho (void);			/* Echo text on status line.    */
+int eecho (int f, int n, int c);	/* Echo text on status line.    */
 int ereply (const char *fp, char *buf, int nbuf, ...);
 int ereplyf (const char *fp, char *buf, int nbuf, int flag, ...);
 void eformat (const char *fp, va_list ap);
@@ -885,7 +895,7 @@ int namemacro (int f, int n, int k);	/* Assign a name to cur. macro  */
 
 void keymapinit ();
 void keyadd (int new,		/* Add a function, bind to key	*/
-	     int (*funcp) (),
+	     FUNCPTR funcp,
 	     const char *name);
 void keydup (int new,		/* Bind key to existing func.	*/
 	     const char *name);
