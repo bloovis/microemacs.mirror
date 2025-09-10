@@ -142,10 +142,11 @@ end
 #   s = array of strings to be fed to eread
 
 def method_missing(m, *args, &block)
-  # puts "method_missing #{m}"
-  c = m.to_s
+  #STDERR.puts "method_missing #{m}, has .name = #{m.respond_to?(:name)}"
+  c = m.to_s # was sym2str(m)
+  #STDERR.puts "c = #{c.inspect}"
   super unless iscmd(c)
-  # puts "Calling cmd #{m}"
+  #STDERR.puts "Calling cmd #{m}"
   f = 0
   n = 1
   k = Key::KRANDOM
@@ -165,7 +166,7 @@ def method_missing(m, *args, &block)
       puts "unknown arg type: method = #{m}, arg = #{arg}, class = #{arg.class}"
     end
   end
-  # puts "calling cmd(#{c}, #{f}, #{n}, #{k})"
+  #STDERR.puts "calling cmd(#{c}, #{f}, #{n}, #{k})"
   cmd(c, f, n, k, s)
 end
 
@@ -269,11 +270,21 @@ end
 Encoding.default_internal = 'UTF-8'
 
 # On Ruby systems that don't have Time.now available in the C API,
-# define it using our own timenow variable (defined in ruby.c).
+# define it using our own timenow function (defined in ruby.c).
 class Time
   unless Time.respond_to?(:now)
     class << self
       define_method(:now) { timenow }
     end
+  end
+end
+
+# On Ruby systems that don't have the Symbol#name method available in the C API,
+# Symbol appears to be incomplete, and to_s doesn't actually return the same thing as name,
+# but returns the same thing as inspect for this incomplete class.  So redefine to_s to be
+# the same as name, using our own sym2str function (defined in ruby.c).
+class Symbol
+  unless :name.respond_to?(:name)
+    define_method(:to_s) { sym2str(self) }
   end
 end

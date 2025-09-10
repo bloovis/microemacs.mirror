@@ -74,6 +74,7 @@ const char *fnames[] =		/* Do not change this line */
   "rb_ruby_verbose_ptr",
   "rb_timespec_now",
   "rb_time_timespec_new",
+  "rb_sym_to_s",
 #if __i386__
   "rb_num2long",
   "rb_int2big",
@@ -502,6 +503,19 @@ my_now (VALUE self)
   rb_timespec_now (&ts);
   now = rb_time_timespec_new (&ts, INT_MAX);
   return now;
+}
+
+
+/*
+ * Convert a symbol to a string
+ */
+static VALUE
+my_sym2str (VALUE self, VALUE sym)
+{
+  VALUE ret;
+
+  ret = rb_sym_to_s (sym);
+  return ret;
 }
 
 
@@ -968,6 +982,7 @@ rubyinit (int quiet)
   rb_define_global_function("cgetkey", my_getkey, 0);
   rb_define_global_function("setmode", my_setmode, 1);
   rb_define_global_function("timenow", my_now, 0);
+  rb_define_global_function("sym2str", my_sym2str, 1);
 
   /* Define some virtual global variables, along with
    * their getters and setters.
