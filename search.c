@@ -578,8 +578,7 @@ cvtbind (const char *command, int defkey)
 }
 
 static void
-is_cpush (cmd)
-     register int cmd;
+is_cpush (int cmd)
 {
   if (++cip >= NSRCH)
     cip = 0;
