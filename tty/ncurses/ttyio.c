@@ -268,6 +268,7 @@ int
 ttgetc (void)
 {
   wint_t c;
+  int errs = 0;
 
   waiting = TRUE;
 
@@ -275,7 +276,10 @@ ttgetc (void)
    * because of an interrupted system call.  Just ignore those.
    */
   while (get_wch (&c) == ERR)
-    ;
+    {
+      if (++errs == 100)
+	panic ("get_wch returned 100 errors in a row!  Maybe terminal was closed?");
+    }
   waiting = FALSE;
   return (int) c;
 }
