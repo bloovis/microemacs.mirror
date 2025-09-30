@@ -21,7 +21,7 @@ I have added support for many new features over the years:
 
 In the past I ported it to
 numerous operating systems, but currently this source tree supports
-only Linux and Windows (using MinGW).  I seem to have lost the source
+only Linux, Android (using termux), and Windows (using MinGW).  I seem to have lost the source
 for the MS-DOS and OS/2 versions, but they are unlikely to be useful in
 the future.
 
@@ -32,7 +32,7 @@ new features mentioned above, it contains about 120K of code.  By
 comparison, vim-tiny contains about 1.4MB of code, and nano contains
 about 262K of code.
 
-To build a non-debug version with no Ruby support on Linux,
+To build a non-debug version with no Ruby support on Linux, Android (termux),
 FreeBSD, or Windows with MinGW or Cygwin:
 
     mkdir obj
