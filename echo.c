@@ -458,7 +458,7 @@ addchoice (const
       len1 = 0;
     }
   strcat (choicebuf, name);	/* Add name to line     */
-  strcat (choicebuf, "                " + 16 - pad);	/* Pad it out   */
+  strcat (choicebuf, &"                "[16 - pad]);	/* Pad it out   */
 }
 
 /*
