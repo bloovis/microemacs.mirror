@@ -3557,7 +3557,18 @@ fi
 if test ${with_ruby+y}
 then :
   withval=$with_ruby; EXTRA_OBJS="$EXTRA_OBJS ruby.o rubyapi.o"
-if test $withval = "yes" ; then RUBY=ruby ; else RUBY=$withval ; fi
+if test $withval = "yes" ; then
+  RUBY=ruby
+else
+  version=$withval
+  pc=`find $HOME/.rbenv/versions/$version -name "*.pc" | head -1`
+  if test -f $pc ; then
+    export PKG_CONFIG_PATH=`dirname $pc`
+    RUBY=`basename -s .pc $pc`
+  else
+    RUBY=ruby
+  fi
+fi
 libdir=`pkg-config --variable=libdir $RUBY`
 libruby_so=`pkg-config --variable=LIBRUBY_SO $RUBY`
 fullruby_so=$libdir/$libruby_so
