@@ -45,7 +45,10 @@ AC_ARG_WITH(ntconsole,
 AC_ARG_WITH(ruby,
 [  --with-ruby             Add Ruby scripting support],
 [EXTRA_OBJS="$EXTRA_OBJS ruby.o rubyapi.o"
-CFLAGS_RUBY="`pkg-config --cflags ruby` -DUSE_RUBY=1 -DLIBRUBY=`pkg-config --variable=LIBRUBY_SO ruby`"
+if test $withval = "yes" ; then RUBY=ruby ; else RUBY=$withval ; fi
+libdir=`pkg-config --variable=libdir $RUBY`
+libruby_so=`pkg-config --variable=LIBRUBY_SO $RUBY`
+CFLAGS_RUBY="`pkg-config --cflags $RUBY` -DUSE_RUBY=1 -DLIBRUBY=$libdir/$libruby_so"
 LIBS="$LIBS -ldl"],
 [CFLAGS_RUBY=""
 ])

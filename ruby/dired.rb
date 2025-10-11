@@ -12,8 +12,8 @@ def viewfile(filename, kind)
     echo str
     return EFALSE
   end
-  if str != 'text/plain'
-    if reply("#{filename} is not plain text.  Hit enter to continue: ") == nil
+  unless str =~ /^text\//
+    if reply("#{filename} is not text.  Hit enter to continue: ") == nil
       return EFALSE
     end
   end

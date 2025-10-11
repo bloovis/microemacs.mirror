@@ -407,3 +407,122 @@ code using:
 
 The helper code in `pe.rb` catches this signal and raises an exception that
 aborts the errant Ruby code and return control to MicroEMACS.
+
+## Using rbenv
+
+Some recent Linux distros, such as Ubuntu 24.04 and Fedora 42,
+have versions of the Ruby C API that cause failures in
+MicroEMACS Ruby extensions.  Apparently when Ruby is used
+via the API, some classes are missing essential methods.
+Some of the missing methods I've encountered are:
+
+* Time.now
+* Array.last
+* Symbol.to_s
+
+Another problem I encountered was `Open3.capture2` hanging
+in `ruby/dired.rb`.
+
+In my experimentation, the last version of Ruby that works
+correctly with MicroEMACS is 3.1.2, the version used in Debian 12.
+If your distro has Ruby version 3.2 or later, it will likely
+not work correctly.  One solution to the problem is to use
+[rbenv](https://github.com/rbenv/) to install a different
+(older) version of Ruby.
+
+Here's what I did on Fedora 42 to make this work:
+
+Install rbenv:
+
+```
+sudo dnf install rbenv
+```
+
+Use rbenv to install Ruby 3.1.2:
+
+```
+rbenv install 3.1.2
+```
+
+Set 3.1.2 as the global version:
+
+```
+rbenv global 3.1.2
+```
+
+Patch `~/.bashrc` by adding the following line to it:
+
+```
+eval "$(rbenv init - --no-rehash bash)"
+```
+
+Start a new terminal session.  Check that you now have
+the correct version of Ruby (3.1.2 in this example):
+
+```
+rbenv global
+ruby --version
+```
+
+Now comes the hard part: making `pkg-config` find
+the correct configuration file for Ruby 3.1.2.  Do this:
+
+```
+find $HOME/.rbenv -name "ruby*pc"
+```
+
+This will print something like this:
+
+```
+/home/joeuser/.rbenv/versions/3.1.2/lib/pkgconfig/ruby-3.1.pc
+```
+
+This gives you two important pieces of information:
+the path of the `pkg-config` file, and the name of
+of the ruby module to pass to `pkg-config`.
+
+To make the following steps easier, place the
+filename printed by `find` in an environment variable:
+
+```
+pc=/home/joeuser/.rbenv/versions/3.1.2/lib/pkgconfig/ruby-3.1.pc
+```
+
+Set the exported environment variable `PKG_CONFIG_PATH` to the directory
+part of the filename that `find` printed:
+
+```
+export PKG_CONFIG_PATH=`dirname $pc`
+```
+
+Set the environment variable `mod` to the name
+of the `pkg-config` ruby module:
+
+```
+mod=`basename -s .pc $pc`
+```
+
+Check that `pkg-config` can find the correct Ruby library directory:
+
+```
+pkg-config --variable=libdir $mod
+```
+
+This should print something like:
+
+```
+/home/joeuser/.rbenv/versions/3.1.2/lib
+```
+
+Now you can configure MicroEMACS to use the correct Ruby.
+Using our example, with the environment variables set
+as shown above, create an `obj` directory, move into it,
+and do this:
+
+```
+../configure --with-ruby=$mod
+make
+```
+
+Examine the output of make to be sure that the correct
+version of the Ruby is used in compilation and linking.
