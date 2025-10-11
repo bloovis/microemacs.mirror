@@ -48,7 +48,13 @@ AC_ARG_WITH(ruby,
 if test $withval = "yes" ; then RUBY=ruby ; else RUBY=$withval ; fi
 libdir=`pkg-config --variable=libdir $RUBY`
 libruby_so=`pkg-config --variable=LIBRUBY_SO $RUBY`
-CFLAGS_RUBY="`pkg-config --cflags $RUBY` -DUSE_RUBY=1 -DLIBRUBY=$libdir/$libruby_so"
+fullruby_so=$libdir/$libruby_so
+if test -f $fullruby_so ; then
+  LIBRUBY=$fullruby_so
+else
+  LIBRUBY=$libruby_so
+fi
+CFLAGS_RUBY="`pkg-config --cflags $RUBY` -DUSE_RUBY=1 -DLIBRUBY=$LIBRUBY"
 LIBS="$LIBS -ldl"],
 [CFLAGS_RUBY=""
 ])
