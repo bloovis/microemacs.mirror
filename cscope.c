@@ -118,7 +118,7 @@ open_cscope (void)
 {
   const char *args[5];
 
-  args[0] = "cscope";
+  args[0] = cscope_path;
   args[1] = "-l";
   args[2] = "-k";
   if (noupdatecscope)
@@ -128,7 +128,7 @@ open_cscope (void)
     }
   else
     args[3] = NULL;
-  return openpipe ("cscope", args, &cscope_input, &cscope_output);
+  return openpipe (cscope_path, args, &cscope_input, &cscope_output);
 }
 
 /*
@@ -250,36 +250,3 @@ findgrep (int f, int n, int k)
 {
   return searchtag (f, n, prepgrep, "grep");
 }
-
-/*
- * test program
- */
-#if TEST
-int
-main (int argc, char *argv[])
-{
-  int i;
-  char filename[1024];
-  char where[1024];
-  int line;
-
-  if (open_cscope () == FALSE)
-    {
-      printf ("unable to open pipe to cscope\n");
-      return 1;
-    }
-
-  for (i = 1; i < argc; i++)
-    {
-      const char *search_string = argv[i];
-      int n = cscope_search (search_string);
-      printf ("%d matches for %s:\n", n, search_string);
-      while (n-- > 0)
-	{
-	  next_match (filename, where, &line);
-	  printf ("%s:%d in %s\n", filename, line, where);
-	}
-    }
-  return 0;
-}
-#endif

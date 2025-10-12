@@ -79,11 +79,6 @@ rev :
 
 version.o : rev
 
-# Test programs
-
-cstest:	cscope.o
-	$(LD) -o cstest cscope.o
-
 # Miscellaneous rules.
 
 install: pe@EXEEXT@

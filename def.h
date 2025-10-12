@@ -525,6 +525,7 @@ extern int inprof;
 extern int bflag;
 extern int rflag;
 extern int noupdatecscope;
+extern char *cscope_path;
 extern int mouse;
 extern int xflag;
 extern int zflag;
