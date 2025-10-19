@@ -79,11 +79,6 @@
 int savetabs = 1;		/* TRUE if tabs are preserved when saving files */
 
 /*
- * External declarations.
- */
-extern char *fftilde (char *filename);	/* fileio.c */
-
-/*
  * Read a file into the current
  * buffer. This is really easy; all you do is
  * find the name of the file, and call the standard
@@ -92,9 +87,9 @@ extern char *fftilde (char *filename);	/* fileio.c */
 int
 fileread (int f, int n, int k)
 {
-  register int s;
+  int s;
   char fname[NFILEN];
-  char *expanded_fname;
+  const char *expanded_fname;
 
   if ((s = egetfname ("Read file: ", fname, NFILEN)) != TRUE)
     return (s);
@@ -109,11 +104,11 @@ fileread (int f, int n, int k)
 static int
 insertf (const char *fname)
 {
-  register EWINDOW *wp;
-  register BUFFER *bp;
-  register LINE *lp1, *lp2;
-  register int doto;
-  register LINE *dotp;
+  EWINDOW *wp;
+  BUFFER *bp;
+  LINE *lp1, *lp2;
+  int doto;
+  LINE *dotp;
   int s, hadnl;
 
   bp = curbp;			/* Make local copy      */
@@ -186,9 +181,9 @@ insertf (const char *fname)
 int
 fileinsert (int f, int n, int k)
 {
-  register int s;
+  int s;
   char fname[NFILEN];
-  char *expanded_fname;
+  const char *expanded_fname;
 
   if ((s = egetfname ("Insert file: ", fname, NFILEN)) != TRUE)
     return (s);
@@ -215,13 +210,13 @@ fileinsert (int f, int n, int k)
 int
 visit_file (char *fname)
 {
-  register BUFFER *bp;
-  register EWINDOW *wp;
-  register LINE *lp;
-  register int i;
-  register int s;
+  BUFFER *bp;
+  EWINDOW *wp;
+  LINE *lp;
+  int i;
+  int s;
   char bname[NBUFN];
-  char *expanded_fname;
+  const char *expanded_fname;
 
   adjustcase (fname);
   expanded_fname = fftilde (fname);
@@ -283,7 +278,7 @@ visit_file (char *fname)
 int
 filevisit (int f, int n, int k)
 {
-  register int s;
+  int s;
   char fname[NFILEN];
 
   if ((s = egetfname ("Visit file: ", fname, NFILEN)) != TRUE)
@@ -299,7 +294,7 @@ filevisit (int f, int n, int k)
 int
 filevisitreadonly (int f, int n, int k)
 {
-  register int s;
+  int s;
   char fname[NFILEN];
 
   if ((s = egetfname ("Visit file: ", fname, NFILEN)) != TRUE)
@@ -356,10 +351,10 @@ checkreadonly (void)
 int
 readin (const char *fname)
 {
-  register EWINDOW *wp;
-  register BUFFER *bp;
-  register LINE *lp1;
-  register LINE *lp2;
+  EWINDOW *wp;
+  BUFFER *bp;
+  LINE *lp1;
+  LINE *lp2;
   int s;
 
   bp = curbp;				/* Cheap.               */
@@ -439,9 +434,9 @@ readlines (
      LINE *lp2,		/* insert lines before this one */
      int *statptr)	/* return status                */
 {
-  register LINE *lp1;
-  register int s;
-  register int nline;
+  LINE *lp1;
+  int s;
+  int nline;
   int nbytes;
   char *line;
 
@@ -523,7 +518,7 @@ makename (char *bname, const char *fname)
 void
 updatemode (void)
 {
-  register EWINDOW *wp;
+  EWINDOW *wp;
 
   ALLWIND (wp)			/* Update mode lines.   */
     if (wp->w_bufp == curbp)
@@ -562,9 +557,9 @@ expand (const char *text, int *len)
 	{			/* Time to grow buffer? */
 	  newsize = bufsize + 80;	/* Grow it by 80 bytes  */
 	  if (bufsize == 0)
-	    newbuf = malloc (newsize);
+	    newbuf = (char *) malloc (newsize);
 	  else
-	    newbuf = realloc (buf, newsize);
+	    newbuf = (char *) realloc (buf, newsize);
 	  if (newbuf == NULL)
 	    {
 	      eprintf ("Can't allocate tab expansion buffer of %d bytes",
@@ -594,11 +589,11 @@ expand (const char *text, int *len)
 static int
 writeout (const char *fn)
 {
-  register int s;
-  register LINE *lp;
-  register LINE *fp;
-  register int nline;
-  register const char *buf;
+  int s;
+  LINE *lp;
+  LINE *fp;
+  int nline;
+  const char *buf;
   int llen;
 
   /* Check if the file has no terminating newline.  This is the
@@ -681,9 +676,9 @@ writeout (const char *fn)
 int
 filewrite (int f, int n, int k)
 {
-  register int s;
+  int s;
   char fname[NFILEN];
-  char *expanded_fname;
+  const char *expanded_fname;
 
   if ((s = egetfname ("Write file: ", fname, NFILEN)) != TRUE)
     return (s);
@@ -711,7 +706,7 @@ filewrite (int f, int n, int k)
 int
 filesave (int f, int n, int k)
 {
-  register int s;
+  int s;
 
   if ((curbp->b_flag & BFCHG) == 0)	/* Return, no changes.  */
     return (TRUE);
@@ -756,9 +751,9 @@ filesave (int f, int n, int k)
 int
 filename (int f, int n, int k)
 {
-  register int s;
+  int s;
   char fname[NFILEN];
-  char *expanded_fname;
+  const char *expanded_fname;
 
   if ((s = egetfname ("Name: ", fname, NFILEN)) == ABORT)
     return (s);

@@ -194,8 +194,8 @@ static void traceback (int offs, int size, int i, int j);
 void
 vtinit (void)
 {
-  register VIDEO *vp;
-  register int i;
+  VIDEO *vp;
+  int i;
 
   ttopen ();
   ttinit ();
@@ -343,7 +343,7 @@ vtstring (const char *s)
 static void
 vteeol (void)
 {
-  register int count;
+  int count;
 
   if (vtcol < leftcol)
     vtcol = leftcol;
@@ -365,19 +365,19 @@ vteeol (void)
 void
 update (void)
 {
-  register LINE *lp;
-  register EWINDOW *wp;
-  register VIDEO *vp1;
-  register VIDEO *vp2;
-  register int i;
-  register int c;
-  register int curcol;
-  register int currow;
+  LINE *lp;
+  EWINDOW *wp;
+  VIDEO *vp1;
+  VIDEO *vp2;
+  int i;
+  int c;
+  int curcol;
+  int currow;
   uchar *s, *end;
 #if GOSLING
-  register int hflag;
-  register int offs;
-  register int size;
+  int hflag;
+  int offs;
+  int size;
 #endif
 
   if (curmsgf != FALSE || newmsgf != FALSE)
@@ -633,12 +633,12 @@ uline (int row, VIDEO *vvp, VIDEO *pvp)
   ttcolor (vvp->v_color);
   putline (row + 1, 1, (const wchar_t *) &vvp->v_text[0]);
 #else
-  register wchar_t *cp1;
-  register wchar_t *cp2;
-  register wchar_t *cp3;
-  register wchar_t *cp4;
-  register wchar_t *cp5;
-  register int nbflag;
+  wchar_t *cp1;
+  wchar_t *cp2;
+  wchar_t *cp3;
+  wchar_t *cp4;
+  wchar_t *cp5;
+  int nbflag;
 
   if (vvp->v_color != pvp->v_color)
     {				/* Wrong color, do a    */
@@ -706,8 +706,8 @@ uline (int row, VIDEO *vvp, VIDEO *pvp)
 static void
 modeline (EWINDOW *wp)
 {
-  register BUFFER *bp;
-  register int n;
+  BUFFER *bp;
+  int n;
   const char *mname;
 
   n = wp->w_toprow + wp->w_ntrows;	/* Location.            */
@@ -763,9 +763,9 @@ modeline (EWINDOW *wp)
 static void
 hash (VIDEO *vp)
 {
-  register int i;
-  register int n;
-  register wchar_t *s;
+  int i;
+  int n;
+  wchar_t *s;
 
   if ((vp->v_flag & VFHBAD) != 0)
     {				/* Hash bad.            */
@@ -813,16 +813,16 @@ hash (VIDEO *vp)
 static void
 setscores (int offs, int size)
 {
-  register SCORE *sp;
-  register int tempcost;
-  register int bestcost;
-  register int j;
-  register int i;
-  register VIDEO **vp;
-  register VIDEO **pp;
-  register SCORE *sp1;
-  register VIDEO **vbase;
-  register VIDEO **pbase;
+  SCORE *sp;
+  int tempcost;
+  int bestcost;
+  int j;
+  int i;
+  VIDEO **vp;
+  VIDEO **pp;
+  SCORE *sp1;
+  VIDEO **vbase;
+  VIDEO **pbase;
 
   vbase = &vscreen[offs - 1];	/* By hand CSE's.       */
   pbase = &pscreen[offs - 1];
@@ -906,12 +906,12 @@ setscores (int offs, int size)
 static void
 traceback (int offs, int size, int i, int j)
 {
-  register int itrace;
-  register int jtrace;
-  register int k;
-  register int ninsl;
-  register int ndraw;
-  register int ndell;
+  int itrace;
+  int jtrace;
+  int k;
+  int ninsl;
+  int ndraw;
+  int ndell;
 
   if (i == 0 && j == 0)		/* End of update.       */
     return;

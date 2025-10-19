@@ -139,8 +139,8 @@ jcok (void)
 int
 spawn (char *program, const char *args[])
 {
-  register int pid;
-  register int wpid;
+  int pid;
+  int wpid;
   __sighandler_t oqsig;
   __sighandler_t oisig;
   int status;

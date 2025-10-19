@@ -303,7 +303,7 @@ ask_ispell (int info)
 	       * but I can't see a good way to display a long list
 	       * of guesses on a single line.
 	       */
-	      if (strlen (prompt) + strlen (guesses[i]) + 3 > ncol)
+	      if (strlen (prompt) + strlen (guesses[i]) + 3 > (size_t) ncol)
 		{
 		  nguesses = i;
 		  break;

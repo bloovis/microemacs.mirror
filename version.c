@@ -35,7 +35,7 @@
 #include	"def.h"
 #include	"rev.h"
 
-char *version[] = {
+const char *version[] = {
   "MicroEMACS " DATE " " REV
 #if USE_RUBY
   " (ruby)"

@@ -92,16 +92,16 @@ int overstrike = 0;		/* TRUE if in overstrike mode */
 int
 showcpos (int f, int n, int k)
 {
-  register LINE *clp;
-  register LINE *dotp;
-  register int doto;
-  register long nchar;
-  register long cchar;
-  register int nline;
-  register int cline;
-  register int cbyte;
-  register int ratio;
-  register int row;
+  LINE *clp;
+  LINE *dotp;
+  int doto;
+  long nchar;
+  long cchar;
+  int nline;
+  int cline;
+  int cbyte;
+  int ratio;
+  int row;
 
   clp = firstline (curbp);	/* Collect the data.    */
   dotp = curwp->w_dot.p;
@@ -169,7 +169,7 @@ showcpos (int f, int n, int k)
 int
 getcolpos (void)
 {
-  register int col, i, c;
+  int col, i, c;
 
   col = 0;			/* Determine column.    */
   for (i = 0; i < curwp->w_dot.o; ++i)
@@ -197,10 +197,10 @@ getcolpos (void)
 int
 twiddle (int f, int n, int k)
 {
-  register LINE *dotp;
-  register int doto;
-  register int cl;
-  register int cr;
+  LINE *dotp;
+  int doto;
+  int cl;
+  int cr;
   POS dot;
 
   if (checkreadonly () == FALSE)
@@ -233,8 +233,8 @@ twiddle (int f, int n, int k)
 int
 quote (int f, int n, int k)
 {
-  register int s;
-  register int c;
+  int s;
+  int c;
 
   if (kbdmop != NULL)
     c = *kbdmop++;
@@ -282,7 +282,7 @@ quote (int f, int n, int k)
 int
 selfinsert (int f, int n, int k)
 {
-  register int c;
+  int c;
 
   if (n < 0)
     return (FALSE);
@@ -306,8 +306,8 @@ selfinsert (int f, int n, int k)
 int
 openline (int f, int n, int k)
 {
-  register int i;
-  register int s;
+  int i;
+  int s;
 
   if (n < 0)
     return (FALSE);
@@ -340,14 +340,14 @@ openline (int f, int n, int k)
 int
 newline (int f, int n, int k)
 {
-  register int s;
+  int s;
 
   if (n < 0)
     return (FALSE);
   while (n--)
     {
 #if	NLMOVE
-      register LINE *lp;
+      LINE *lp;
       lp = curwp->w_dot.p;
       if (wllength (lp) == curwp->w_dot.o
 	  && lp != curbp->b_linep
@@ -377,9 +377,9 @@ newline (int f, int n, int k)
 int
 deblank (int f, int n, int k)
 {
-  register LINE *lp1;
-  register LINE *lp2;
-  register int nld;
+  LINE *lp1;
+  LINE *lp2;
+  int nld;
 
   lp1 = curwp->w_dot.p;
   while (llength (lp1) == 0 && (lp2 = lback (lp1)) != curbp->b_linep)
@@ -402,7 +402,7 @@ deblank (int f, int n, int k)
 int /*ARGSUSED*/
 delwhite (int f, int n, int k)
 {
-  register int col, c, len;
+  int col, c, len;
 
   /* Scan forward to find end of whitespace.  If cursor
    * isn't already in some whitespace, just insert a space.
@@ -436,7 +436,7 @@ delwhite (int f, int n, int k)
  */
 
 static int
-testline (int i, char *string)
+testline (int i, const char *string)
 {
   int stlen = strlen (string);
 
@@ -711,7 +711,7 @@ forwdel (int f, int n, int k)
 int
 backdel (int f, int n, int k)
 {
-  register int s;
+  int s;
 
   if (n < 0)
     return (forwdel (f, -n, KRANDOM));
@@ -739,8 +739,8 @@ backdel (int f, int n, int k)
 int
 killline (int f, int n, int k)
 {
-  register int chunk;
-  register LINE *nextp;
+  int chunk;
+  LINE *nextp;
 
   kdelete ();			/* Purge kill buffer.   */
   if (f == FALSE)
@@ -795,10 +795,10 @@ killline (int f, int n, int k)
 int
 yank (int f, int n, int k)
 {
-  register int c;
-  register int i, j;
-  register LINE *lp;
-  register int nline;
+  int c;
+  int i, j;
+  LINE *lp;
+  int nline;
   char lbuf[80];
   uchar ubuf[6];
   int ulen;
@@ -825,7 +825,7 @@ yank (int f, int n, int k)
 	    }
 	  else
 	    {			/* Not newline  */
-	      if (j + ulen >= sizeof (lbuf))
+	      if (j + ulen >= (int) sizeof (lbuf))
 		{		/* Need flush?  */
 		  linsert (j, 0, lbuf);
 		  j = 0;
@@ -856,7 +856,7 @@ yank (int f, int n, int k)
 int
 settabsize (int f, int n, int k)
 {
-  register EWINDOW *wp;
+  EWINDOW *wp;
 
   if (!f)			/* no argument?         */
     n = 8;			/* reset to default     */

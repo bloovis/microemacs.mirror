@@ -138,8 +138,8 @@ emptylist (LINKS *list)
 static UNDOGROUP *
 newgroup (void)
 {
-  UNDOGROUP *g = malloc (sizeof (*g));
-  UNDO *u = malloc (sizeof (*u));
+  UNDOGROUP *g = (UNDOGROUP *) malloc (sizeof (*g));
+  UNDO *u = (UNDO *) malloc (sizeof (*u));
   g->undos = u;
   g->next = 0;
   g->avail = 1;
@@ -194,7 +194,7 @@ lineno (const LINE *lp)
 static UNDOSTACK *
 newstack (void)
 {
-  UNDOSTACK *st = malloc (sizeof (*st));
+  UNDOSTACK *st = (UNDOSTACK *) malloc (sizeof (*st));
   initlinks (&st->undolist);
   initlinks (&st->redolist);
   st->ngroups = 0;

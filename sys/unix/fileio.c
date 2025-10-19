@@ -39,11 +39,6 @@
 #include	<unistd.h>
 #include	<stdlib.h>
 
-/*
- * Forward declarations.
- */
-char *fftilde (char *filename);
-
 static FILE *ffp, *pfp, *jfp;	/* text, profile, and journal files     */
 static int longline;		/* true if file had long line           */
 
@@ -101,7 +96,7 @@ ffclose (void)
 int
 ffputline (const char *buf, int nbuf, int nl)
 {
-  register int i;
+  int i;
 
   for (i = 0; i < nbuf; ++i)
     putc (buf[i] & 0xFF, ffp);
@@ -131,8 +126,8 @@ ffputline (const char *buf, int nbuf, int nl)
 int
 ffgetline (char **bufp, int *nbytes)
 {
-  register int c;
-  register int i;
+  int c;
+  int i;
   char *newbuf;
   int newbufsize;
   int merror;
@@ -164,9 +159,9 @@ ffgetline (char **bufp, int *nbytes)
 	{			/* line full?           */
 	  newbufsize = bufsize + 256;
 	  if (bufsize != 0)
-	    newbuf = realloc (buf, newbufsize);
+	    newbuf = (char *) realloc (buf, newbufsize);
 	  else
-	    newbuf = malloc (newbufsize);
+	    newbuf = (char *) malloc (newbufsize);
 	  if (!newbuf)
 	    {
 	      ungetc (c, ffp);	/* put char back        */
@@ -207,7 +202,7 @@ int
 fbackupfile (const char *fname)
 {
   char nname[NFILEN];		/* new name                     */
-  register char *bname;		/* XBACKUP directory name       */
+  char *bname;		/* XBACKUP directory name       */
 
   /* If there is a XBACKUP environment variable defined, use it
    * as a prefix to the original filename.  Otherwise just
@@ -245,7 +240,7 @@ void
 adjustcase (char *fn)
 {
 #if	0
-  register int c;
+  int c;
 
   while ((c = *fn) != 0)
     {
@@ -266,7 +261,7 @@ adjustcase (char *fn)
  * to be filtered out even in CR/LF combinations.
  */
 int
-ffpopen (char *fn)
+ffpopen (const char *fn)
 {
   char newname[NFILEN];
 
@@ -429,13 +424,13 @@ ffisdir (
  * a pointer to a static buffer containing the expanded filename.
  * This buffer will be overwritten by the next call.
  */
-char *
-fftilde (char *arg)
+const char *
+fftilde (const char *arg)
 {
 #ifdef MINGW
   return "";
 #else
-  char *user, *tail;
+  const char *user, *tail;
   struct passwd *pw;
   static char buf[1024];
 
@@ -464,10 +459,13 @@ fftilde (char *arg)
     pw = getpwuid (getuid ());
   else
     {
-      char c = *tail;
-      *tail = '\0';
-      pw = getpwnam (user);
-      *tail = c;
+      /* Make a copy of the user name, and look up its password info. */
+      size_t namesize = tail - user;
+      char *name = (char *) malloc (namesize + 1);
+      memcpy (name, user, namesize);
+      name[namesize] = '\0';
+      pw = getpwnam (name);
+      free (name);
     }
   if (!pw)
     return arg;

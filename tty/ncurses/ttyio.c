@@ -278,7 +278,11 @@ ttgetc (void)
   while (get_wch (&c) == ERR)
     {
       if (++errs == 100)
-	panic ("get_wch returned 100 errors in a row!  Maybe terminal was closed?");
+	{
+	  /* panic ("get_wch returned 100 errors in a row!  Maybe terminal was closed?");*/
+	  sleep(1);	/* wait a second and try again. */
+	  errs = 0;
+	}
     }
   waiting = FALSE;
   return (int) c;

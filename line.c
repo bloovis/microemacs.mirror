@@ -79,8 +79,8 @@ static int ldelnewline (void);
 LINE *
 lalloc (int used)
 {
-  register LINE *lp;
-  register int size;
+  LINE *lp;
+  int size;
 
   size = (used + NBLOCK - 1) & ~(NBLOCK - 1);
   if (size == 0)		/* Assume that an empty */
@@ -104,7 +104,7 @@ lalloc (int used)
 LINE *
 lallocx (int used)
 {
-  register LINE *lp;
+  LINE *lp;
 
   if ((lp = (LINE *) malloc (LINEHDR_SIZE + used)) == NULL)
     {
@@ -128,10 +128,10 @@ lallocx (int used)
 #if 0
 void
 lfree (lp)
-     register LINE *lp;
+     LINE *lp;
 {
-  register BUFFER *bp;
-  register EWINDOW *wp;
+  BUFFER *bp;
+  EWINDOW *wp;
 
   ALLWIND (wp)
   {
@@ -185,7 +185,7 @@ lfree (lp)
 void
 lchange (int flag)
 {
-  register EWINDOW *wp;
+  EWINDOW *wp;
 
   if ((curbp->b_flag & BFCHG) == 0)
     {				/* First change, so     */
@@ -243,9 +243,9 @@ adjustforinsert (const POS *oldpos, LINE *newlp, int nchars, EWINDOW *wp)
 int
 linsert (int n, int c, char *s)
 {
-  register EWINDOW *wp;
-  register LINE *lp2;
-  register LINE *lp3;
+  EWINDOW *wp;
+  LINE *lp2;
+  LINE *lp3;
   POS dot;
   int chars, bytes, offset, buflen;
   char buf[6];
@@ -356,7 +356,7 @@ insertwithnl (const char *s, int len)
 
   while (status == TRUE && s < end)
     {
-      const char *nl = memchr (s, '\n', end - s);
+      const char *nl = (const char *) memchr (s, '\n', end - s);
       if (nl == NULL)
 	{
 	  status = linsert (end - s, 0, (char *) s);
@@ -420,10 +420,10 @@ adjustfornewline (const POS *oldpos, LINE *newlp, EWINDOW *wp)
 int
 lnewline (void)
 {
-  register LINE *lp1;
-  register LINE *lp2;
-  register int doto;
-  register EWINDOW *wp;
+  LINE *lp1;
+  LINE *lp2;
+  int doto;
+  EWINDOW *wp;
   int offset;
 
   if (checkreadonly () == FALSE)
@@ -510,7 +510,7 @@ ldelete (int n, int kflag)
   uchar *cp1, *cp2, *end;
   POS dot;
   int bytes, chars;
-  register EWINDOW *wp;
+  EWINDOW *wp;
 
   if (n < 0)
     {
@@ -607,10 +607,10 @@ adjustfordelnewline (LINE *lp1, LINE *lp2, LINE *newlp, EWINDOW *wp)
 static int
 ldelnewline (void)
 {
-  register LINE *lp1;
-  register LINE *lp2;
-  register LINE *lp3;
-  register EWINDOW *wp;
+  LINE *lp1;
+  LINE *lp2;
+  LINE *lp3;
+  EWINDOW *wp;
 
   lp1 = curwp->w_dot.p;
   lp2 = lp1->l_fp;
@@ -709,10 +709,10 @@ lreplace (
      const char *st,		/* replacement string           */
      int f)			/* case hack disable            */
 {
-  register int rlen;		/* replacement length           */
-  register int rtype;		/* capitalization               */
-  register int c;		/* used for random characters   */
-  register int doto;		/* offset into line             */
+  int rlen;		/* replacement length           */
+  int rtype;		/* capitalization               */
+  int c;		/* used for random characters   */
+  int doto;		/* offset into line             */
   int clen;			/* length of UTF-8 char		*/
   const char *end;		/* end of replacement string	*/
 
@@ -845,15 +845,15 @@ kdelete (void)
 int
 kinsert (const char *s, int n)
 {
-  register char *nbufp;
+  char *nbufp;
 
   if (kused + n > ksize)
     {
 #if REALLOC
       if (kbufp == NULL)
-	nbufp = malloc (ksize + n + KBLOCK);
+	nbufp = (char *) malloc (ksize + n + KBLOCK);
       else
-	nbufp = realloc (kbufp, ksize + n + KBLOCK);
+	nbufp = (char *) realloc (kbufp, ksize + n + KBLOCK);
       if (nbufp == NULL)
 	{
 #else

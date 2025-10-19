@@ -68,10 +68,10 @@ setsize (REGION *rp, long size)
 int
 getregion (REGION *rp)
 {
-  register LINE *flp;
-  register LINE *blp;
-  register long fsize;		/* Long now.            */
-  register long bsize;
+  LINE *flp;
+  LINE *blp;
+  long fsize;		/* Long now.            */
+  long bsize;
 
   if (curwp->w_mark.p == NULL)
     {
@@ -139,7 +139,7 @@ getregion (REGION *rp)
 int
 killregion (int f, int n, int k)
 {
-  register int s;
+  int s;
   REGION region;
 
   if ((s = getregion (&region)) != TRUE)
@@ -159,9 +159,9 @@ killregion (int f, int n, int k)
 int
 copyregion (int f, int n, int k)
 {
-  register LINE *linep;
-  register int loffs;
-  register int chunk;
+  LINE *linep;
+  int loffs;
+  int chunk;
   REGION region;
 
   if (getregion (&region) != TRUE)
@@ -209,10 +209,10 @@ copyregion (int f, int n, int k)
 int
 lowerregion (int f, int n, int k)
 {
-  register LINE *linep;
-  register int loffs;
-  register int c;
-  register int s;
+  LINE *linep;
+  int loffs;
+  int c;
+  int s;
   REGION region;
 
   if ((s = getregion (&region)) != TRUE)
@@ -257,10 +257,10 @@ lowerregion (int f, int n, int k)
 int
 upperregion (int f, int n, int k)
 {
-  register LINE *linep;
-  register int loffs;
-  register int c;
-  register int s;
+  LINE *linep;
+  int loffs;
+  int c;
+  int s;
   REGION region;
 
   if ((s = getregion (&region)) != TRUE)
@@ -304,10 +304,10 @@ upperregion (int f, int n, int k)
 int
 indentregion (int f, int n, int k)
 {
-  register int nicol;
-  register int i;
-  register int c;
-  register int s;
+  int nicol;
+  int i;
+  int c;
+  int s;
   REGION region;
   int llen;
 

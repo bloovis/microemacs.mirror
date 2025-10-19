@@ -174,7 +174,7 @@ ettbeep (void)
 int
 writemsg (const char *sp)
 {
-  register int c;
+  int c;
 
   if (nmsg + strlen (sp) + 1 > NMSG)	/* "+1" for the "\n".   */
     return (FALSE);
@@ -204,9 +204,9 @@ writemsg (const char *sp)
 int
 readmsg (void)
 {
-  register int c;
-  register int i;
-  register int j;
+  int c;
+  int i;
+  int j;
 
   if (nmsg == 0)		/* Duck out if none.    */
     return (TRUE);
@@ -281,7 +281,7 @@ readmsg (void)
 int
 eecho (int f, int n, int c)
 {
-  register int s;
+  int s;
   char echoline[NCOL];
   char oldecho;
 
@@ -325,7 +325,7 @@ eerase (void)
 int
 eyesno (const char *sp)
 {
-  register int s;
+  int s;
   char buf[64];
 
   for (;;)
@@ -498,7 +498,7 @@ showchoices ()
 static int
 getxtra (const char *sp1, const char *sp2, int cpos)
 {
-  register int i;
+  int i;
 
   i = cpos;
   for (;;)
@@ -627,16 +627,16 @@ setcolumn (const char *buf, int oldcpos, int newcpos)
 int
 eread (const char *fp, char *buf, int nbuf, int flag, va_list ap)
 {
-  register int cpos;
+  int cpos;
   int buflen;
   const char *np1;
-  register char *np2;
+  char *np2;
   char *cp0, *cp1;
-  register int i;
-  register int c;
-  register int nhits;
-  register int nxtra;
-  register int bxtra;
+  int i;
+  int c;
+  int nhits;
+  int nxtra;
+  int bxtra;
   char savebuf[NFILEN];
   uchar ubuf[6];
   int ulen;
@@ -939,7 +939,7 @@ static char digit[] = "0123456789ABCDEF";
 static void
 eputi (unsigned int i, unsigned int r)
 {
-  register unsigned int q, rem;
+  unsigned int q, rem;
 
   if (r == 16)
     {
@@ -962,7 +962,7 @@ eputi (unsigned int i, unsigned int r)
 static void
 eputl (long i, int r)
 {
-  register long q, rem;
+  long q, rem;
 
   if (r == 16)
     {
@@ -989,7 +989,7 @@ eputl (long i, int r)
 void
 eformat (const char *fp, va_list ap)
 {
-  register int c;
+  int c;
 
   while ((c = *fp++) != '\0')
     {

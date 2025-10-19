@@ -67,8 +67,8 @@
 int
 gotobop (int f, int n, int k)
 {
-  register int c;		/* first character in current line */
-  register LINE *prev;		/* previous line */
+  int c;		/* first character in current line */
+  LINE *prev;		/* previous line */
 
   if (n < 0)			/* the other way... */
     return (gotoeop (f, -n, KRANDOM));
@@ -112,7 +112,7 @@ gotobop (int f, int n, int k)
 int
 gotoeop (int f, int n, int k)
 {
-  register int c;		/* first character in current line */
+  int c;		/* first character in current line */
 
   if (n < 0)			/* the other way... */
     return (gotobop (f, -n, KRANDOM));
@@ -154,10 +154,10 @@ gotoeop (int f, int n, int k)
 int
 fillpara (int f, int n, int k)
 {
-  register int c;		/* current char durring scan    */
-  register int wordlen;		/* length of current word       */
-  register int clength;		/* position on line during fill */
-  register int eopflag;		/* Are we at the End-Of-Paragraph? */
+  int c;		/* current char durring scan    */
+  int wordlen;		/* length of current word       */
+  int clength;		/* position on line during fill */
+  int eopflag;		/* Are we at the End-Of-Paragraph? */
   int firstflag;		/* first word? (needs no space) */
   int newlength;		/* tentative new line length    */
   int eolflag;			/* was at end of line           */
@@ -290,7 +290,7 @@ fillpara (int f, int n, int k)
 int
 killpara (int f, int n, int k)
 {
-  register int status;		/* returned status of functions */
+  int status;		/* returned status of functions */
 
   while (n--)
     {				/* for each paragraph to delete */
@@ -323,8 +323,8 @@ killpara (int f, int n, int k)
 int
 fillword (int f, int n, int k)
 {
-  register char c;
-  register int col, i, nce;
+  char c;
+  int col, i, nce;
 
   for (i = col = 0; col <= fillcol; ++i, ++col)
     {

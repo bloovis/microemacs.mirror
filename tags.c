@@ -73,13 +73,13 @@ FILE *report;
  * Global variables
  */
 tagfile tagfilelist = {		/* list of tag files            */
-  "",				/* dummy filename               */
+  (char *) "",			/* dummy filename               */
   &tagfilelist,			/* head pointer                 */
   &tagfilelist			/* tail pointer                 */
 };
 
 tagref tagreflist = {		/* list of all tags             */
-  "",				/* dummy tag string             */
+  (char *) "",			/* dummy tag string             */
   0,				/* line number                  */
   0,				/* offset                       */
   0,				/* exact			*/
@@ -133,10 +133,10 @@ addtagfile (const char *name)
   tagfile *newfile;
   int len = strlen (name) + 1;
 
-  if ((newfile = malloc (sizeof (tagfile))) == NULL)
+  if ((newfile = (tagfile *) malloc (sizeof (tagfile))) == NULL)
     return NULL;
 
-  if ((newfile->fname = malloc (len)) == NULL)
+  if ((newfile->fname = (char *) malloc (len)) == NULL)
     return NULL;
   strcpy (newfile->fname, name);
 
@@ -193,9 +193,9 @@ addtagref (const char *string, tagfile *file, int line, long offset,
   /* Allocate space for the tag reference and
    * the string, and make a copy of the string.
    */
-  if ((newref = malloc (sizeof (tagref))) == NULL)
+  if ((newref = (tagref *) malloc (sizeof (tagref))) == NULL)
     return NULL;
-  if ((newref->string = malloc (len + 1)) == NULL)
+  if ((newref->string = (char *) malloc (len + 1)) == NULL)
     {
       free (newref);
       return NULL;
@@ -239,7 +239,7 @@ addtagref (const char *string, tagfile *file, int line, long offset,
  * or true if successful.
  */
 static int
-readtagfile (char *fname)
+readtagfile (const char *fname)
 {
   int		s;
   char *	line;
@@ -588,7 +588,7 @@ gccerror (int f, int n, int k)
        */
       str = lgets (lp);
       len = llength (lp);
-      copy = realloc (copy, len + 1);
+      copy = (uchar *) realloc (copy, len + 1);
       memcpy (copy, str, len);
       copy[len] = '\0';
 

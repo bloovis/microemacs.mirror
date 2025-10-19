@@ -111,7 +111,7 @@ typedef struct
 {
   int k_key;			/* Key to bind.                 */
   FUNCPTR k_funcp;		/* Function.                    */
-  char *k_name;			/* Function name string.        */
+  const char *k_name;		/* Function name string.        */
 }
 KEY;
 
@@ -329,8 +329,8 @@ typedef struct MODE
 static int
 symhash (const char *cp)
 {
-  register int c;
-  register int n;
+  int c;
+  int n;
 
   n = 0;
   while ((c = *cp++) != 0)
@@ -417,7 +417,7 @@ addbinding (int key, SYMBOL *sym, BINDING **table)
   else
     {
       /* Create a new binding, insert into hash chain. */
-      bp = calloc (1, sizeof (*bp));
+      bp = (BINDING *) calloc (1, sizeof (*bp));
       if (bp == NULL)
 	abort ();
       bp->bi_next = table[hash];
@@ -460,7 +460,7 @@ setmodebinding (int key, SYMBOL *sym)
 SYMBOL *
 symlookup (const char *cp)
 {
-  register SYMBOL *sp;
+  SYMBOL *sp;
 
   sp = symbol[symhash (cp)];
   while (sp != NULL)
@@ -483,9 +483,9 @@ symlookup (const char *cp)
 void
 keymapinit ()
 {
-  register SYMBOL *sp;
-  register KEY *kp;
-  register int i;
+  SYMBOL *sp;
+  KEY *kp;
+  int i;
 
   for (i = 0; i < NSHASH; ++i)
     binding[i] = NULL;
@@ -533,11 +533,11 @@ addsym (SYMBOL *sp)
  */
 void
 keyadd (
-     int new,
+     int newkey,
      FUNCPTR funcp,
      const char *name)
 {
-  register SYMBOL *sp;
+  SYMBOL *sp;
 
   if ((sp = (SYMBOL *) malloc (sizeof (SYMBOL))) == NULL)
     abort ();
@@ -546,11 +546,11 @@ keyadd (
   sp->s_funcp = funcp;
   sp->s_macro = NULL;
   addsym (sp);			/* Add symbol to hash chain.	*/
-  if (new >= 0)
+  if (newkey >= 0)
     {				/* Bind this key.       */
-      if (getbinding (new) != NULL)
+      if (getbinding (newkey) != NULL)
 	abort ();
-      setbinding (new, sp);
+      setbinding (newkey, sp);
     }
 }
 
@@ -560,13 +560,13 @@ keyadd (
  * or the key is already bound, abort.
  */
 void
-keydup (int new, const char *name)
+keydup (int newkey, const char *name)
 {
-  register SYMBOL *sp;
+  SYMBOL *sp;
 
-  if (getbinding (new) != NULL || (sp = symlookup (name)) == NULL)
+  if (getbinding (newkey) != NULL || (sp = symlookup (name)) == NULL)
     abort ();
-  setbinding (new, sp);
+  setbinding (newkey, sp);
 }
 
 /*
@@ -606,11 +606,11 @@ getbindingforcmd (const char *s)
 int
 namemacro (int f, int n, int k)
 {
-  register SYMBOL *sp;		/* Symbol name pointer. */
-  register int *mp;		/* Macro pointer.       */
+  SYMBOL *sp;		/* Symbol name pointer. */
+  int *mp;		/* Macro pointer.       */
   char xname[NXNAME];		/* Symbol name.         */
-  register int msize;		/* Size of macro.       */
-  register int s;		/* Status code.         */
+  int msize;		/* Size of macro.       */
+  int s;		/* Status code.         */
 
   /* Can't do this while executing or defining a macro.
    */
@@ -774,9 +774,9 @@ sortblist (void)
 static int
 showbindings (int f, int mode)
 {
-  register int key;
-  register SYMBOL *sp;
-  register char *cp1;
+  int key;
+  SYMBOL *sp;
+  char *cp1;
   char buf[64];
   BINDING *bp;
   BINDING **table;
@@ -826,7 +826,7 @@ showbindings (int f, int mode)
 int
 wallchart (int f, int n, int k)
 {
-  register int s;
+  int s;
 
   if ((s = bclear (blistp)) != TRUE)	/* Clear it out.        */
     return (s);
@@ -883,7 +883,7 @@ createmode (const char *name)
     return;
   if (curbp->b_mode != NULL)
     removemode (curbp);
-  m = calloc (1, sizeof (*m));
+  m = (MODE *) calloc (1, sizeof (*m));
   if (m == NULL)
     {
       eprintf ("Unable to create mode structure!");

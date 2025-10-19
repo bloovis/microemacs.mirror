@@ -85,7 +85,7 @@ uchar pat[NPAT] = { 0 };	/* Pattern                      */
 SYMBOL *symbol[NSHASH];		/* Symbol table listhead.       */
 int inprof;			/* True if reading profile      */
 int bflag;			/* True if -b option specified  */
-char *cscope_path = "cscope";	/* Name of cscope program	*/
+const char *cscope_path = "cscope";	/* Name of cscope program	*/
 int noupdatecscope;		/* True if -d option specified	*/
 int mouse;			/* True if -m option specified  */
 int rflag;			/* True if -r option specified  */
@@ -109,11 +109,11 @@ static int execute (int c, int f, int n);
 int 
 main (int argc, char *argv[])
 {
-  register int c;
-  register int f;
-  register int n;
-  register int mflag;
-  register char *arg;
+  int c;
+  int f;
+  int n;
+  int mflag;
+  char *arg;
   char *proptr;
   int line = 0;
 #if USE_RUBY
@@ -201,12 +201,12 @@ main (int argc, char *argv[])
 	  int column = 0;
 	  const char *lp;	/* pointer to line number */
 
-	  char * colon = strchr (arg, ':');
+	  char *colon = (char *) strchr (arg, ':');
 	  if (colon != NULL && colon[1] >= '0' && colon[1] <= '9')
 	    {
 	      *colon = '\0';
 	      lp = colon + 1;
-	      colon = strchr (lp, ':');
+	      colon = (char *) strchr (lp, ':');
 	      if (colon != NULL && colon[1] >= '0' && colon[1] <= '9')
 		{
 		  *colon = '\0';
@@ -323,8 +323,8 @@ loop:
 static int
 execute (int c, int f, int n)
 {
-  register SYMBOL *sp;
-  register int status;
+  SYMBOL *sp;
+  int status;
 
   /* If there is no binding for the key, assume it is
    * a Unicode character that should be self-inserted.
@@ -366,8 +366,8 @@ bufinit (const char *fname)
 {
   char bname[NBUFN];		/* Buffer name          */
   char *mod;			/* Ptr to name modifier */
-  register BUFFER *bp;
-  register EWINDOW *wp;
+  BUFFER *bp;
+  EWINDOW *wp;
   LINE *lp;
 
   makename (bname, fname);	/* Get buffer name      */
@@ -437,7 +437,7 @@ jeffexit (int f, int n, int k)
 int
 quit (int f, int n, int k)
 {
-  register int s;
+  int s;
 
   if (f != FALSE		/* Argument forces it.  */
       || anycb () == FALSE	/* All buffers clean.   */
@@ -514,10 +514,10 @@ ctlxe (int f, int n, int k)
 int
 domacro (int *macrop, int n)
 {
-  register int c;
-  register int af;
-  register int an;
-  register int s;
+  int c;
+  int af;
+  int an;
+  int s;
 
   if (kbdmip != NULL || kbdmop != NULL)
     {
@@ -578,8 +578,8 @@ ctrlg (int f, int n, int k)
 int
 showversion (int f, int n, int k)
 {
-  register char **cpp;
-  register char *cp;
+  const char **cpp;
+  const char *cp;
 
   cpp = &version[0];
   while ((cp = *cpp++) != NULL)

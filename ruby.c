@@ -318,7 +318,7 @@ get_line (ID id, VALUE *var)
    */
   lp = curwp->w_dot.p;
   len = llength (lp);
-  str = malloc (len + 1);
+  str = (char *) malloc (len + 1);
   if (str == NULL)
     {
       eprintf ("Out of memory in get_line!");

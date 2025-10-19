@@ -54,7 +54,7 @@ gotobol (int f, int n, int k)
 int
 backchar (int f, int n, int k)
 {
-  register LINE *lp;
+  LINE *lp;
 
   if (n < 0)
     return (forwchar (f, -n, KRANDOM));
@@ -93,7 +93,7 @@ gotoeol (int f, int n, int k)
 int
 forwchar (int f, int n, int k)
 {
-  register LINE *lp;
+  LINE *lp;
 
   if (n < 0)
     return (backchar (f, -n, KRANDOM));
@@ -166,9 +166,9 @@ setgoal (void)
 static int
 getgoal (LINE *dlp)
 {
-  register int c;
-  register int col;
-  register int newcol;
+  int c;
+  int col;
+  int newcol;
   int dbo;
   int ulen;
   const uchar *s, *end;
@@ -207,7 +207,7 @@ getgoal (LINE *dlp)
 int
 forwline (int f, int n, int k)
 {
-  register LINE *dlp;
+  LINE *dlp;
   int ret;
 
   if (n < 0)
@@ -240,7 +240,7 @@ forwline (int f, int n, int k)
 int
 backline (int f, int n, int k)
 {
-  register LINE *dlp;
+  LINE *dlp;
   int ret;
 
   if (n < 0)
@@ -268,9 +268,9 @@ backline (int f, int n, int k)
 void
 checkdot (void)
 {
-  register LINE *lp, *dotp;
+  LINE *lp, *dotp;
   LINE *newdotp;
-  register int total, half;
+  int total, half;
 
   total = curwp->w_ntrows;	/* size of window       */
   half = total / 2;		/* half of window size  */
@@ -306,8 +306,8 @@ checkdot (void)
 int
 forwpage (int f, int n, int k)
 {
-  register LINE *lp;
-  register int page;
+  LINE *lp;
+  int page;
 
   /* Compute how much to scroll to get to next page
    * (80% of the screen size is what EMACS seems to use).
@@ -344,8 +344,8 @@ forwpage (int f, int n, int k)
 int
 backpage (int f, int n, int k)
 {
-  register LINE *lp;
-  register int page;
+  LINE *lp;
+  int page;
 
   /* Compute how much to scroll to get to next page
    * (80% of the screen size is what EMACS seems to use).
@@ -433,8 +433,8 @@ swapmark (int f, int n, int k)
 int
 gotoline (int f, int n, int k)
 {
-  register LINE *clp;
-  register int s;
+  LINE *clp;
+  int s;
   char buf[32];
 
   if (f == FALSE)

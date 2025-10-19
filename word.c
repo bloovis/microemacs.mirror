@@ -103,7 +103,7 @@ forwword (int f, int n, int k)
 int
 upperword (int f, int n, int k)
 {
-  register int c;
+  int c;
 
   if (n < 0)
     return (FALSE);
@@ -142,7 +142,7 @@ upperword (int f, int n, int k)
 int
 lowerword (int f, int n, int k)
 {
-  register int c;
+  int c;
 
   if (n < 0)
     return (FALSE);
@@ -182,7 +182,7 @@ lowerword (int f, int n, int k)
 int
 capword (int f, int n, int k)
 {
-  register int c;
+  int c;
 
   if (n < 0)
     return (FALSE);
@@ -234,9 +234,9 @@ capword (int f, int n, int k)
 int
 delfword (int f, int n, int k)
 {
-  register int size;
-  register LINE *dotp;
-  register int doto;
+  int size;
+  LINE *dotp;
+  int doto;
 
   if (n < 0)
     return (FALSE);
@@ -280,7 +280,7 @@ out:
 int
 delbword (int f, int n, int k)
 {
-  register int size;
+  int size;
 
   if (n < 0)
     return (FALSE);

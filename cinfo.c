@@ -118,7 +118,7 @@ char upmap[128] = { 0 };
 void
 upmapinit (void)
 {
-  register int i;
+  int i;
 
   for (i = 0; i < 128; i++)
     {

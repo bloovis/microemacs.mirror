@@ -525,7 +525,7 @@ extern int inprof;
 extern int bflag;
 extern int rflag;
 extern int noupdatecscope;
-extern char *cscope_path;
+extern const char *cscope_path;
 extern int mouse;
 extern int xflag;
 extern int zflag;
@@ -533,7 +533,7 @@ extern int zflag;
 extern int nrow;
 extern int ncol;
 extern int npages;
-extern char *version[];
+extern const char *version[];
 extern int ttrow;
 extern int ttcol;
 extern int mouse_button;
@@ -544,7 +544,7 @@ extern int tcinsl[];
 extern int tcdell[];
 extern char cinfo[];
 extern char upmap[];
-extern char *keystrings[];
+extern const char *keystrings[];
 extern int nmsg;
 extern int curmsgf;
 extern int newmsgf;
@@ -732,11 +732,11 @@ int ffgetline (char **bufp, int *nbytes);
 int ffputline (const char *buf, int nbuf, int nl);
 					/* Write line to the file.	*/
 int ffclose (void);			/* Close a file.		*/
-int ffpopen (char *fn);			/* Open profile			*/
+int ffpopen (const char *fn);		/* Open profile			*/
 int ffpread (char *cp);			/* Read byte from profile	*/
 int ffpclose (void);			/* Close profile		*/
 void adjustcase (char *fn);		/* Adjust case of filename.	*/
-char * fftilde (char *arg);		/* Expand ~ in filename.	*/
+const char * fftilde (const char *arg);	/* Expand ~ in filename.	*/
 int fbackupfile (const char *fname);	/* Rename file to backup.	*/
 char *ffsearch (const char *name,	/* Find matching filename.	*/
 		int cpos,
@@ -895,10 +895,10 @@ int openpipe (const char *program,	/* Open a two-way pipe.		*/
 int namemacro (int f, int n, int k);	/* Assign a name to cur. macro  */
 
 void keymapinit ();
-void keyadd (int new,		/* Add a function, bind to key	*/
+void keyadd (int newkey,		/* Add a function, bind to key	*/
 	     FUNCPTR funcp,
 	     const char *name);
-void keydup (int new,		/* Bind key to existing func.	*/
+void keydup (int newkey,		/* Bind key to existing func.	*/
 	     const char *name);
 SYMBOL *symlookup (const char *cp);	/* Symbol table lookup		*/
 int getbindingforcmd (const char *s);	/* Find key bound to cmd. name	*/

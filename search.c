@@ -153,7 +153,7 @@ unicodepat (void)
 static int
 readpattern (const char *prompt)
 {
-  register int s;
+  int s;
   char tpat[NPAT];
 
   s = ereplyf ("%s [%s]: ", tpat, NPAT, EFNEW | EFCR | EFPAT, prompt, pat);
@@ -183,9 +183,9 @@ readpattern (const char *prompt)
 static int
 doregsrch (int dir)
 {
-  register LINE *clp;
-  register int cbo;
-  register LINE *lastline;
+  LINE *clp;
+  int cbo;
+  LINE *lastline;
   uchar *line;
   int linelen;
   static uchar *buf = NULL;
@@ -219,7 +219,7 @@ doregsrch (int dir)
 	  uchar *newbuf;
 
 	  buflen = linelen + 1;
-	  newbuf = realloc (buf, buflen);
+	  newbuf = (uchar *) realloc (buf, buflen);
 	  if (newbuf == NULL)
 	    {
 	      eprintf ("Can't allocate %d bytes for searching", buflen);
@@ -274,9 +274,9 @@ doregsrch (int dir)
  * If not found, it just prints a message.
  */
 int
-regsearch (char *prompt, int dir)
+regsearch (const char *prompt, int dir)
 {
-  register int s;
+  int s;
 
   /* Prompt for a regular expression pattern.
    */
@@ -334,16 +334,16 @@ backregsearch (int f, int n, int k)
 static int
 forwsrch (void)
 {
-  register LINE *clp;
+  LINE *clp;
   const uchar *cend;
-  register int cbo;
+  int cbo;
   const uchar *cptr;
-  register LINE *tlp;
+  LINE *tlp;
   const uchar *tend;
-  register int tbo;
+  int tbo;
   const uchar *tptr;
-  register int pp;
-  register LINE *lastline;
+  int pp;
+  LINE *lastline;
   wchar_t uc;
   int ulen;
 
@@ -418,15 +418,15 @@ forwsrch (void)
 static int
 backsrch (void)
 {
-  register LINE *clp;
-  register int cbo;
+  LINE *clp;
+  int cbo;
   const uchar *cptr;
-  register LINE *tlp;
-  register int tbo;
+  LINE *tlp;
+  int tbo;
   const uchar *tptr;
-  register LINE *lastline;
-  register int epp;
-  register int pp;
+  LINE *lastline;
+  int epp;
+  int pp;
   wchar_t uc;
   int ulen;
 
@@ -588,7 +588,7 @@ is_cpush (int cmd)
 static void
 is_lpush (void)
 {
-  register int ctp;
+  int ctp;
 
   ctp = cip + 1;
   if (ctp >= NSRCH)
@@ -655,7 +655,7 @@ is_undo (int *pptr, int *dir)
 static int
 is_find (int dir)
 {
-  register int plen;
+  int plen;
 
   plen = strlen ((const char *) pat);
   if (plen != 0)
@@ -742,10 +742,10 @@ is_prompt (int dir, int flag, int success)
 static int
 isearch (int dir)
 {
-  register int c;
-  register LINE *clp;
-  register int cbo;
-  register int success;
+  int c;
+  LINE *clp;
+  int cbo;
+  int success;
   int pptr;
   int fkey, bkey;		/* keys bound to commands */
 
@@ -971,11 +971,11 @@ getrepl (int dir, char *news, char *sub, int sublen, int *plen)
 int
 searchandreplace (int f, int query, int dir)
 {
-  register int s;
+  int s;
   char news[NPAT];		/* replacement string           */
   char sub[NPAT];		/* regsub-modified replacement	*/
   char *repl;			/* correct replacement string	*/
-  register LINE *clp;		/* saved line pointer           */
+  LINE *clp;		/* saved line pointer           */
   int cbo;			/* offset into the saved line   */
   int rcnt = 0;			/* Replacements made so far     */
   int plen;			/* length of found string       */
@@ -1158,8 +1158,8 @@ regrepl (int f, int n, int k)
 static int
 eq (int bc, int pc)
 {
-  register int ibc;
-  register int ipc;
+  int ibc;
+  int ipc;
 
   ibc = bc & 0xFF;
   ipc = pc & 0xFF;
@@ -1183,7 +1183,7 @@ eq (int bc, int pc)
 int
 forwsearch (int f, int n, int k)
 {
-  register int s;
+  int s;
 
   if ((s = readpattern ("Search")) != TRUE)
     return (s);
@@ -1201,7 +1201,7 @@ forwsearch (int f, int n, int k)
 int
 backsearch (int f, int n, int k)
 {
-  register int s;
+  int s;
 
   if ((s = readpattern ("Reverse search")) != TRUE)
     return (s);
@@ -1327,10 +1327,10 @@ searchignore (int ch, int forward)
 int
 searchparen (int f, int n, int k)
 {
-  register LINE *clp;
-  register int cbo;
-  register int len;
-  register int i;
+  LINE *clp;
+  int cbo;
+  int len;
+  int i;
   char chinc, chdec, ch;
   int count;
   int forward;

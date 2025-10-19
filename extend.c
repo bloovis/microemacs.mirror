@@ -38,9 +38,9 @@
 int
 bindtokey (int f, int n, int k)
 {
-  register int s;
-  register SYMBOL *sp;
-  register int c;
+  int s;
+  SYMBOL *sp;
+  int c;
   char xname[NXNAME];
 
   if ((s = ereadv ("Function: ", xname, NXNAME, EFAUTO)) != TRUE)
@@ -89,8 +89,8 @@ bindtokey (int f, int n, int k)
 int
 extend (int f, int n, int k)
 {
-  register SYMBOL *sp;
-  register int s;
+  SYMBOL *sp;
+  int s;
   char xname[NXNAME];
 
   if ((s = ereadv (": ", xname, NXNAME, EFNEW | EFAUTO)) != TRUE)
@@ -128,8 +128,8 @@ extend (int f, int n, int k)
 int
 help (int f, int n, int k)
 {
-  register SYMBOL *sp;
-  register int c;
+  SYMBOL *sp;
+  int c;
   char b[20];
 
   c = getkey ();
@@ -187,7 +187,7 @@ outchar (char c)
 static int
 outbuf (const char *s)
 {
-  register char c;
+  char c;
 
   while ((c = *s++) != 0)
     if (outchar (c) == FALSE)
@@ -218,7 +218,7 @@ static int
 outdec (int n)
 {
   static char buf[5];
-  register int i;
+  int i;
 
   if (n < 0)
     {
@@ -278,10 +278,10 @@ flushstring (void)
 int
 insertmacro (int f, int n, int k)
 {
-  register int *mp;		/* Macro pointer.       */
+  int *mp;		/* Macro pointer.       */
   char xname[NXNAME + 2];	/* Symbol name.         */
-  register SYMBOL *sp = NULL;
-  register int named;
+  SYMBOL *sp = NULL;
+  int named;
 
   /* Read the name of the symbol to use, store the name in
    * a local array.

@@ -46,7 +46,7 @@
  * between KFIRST and KLAST (inclusive). This is used by
  * the key name routine in "kbd.c".
  */
-char	*keystrings[32] = {
+const char *keystrings[32] = {
 	NULL,		"Up",		"Down",		"Left",
 	"Right",	"PgUp",		"PgDn",		"Home",
 	"End",		"Insert",	"Delete",	"F1",
@@ -87,8 +87,8 @@ int	specmap[32] = {
 int
 getkbd (void)
 {
-  register int	c;
-  register int	i;
+  int	c;
+  int	i;
 
   c = ttgetc ();
   if (c < KEY_MIN)			/* normal key?		*/

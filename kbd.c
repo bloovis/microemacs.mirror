@@ -75,7 +75,7 @@ static int pindex;		/* current token index  */
 #define	SPECSIZE 5		/* no. of table items   */
 static struct
 {
-  char *st_name;		/* its name             */
+  const char *st_name;		/* its name             */
   int st_value;			/* the uEMACS value     */
 }
 spectab[SPECSIZE] =
@@ -110,7 +110,7 @@ static int ungetchar;		/* the character put back       */
 static int
 getctl (void)
 {
-  register int c;
+  int c;
 
   c = getinp ();
   if (CISLOWER (c) != FALSE)
@@ -132,7 +132,7 @@ getctl (void)
 int
 getkey (void)
 {
-  register int c;
+  int c;
 
   if (ungetflag)		/* is key put back?     */
     {
@@ -175,9 +175,9 @@ ungetinp (int c)
 void
 ekeyname (char *cp, int k)
 {
-  register char *np = "???";
+  const char *np = "???";
   char nbuf[3];
-  register int i;
+  int i;
 
   static char hex[] = {
     '0', '1', '2', '3',
@@ -360,12 +360,12 @@ prowhite (char c)
  */
 static int
 eqtoken (
-     char *s,			/* string to compare    */
+     const char *s,		/* string to compare    */
      int toklen)		/* size of token        */
 {
-  register int i, c1, c2;
+  int i, c1, c2;
 
-  if (strlen (s) != toklen)	/* sizes must match     */
+  if ((int) strlen (s) != toklen)	/* sizes must match     */
     return (FALSE);
   while (prowhite (ptoken[pindex]) && pindex < plength)
     pindex++;			/* skip whitespace      */
@@ -400,7 +400,7 @@ static int
 getpkey (void)
 {
   char c;
-  register int key, i, found, left;
+  int key, i, found, left;
   static char asciiname[PSIZE + 1];
 
   if (!getpchar (&c))
@@ -603,7 +603,7 @@ readprofile (int f, int n, int k)
 {
   int		s;
   char		fname[NFILEN];
-  char *	expanded_fname;
+  const char *	expanded_fname;
 
   if (inprof)
     {				/* already in profile?  */

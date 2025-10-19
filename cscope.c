@@ -136,7 +136,7 @@ open_cscope (void)
  * read back the resulting matches, and store them in the tags list.
  */
 static int
-prepcscope (char field, const char *string, int delete)
+prepcscope (char field, const char *string, int delete_tags)
 {
   int		n;
   char		filename[1024];
@@ -154,9 +154,9 @@ prepcscope (char field, const char *string, int delete)
 	return FALSE;
       }
 
-  /* If delete flag is TRUE, free up any existing tags from a previous search.
+  /* If delete_tags flag is TRUE, free up any existing tags from a previous search.
    */
-  if (delete)
+  if (delete_tags)
     freetags (FALSE, 1, KRANDOM);
 
   /* Initiate a search to cscope, get back the number of matches.

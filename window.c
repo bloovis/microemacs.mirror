@@ -65,9 +65,9 @@ reposition (int f, int n, int k)
 int
 erefresh (int f, int n, int k)
 {
-  register EWINDOW *wp;
-  register int oldnrow;
-  register int oldncol;
+  EWINDOW *wp;
+  int oldnrow;
+  int oldncol;
 
   oldnrow = nrow;
   oldncol = ncol;
@@ -105,7 +105,7 @@ erefresh (int f, int n, int k)
 int
 nextwind (int f, int n, int k)
 {
-  register EWINDOW *wp;
+  EWINDOW *wp;
 
   if ((wp = curwp->w_wndp) == NULL)
     wp = wheadp;
@@ -124,8 +124,8 @@ nextwind (int f, int n, int k)
 int
 prevwind (int f, int n, int k)
 {
-  register EWINDOW *wp1;
-  register EWINDOW *wp2;
+  EWINDOW *wp1;
+  EWINDOW *wp2;
 
   wp1 = wheadp;
   wp2 = curwp;
@@ -165,8 +165,8 @@ mvdnwind (int f, int n, int k)
 int
 mvupwind (int f, int n, int k)
 {
-  register LINE *lp;
-  register int i;
+  LINE *lp;
+  int i;
 
   lp = curwp->w_linep;
   if (n < 0)
@@ -212,9 +212,9 @@ mvupwind (int f, int n, int k)
 int
 onlywind (int f, int n, int k)
 {
-  register EWINDOW *wp;
-  register LINE *lp;
-  register int i;
+  EWINDOW *wp;
+  LINE *lp;
+  int i;
 
   while (wheadp != curwp)
     {
@@ -254,13 +254,13 @@ onlywind (int f, int n, int k)
 int
 splitwind (int f, int n, int k)
 {
-  register EWINDOW *wp;
-  register LINE *lp;
-  register int ntru;
-  register int ntrl;
-  register int ntrd;
-  register EWINDOW *wp1;
-  register EWINDOW *wp2;
+  EWINDOW *wp;
+  LINE *lp;
+  int ntru;
+  int ntrl;
+  int ntrd;
+  EWINDOW *wp1;
+  EWINDOW *wp2;
 
   if (curwp->w_ntrows < 3)
     {
@@ -341,9 +341,9 @@ splitwind (int f, int n, int k)
 int
 enlargewind (int f, int n, int k)
 {
-  register EWINDOW *adjwp;
-  register LINE *lp;
-  register int i;
+  EWINDOW *adjwp;
+  LINE *lp;
+  int i;
 
   if (n < 0)
     return (shrinkwind (f, -n, KRANDOM));
@@ -395,9 +395,9 @@ enlargewind (int f, int n, int k)
 int
 shrinkwind (int f, int n, int k)
 {
-  register EWINDOW *adjwp;
-  register LINE *lp;
-  register int i;
+  EWINDOW *adjwp;
+  LINE *lp;
+  int i;
 
   if (n < 0)
     return (enlargewind (f, -n, KRANDOM));
@@ -447,9 +447,9 @@ shrinkwind (int f, int n, int k)
 int
 balancewindows (int f, int n, int k)
 {
-  register EWINDOW *wp;
-  register LINE *lp;
-  register int toprow, size, nwind, i;
+  EWINDOW *wp;
+  LINE *lp;
+  int toprow, size, nwind, i;
 
   if (wheadp->w_wndp == NULL)
     {
@@ -495,7 +495,7 @@ balancewindows (int f, int n, int k)
 EWINDOW *
 wpopup (void)
 {
-  register EWINDOW *wp;
+  EWINDOW *wp;
 
   if (wheadp->w_wndp == NULL && splitwind (FALSE, 0, KRANDOM) == FALSE)
     return (NULL);

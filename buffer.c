@@ -99,8 +99,8 @@ static int makelist (void);
 int
 usebuffer (int f, int n, int k)
 {
-  register BUFFER *bp;
-  register int s;
+  BUFFER *bp;
+  int s;
   char bufn[NBUFN];
 
   if ((s = getbufn (bufn)) != TRUE)
@@ -120,7 +120,7 @@ usebuffer (int f, int n, int k)
 int
 nextbuffer (int f, int n, int k)
 {
-  register BUFFER *bp;
+  BUFFER *bp;
 
   if ((bp = curbp->b_bufp) == NULL)
     bp = bheadp;
@@ -137,8 +137,8 @@ nextbuffer (int f, int n, int k)
 int
 prevbuffer (int f, int n, int k)
 {
-  register BUFFER *bp1;
-  register BUFFER *bp2;
+  BUFFER *bp1;
+  BUFFER *bp2;
 
   bp1 = bheadp;
   bp2 = curbp;
@@ -161,7 +161,7 @@ prevbuffer (int f, int n, int k)
 static int
 usebuf (BUFFER *bp)
 {
-  register EWINDOW *wp;
+  EWINDOW *wp;
 
   addwind (curwp, -1);
   strcpy (oldbufn, curbp->b_bname);	/* save current name    */
@@ -192,7 +192,7 @@ usebuf (BUFFER *bp)
 static int
 getbufn (char bufn[NBUFN])
 {
-  register int s;
+  int s;
 
   if ((s = ereplyf ("Use buffer [%s]: ", bufn, NBUFN, EFNEW | EFCR | EFBUF,
 		    oldbufn)) == ABORT)
@@ -214,10 +214,10 @@ getbufn (char bufn[NBUFN])
 int
 killbuffer (int f, int n, int k)
 {
-  register BUFFER *bp;
-  register BUFFER *bp1;
-  register BUFFER *bp2;
-  register int s;
+  BUFFER *bp;
+  BUFFER *bp1;
+  BUFFER *bp2;
+  int s;
   char bufn[NBUFN];
 
   if ((s = ereplyf ("Kill buffer: ", bufn, NBUFN, EFNEW | EFCR | EFBUF)) !=
@@ -267,7 +267,7 @@ killbuffer (int f, int n, int k)
 int
 listbuffers (int f, int n, int k)
 {
-  register int s;
+  int s;
 
   if ((s = makelist ()) != TRUE)
     return (s);
@@ -284,7 +284,7 @@ listbuffers (int f, int n, int k)
 int
 popblist (void)
 {
-  register EWINDOW *wp;
+  EWINDOW *wp;
 
   if (blistp->b_nwnd == 0)
     {				/* Not on screen yet.   */
@@ -322,13 +322,13 @@ popblist (void)
 static int
 makelist (void)
 {
-  register char *cp1;
-  register char *cp2;
-  register int c;
-  register BUFFER *bp;
-  register LINE *lp;
-  register long nbytes;
-  register int s;
+  char *cp1;
+  char *cp2;
+  int c;
+  BUFFER *bp;
+  LINE *lp;
+  long nbytes;
+  int s;
   char b[12 + 1];
   static char line[128];
 
@@ -408,8 +408,8 @@ intoa (char buf[], int width, long num)
 int
 addline (const char *text)
 {
-  register LINE *lp, *endp;
-  register int ntext;
+  LINE *lp, *endp;
+  int ntext;
 
   ntext = strlen (text);
   if ((lp = lalloc (ntext)) == NULL)
@@ -436,7 +436,7 @@ addline (const char *text)
 int
 anycb (void)
 {
-  register BUFFER *bp;
+  BUFFER *bp;
 
   ALLBUF (bp) if ((bp->b_flag & BFCHG) != 0)
     return (TRUE);
@@ -453,7 +453,7 @@ anycb (void)
 BUFFER *
 bfind (const char *bname, int cflag)
 {
-  register BUFFER *bp;
+  BUFFER *bp;
 
   ALLBUF (bp) if (strcmp (bname, bp->b_bname) == 0)
     return (bp);
@@ -526,8 +526,8 @@ addemptyline (BUFFER *bp)
 BUFFER *
 bcreate (const char *bname)
 {
-  register BUFFER *bp;
-  register LINE *lp;
+  BUFFER *bp;
+  LINE *lp;
 
   if ((bp = (BUFFER *) malloc (sizeof (BUFFER))) == NULL)
     return (NULL);
@@ -566,9 +566,9 @@ bcreate (const char *bname)
 int
 bclear (BUFFER *bp)
 {
-  register LINE *lp, *nextlp;
-  register EWINDOW *wp;
-  register int s;
+  LINE *lp, *nextlp;
+  EWINDOW *wp;
+  int s;
 
   if ((bp->b_flag & BFCHG) != 0	/* Changed.             */
       && (s = eyesno ("Discard changes")) != TRUE)
@@ -614,7 +614,7 @@ bclear (BUFFER *bp)
 void
 addwind (EWINDOW *wp, int n /* either +1 or -1 */)
 {
-  register BUFFER *bp;
+  BUFFER *bp;
 
   bp = wp->w_bufp;
   if (bp->b_nwnd == 0)
