@@ -122,7 +122,7 @@ rubyapi.o : rubyapi.S
 	$(CC) -c rubyapi.S
 
 rubyapi.S : $(srcdir)/makeapi.rb $(srcdir)/ruby.c
-	gcc -E $(CFLAGS) $(srcdir)/ruby.c | $(srcdir)/makeapi.rb > rubyapi.S
+	$(CC) -E $(CFLAGS) $(srcdir)/ruby.c | $(srcdir)/makeapi.rb > rubyapi.S
 
 # Run valgrind
 
