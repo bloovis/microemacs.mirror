@@ -21,6 +21,8 @@ x86_64*linux*)	DEFINES="$DEFINES -DLINUX";
                 bcopy=bcopy.s ;;
 *cygwin)	DEFINES="$DEFINES -DCYGWIN" ;;
 *mingw*)	DEFINES="$DEFINES -DMINGW" ;;
+*bsd*)		LDFLAGS="-L/usr/local/lib";
+		CFLAGS_INCLUDE="-I/usr/local/include" ;;
 *)		DEFINES="$DEFINES -DUNKNOWN" ;;
 esac
 echo host is ${host}
@@ -99,6 +101,7 @@ AC_SUBST(EXTRA_OBJS)
 AC_SUBST(LIBS)
 AC_SUBST(CFLAGS_DEBUG)
 AC_SUBST(CFLAGS_DEFAULT)
+AC_SUBST(CFLAGS_INCLUDE)
 AC_SUBST(CFLAGS_OPTIMIZE)
 AC_SUBST(CFLAGS_RUBY)
 AC_SUBST(CFLAGS_PCRE2)

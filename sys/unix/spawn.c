@@ -40,10 +40,13 @@
 #include	<signal.h>
 #include	<stdlib.h>
 #include	<unistd.h>
-#if defined(__linux__) || defined(CYGWIN) || defined(__FreeBSD__) || defined(__APPLE__)
+#if defined(__linux__) || defined(CYGWIN) || defined(__FreeBSD__) || defined(__APPLE__) || defined(__OpenBSD__)
 #include	<sys/types.h>
 #include	<sys/wait.h>
 #include	<fcntl.h>
+#endif
+#if defined(__OpenBSD__)
+#define __sighandler_t sig_t
 #endif
 
 extern struct termios oldtty;

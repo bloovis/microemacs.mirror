@@ -33,7 +33,7 @@
 
 #include	"def.h"
 
-#ifdef __FreeBSD__
+#if defined(__FreeBSD__) || defined(__OpenBSD__)
 #include	<ncurses.h>
 #else
 #include	<ncursesw/ncurses.h>

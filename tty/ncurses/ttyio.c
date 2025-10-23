@@ -39,12 +39,18 @@
 #include	<unistd.h>
 #include	<termios.h>
 #include	<sys/ioctl.h>
-#ifdef __FreeBSD__
+#if defined(__FreeBSD__) || defined(__OpenBSD__)
 #include	<ncurses.h>
 #else
 #include	<ncursesw/ncurses.h>
 #endif
 #include	<locale.h>
+
+#if defined(__OpenBSD__)
+/* These flags are defined on Linux but not on OpenBSD. */
+#define IUTF8 0
+#define CBAUD 0
+#endif
 
 static struct termios oldtty;	/* Old tty state		*/
 static struct termios newtty;	/* New tty state		*/

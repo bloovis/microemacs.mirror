@@ -643,6 +643,7 @@ LIBOBJS
 CFLAGS_PCRE2
 CFLAGS_RUBY
 CFLAGS_OPTIMIZE
+CFLAGS_INCLUDE
 CFLAGS_DEFAULT
 CFLAGS_DEBUG
 EXTRA_OBJS
@@ -4168,6 +4169,8 @@ x86_64*linux*)	DEFINES="$DEFINES -DLINUX";
                 bcopy=bcopy.s ;;
 *cygwin)	DEFINES="$DEFINES -DCYGWIN" ;;
 *mingw*)	DEFINES="$DEFINES -DMINGW" ;;
+*bsd*)		LDFLAGS="-L/usr/local/lib";
+		CFLAGS_INCLUDE="-I/usr/local/include" ;;
 *)		DEFINES="$DEFINES -DUNKNOWN" ;;
 esac
 echo host is ${host}
@@ -4267,6 +4270,7 @@ else case e in #(
   e) CFLAGS_DEFAULT=CFLAGS_OPTIMIZE ;;
 esac
 fi
+
 
 
 
@@ -5551,5 +5555,4 @@ if test -n "$ac_unrecognized_opts" && test "$enable_option_checking" != no; then
   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: unrecognized options: $ac_unrecognized_opts" >&5
 printf "%s\n" "$as_me: WARNING: unrecognized options: $ac_unrecognized_opts" >&2;}
 fi
-
 

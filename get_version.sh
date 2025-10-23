@@ -7,7 +7,7 @@ available() { command -v "${1:?}" >/dev/null; }
 
 srcdir=$1
 [ -n "$srcdir" ]  || exit 1
-echo "#define DATE \"`date -I`\"" >rev.h
+echo "#define DATE \"`date +%Y-%m-%d`\"" >rev.h
 if [ -f $srcdir/.fslckout ] ; then
   fossil info | sed -n 's/checkout: *\(..........\).*/#define REV "fossil-\1"/p' >>rev.h
 elif available git ; then
