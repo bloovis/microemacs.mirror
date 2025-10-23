@@ -14,7 +14,7 @@ The dependent modules are briefly described below.
 ## Operating System
 
 MicroEMACS runs on several operating systems, including Linux,
-FreeBSD, and Windows.  Support code for other operating systems has been lost
+BSD, and Windows.  Support code for other operating systems has been lost
 (in the distant past, these included CP/M-86 and MS-DOS on the DEC Rainbow,
 VMS on the VAX, CP/M-68K, GEMDOS, and FlexOS V60/68K/286).
 The following modules contain code dependencies on the operating system:
@@ -61,13 +61,13 @@ written in C and placed in `tty.c`.
 
 ## Building with GCC
 
-To build MicroEMACs on Linux, FreeBSD, or Windows using Cygwin
+To build MicroEMACs on Linux, BSD, or Windows using Cygwin
 or MinGW, use these commands:
 
     mkdir obj
     cd obj
     ../configure
-    make # gmake on FreeBSD
+    make # gmake on BSD
 
 You can supply one or more optional parameters to the `configure` command:
 
@@ -85,7 +85,14 @@ it can be debugged with gdb.
 `--with-ruby`
 
 Use this option to build support for Ruby extensions into MicroEMACS.
-This option will not work on Windows or FreeBSD.
+This option will not work on Windows.
+
+To get this option to work on BSD, provide a version parameter.
+The parameter should be the first two digits of the version printed by
+`ruby --version`.  For example, if the Ruby version is 3.2.9,
+use this option: `--with-ruby=3.2` .
+
+
 See the [Ruby Extensions](ruby.md) section for more information.
 
 `--with-pcre2`

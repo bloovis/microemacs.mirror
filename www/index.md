@@ -1,6 +1,7 @@
 # MicroEMACS Manual
 
 * [Installation](install.md)
+* [Building a MicroEMACS](building.md)
 * [Introduction](intro.md)
 * [Basic Concepts](concepts.md)
 * [Starting](starting.md)
@@ -25,5 +26,4 @@
 * [Ruby Extensions](ruby.md)
 * [Modes](modes.md)
 * [UTF-8 and Unicode](utf8.md)
-* [Building a MicroEMACS](building.md)
 * [Wall Chart](wall-chart.md)
