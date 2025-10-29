@@ -338,12 +338,8 @@ execute (int c, int f, int n)
       startsaveundo ();
       if (sp->s_macro)
 	status = domacro (sp->s_macro, n);
-#if USE_RUBY
-      else if (sp->s_funcp == NULL)
-	status = rubycall (sp->s_name, f, n);
-#endif
       else
-	status = (*sp->s_funcp) (f, n, c);
+	status = dispatch (sp, f, n, c);
       lastflag = thisflag;
       endsaveundo ();
       return (status);

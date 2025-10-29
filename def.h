@@ -693,6 +693,8 @@ void replyq_clear (void);		/* Clear the reply queue.	*/
 /*
  * Defined by "extend.c".
  */
+int dispatch (SYMBOL *sp, int f,	/* Run a command function.	*/
+	      int n, int k);
 int extend (int f, int n, int k);	/* Extended commands.           */
 int help (int f, int n, int k);		/* Help key.                    */
 int bindtokey (int f, int n, int k);	/* Modify key bindings.         */

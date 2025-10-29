@@ -30,6 +30,20 @@
 #include	"def.h"
 
 /*
+ * Call the command function associated with this symbol, and return its status.
+ */
+int
+dispatch (SYMBOL *sp, int f, int n, int k)
+{
+#if USE_RUBY
+  if (sp->s_funcp == NULL)
+    return rubycall (sp->s_name, f, n);
+#endif
+  return (*sp->s_funcp) (f, n, k);
+}
+
+
+/*
  * This function modifies the keyboard
  * binding table, by adjusting the entries in the
  * big "bindings" array. Most of the grief deals with the
@@ -106,12 +120,8 @@ extend (int f, int n, int k)
 	    }
 	  return (domacro (sp->s_macro, n));
 	}
-#if USE_RUBY
-      else if (sp->s_funcp == NULL)
-	return rubycall (sp->s_name, f, n);
-#endif
       else
-	return ((*sp->s_funcp) (f, n, KRANDOM));
+	return dispatch (sp, f, n, KRANDOM);
     }
   eprintf ("Unknown extended command");
   return (ABORT);
