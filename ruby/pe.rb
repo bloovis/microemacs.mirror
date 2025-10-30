@@ -182,6 +182,14 @@ class E
     $e_lineno = n
   end
 
+  def self.line
+    $e_line
+  end
+
+  def self.line=(s)
+    $e_line = s
+  end
+
   def self.offset
     $e_offset
   end
@@ -322,19 +330,19 @@ $modetable = [
 
 def initmode(n)
   mode = nil
-  f = $filename
+  f = E.filename
 
   # Try to determine the mode from the first non-blank line
   # in the file, which could contain a mode specification like this:
   #   -*-Mode-*-
   # The mode is lower-cased before checking for the hook function,
-  lineno = $lineno
-  linelen = $line.length
-  offset = $offset
+  lineno = E.lineno
+  linelen = E.line.length
+  offset = E.offset
   goto_bob
   keepgoing = true
   while keepgoing
-    l = $line.chomp
+    l = E.line.chomp
     if l =~ /^\s*$/	# skip leading blank lines
       keepgoing = forw_line == ETRUE
     else
@@ -344,8 +352,8 @@ def initmode(n)
       end
     end
   end
-  $lineno = lineno
-  $offset = offset
+  E.lineno = lineno
+  E.offset = offset
 
   # Try to determine the mode from the filename pattern.
   if mode.nil?

@@ -4,19 +4,19 @@
 
 def c_mode
   E.setmode "C"
-  bind "gnu_indent", ctrl('j'), true
+  E.bind "gnu_indent", ctrl('j'), true
   echo "This is C mode"
 end
 
 def crystal_mode
   E.setmode "Crystal"
-  bind "ruby_indent", ctrl('j'), true
+  E.bind "ruby_indent", ctrl('j'), true
   echo "This is Crystal mode"
 end
 
 def ruby_mode
   E.setmode "Ruby"
-  bind "ruby_indent", ctrl('j'), true
+  E.bind "ruby_indent", ctrl('j'), true
   echo "This is Ruby mode"
 end
 
@@ -27,6 +27,6 @@ end
 
 def cplusplus_mode
   E.setmode "C++"
-  bind "gnu_indent", ctrl('j'), true
+  E.bind "gnu_indent", ctrl('j'), true
   echo "This is C++ mode"
 end

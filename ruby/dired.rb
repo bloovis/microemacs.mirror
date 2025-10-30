@@ -71,9 +71,9 @@ def showdir(dir)
   # some keys to special functions.
   E.bflag = BFRO
   E.setmode "dired"
-  bind "visitfile", ctrl('m'), true
-  bind "openfile", key('o'), true
-  bind "displayfile", ctrl('o'), true
+  E.bind "visitfile", ctrl('m'), true
+  E.bind "openfile", key('o'), true
+  E.bind "displayfile", ctrl('o'), true
   return ETRUE
 end
 
