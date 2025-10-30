@@ -1021,6 +1021,12 @@ rubyinit (int quiet)
   /* When loading pe.rb, temporarily suppress Ruby 2.7 warning about how
    * redefining Object#method_missing may cause infinite loop.
    */
+#if 0
+  /* This code is disabled because in the future, using RPC for Ruby
+   * extensions, the extensions will need to load pe.rb themselves.
+   * So force the extensions to do that now so they won't need to be
+   * changed later when RPC is implemented.
+   */
   ruby_verbose = Qnil;
   if (loadscript (global_pe_rb) == FALSE)
     {
@@ -1028,6 +1034,7 @@ rubyinit (int quiet)
       return FALSE;
     }
   ruby_verbose = Qtrue;
+#endif
 
   /* Construct the name of $HOME/.pe.rb and load that file.
    * If it doesn't exist, try loading ./.pe.rb.  But don't

@@ -1,5 +1,11 @@
 # This is the helper file for Ruby support in MicroEMACS.
-# Copy it to /etc.
+# As root, copy it to /usr/local/share/pe/pe.rb
+# (create the directory /usr/local/share/pe if necessary).
+
+# Unset the verbose flag to suppress the warning
+# about method_missing.
+old_verbose = $VERBOSE
+$VERBOSE = nil
 
 # MicroEMACS functions return a trinary value.  We have
 # to use an "E" prefix to avoid conflicts with Ruby's
@@ -119,39 +125,47 @@ def ctlxctrl(c)
   Key.new(c, Key::CTLX | Key::CTRL)
 end
 
-# Editor class to encapsulate global variables and functions
-# define in ruby.c
+# Editor class to encapsulate global variables and helper functions
+# defined in ruby.c.
 
 class E
-  # C function wrappers
 
+  ###
+  ### C helper function wrappers.
+  ###
+
+  # Run a MicroEMACS command.
   def self.cmd(c, f, n, k, s)
     e_cmd(c, f, n, k, s)
   end
 
+  # Is c a MicroEMACS command?
   def self.iscmd(c)
     e_iscmd(c)
   end
 
+  # Insert a string at the cursor.
   def self.insert(s)
     e_insert(s)
   end
 
+  # Pop up a window showing a message.
   def self.popup(s)
     e_popup(s)
   end
 
   # We have to define our own equivalent of bindtokey
-  # instead of using the command built into to MicroEMACS,
+  # instead of using the command built into MicroEMACS,
   # because the latter prompts for a keystroke.
   # Parameters:
   #   name: string containing the function name
   #   key:  keycode
   #   mode: (optional) true if binding to mode, false if global (default)
   def self.bind(name, key, mode=false)
-    e_cbind(name, key.to_i, mode)	# Call C helper function
+    e_cbind(name, key.to_i, mode)
   end
 
+  # Prompt the user with a string, return the answer they types.
   def self.reply(s)
     e_reply(s)
   end
@@ -161,87 +175,115 @@ class E
     Key.new(cgetkey, 0)
   end
 
+  # Set the current buffer's mode.
   def self.setmode(s)
     e_setmode(s)
   end
 
+  # Get the current time as a Time object.
   def self.timenow
     e_timenow
   end
 
+  # Convert a string to a symbol.
   def self.sym2str(s)
     e_sym2str
   end
 
-  # Global variable getters and setters
+  # Run the event loop (only used in RPC version of Ruby extensions).
+  def self.run
+  end
+
+  ###
+  ### Global variable getters and setters.
+  ###
+
+  # Get current line number (1-based).
   def self.lineno
     $e_lineno
   end
 
+  # Set line number (move to that line).
   def self.lineno=(n)
     $e_lineno = n
   end
 
+  # Get current line.
   def self.line
     $e_line
   end
 
+  # Set current line.
   def self.line=(s)
     $e_line = s
   end
 
+  # Get current offset into line.
   def self.offset
     $e_offset
   end
 
+  # Change current offset into line.
   def self.offset=(n)
     $e_offset = n
   end
 
+  # Get character under cursor.
   def self.char
     $e_char
   end
 
+  # Change character under cursor.
   def self.char=(c)
     $e_char = c
   end
 
+  # Get current buffer's filename.
   def self.filename
     $e_filename
   end
 
+  # Change current buffer's filename.
   def self.filename=(s)
     $e_filename = s
   end
 
+  # Get current tab size.
   def self.tabsize
     $e_tabsize
   end
 
+  # Save current tab size.
   def self.tabsize=(n)
     $e_tabsize = n
   end
 
+  # Get current paragraph fill column.
   def self.fillcol
     $e_fillcol
   end
 
+  # Set current paragraph fill column.
   def self.fillcol=(n)
     $e_fillcol = n
   end
 
+  # Get current buffer's flags (see BF* constants).
   def self.bflag
     $e_bflag
   end
 
+  # Set current buffer's flags.
   def self.bflag=(n)
     $e_bflag = n
   end
 
+  # Get current buffer's name (NOT filename!).
   def self.bname
     $e_bname
   end
 
+  # Set current buffer's name (NOT filename!).
   def self.bname=(s)
     $e_bname = s
   end
@@ -264,11 +306,11 @@ end
 #   s = array of strings to be fed to eread
 
 def method_missing(m, *args, &block)
-  STDERR.puts "method_missing #{m}, has .name = #{m.respond_to?(:name)}"
+  #STDERR.puts "method_missing #{m}, has .name = #{m.respond_to?(:name)}"
   c = m.to_s # was sym2str(m)
-  STDERR.puts "c = #{c.inspect}"
+  #STDERR.puts "c = #{c.inspect}"
   super unless E.iscmd(c)
-  STDERR.puts "Calling cmd #{m}"
+  #STDERR.puts "Calling cmd #{m}"
   f = 0
   n = 1
   k = Key::KRANDOM
@@ -398,3 +440,6 @@ class Symbol
     define_method(:to_s) { E.sym2str(self) }
   end
 end
+
+# Now we can set the verbose flag to its original value
+$VERBOSE = old_verbose

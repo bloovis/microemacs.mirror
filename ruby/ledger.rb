@@ -10,6 +10,7 @@
 # that is included in ledger.dat.
 
 require 'open3'
+require '/usr/local/share/pe/pe.rb'
 
 def readaliases
   $aliases = {}
@@ -288,3 +289,6 @@ $accts = {
 # Set a default account, but allow the user to change it
 # by giving an argument to C-X C (cleared command).
 $acct = $accts['tbtf']
+
+# Run the event loop (only needed in RPC version of Ruby extensions).
+E.run
