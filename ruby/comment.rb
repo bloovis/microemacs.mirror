@@ -6,7 +6,7 @@
 
 def columns(s)
   w = 0
-  ts = $tabsize
+  ts = E.tabsize
   s.each_char do |c|
     if c == "\t"
       w += ts - w % ts
@@ -23,7 +23,7 @@ def formatrubycomment(n)
   # The dot must be in the first line of a comment.
   # Extract the leading spaces so we know how much
   # to indent each line.
-  if $line =~ /^(\s*)(.*)/
+  if E.line =~ /^(\s*)(.*)/
     spc = $1
     rest = $2
     if rest[0] != '#'
@@ -37,7 +37,7 @@ def formatrubycomment(n)
   set_mark
   paras = []
   para = ''
-  while $line =~ /^\s*#\s*(.*)/
+  while E.line =~ /^\s*#\s*(.*)/
     rest = $1
     if rest.length == 0
       paras << para
@@ -58,14 +58,14 @@ def formatrubycomment(n)
 
   # Reconstruct the comment, ensuring that the paragraphs don't
   # go past the fill column.
-  maxlen = $fillcol - 2 - columns(spc)
+  maxlen = E.fillcol - 2 - columns(spc)
   leader = spc + '# '
   paras.each_with_index do |para, i|
     words = para.split
     line = ''
     words.each do |word|
       if line.length + 1 + word.length > maxlen
-	insert leader + line + "\n"
+	E.insert leader + line + "\n"
 	line = word
       else
 	if line.length == 0
@@ -76,10 +76,10 @@ def formatrubycomment(n)
       end
     end
     if line.length > 0
-      insert leader + line + "\n"
+      E.insert leader + line + "\n"
     end
     if i != paras.length - 1
-      insert leader + "\n"
+      E.insert leader + "\n"
     end
   end
   echo '[Comment reformatted]'
@@ -92,7 +92,7 @@ def formatccomment(n)
   # The dot must be in the first line of a comment.
   # Extract the leading spaces so we know how much
   # to indent each line.
-  unless $line =~ /^\s*\/\*/
+  unless E.line =~ /^\s*\/\*/
     echo "This line does not look like start of C comment"
     return EFALSE
   end
@@ -105,7 +105,7 @@ def formatccomment(n)
   keepgoing = true
   spc = ''
   while keepgoing
-    line = $line
+    line = E.line
     if line =~ /^(\s*)\/\*\s*(.*)\*\//		# comment start and end: /* ... */
       spc = $1
       rest = $2
@@ -143,14 +143,14 @@ def formatccomment(n)
 
   # Reconstruct the comment, ensuring that the paragraphs don't
   # go past the fill column.
-  maxlen = $fillcol - 3 - columns(spc)
+  maxlen = E.fillcol - 3 - columns(spc)
   leader = spc + '/* '
   paras.each_with_index do |para, i|
     words = para.split
     line = ''
     words.each do |word|
       if line.length + 1 + word.length > maxlen
-	insert leader + line + "\n"
+	E.insert leader + line + "\n"
 	leader = spc + ' * '
 	line = word
       else
@@ -162,21 +162,21 @@ def formatccomment(n)
       end
     end
     if line.length > 0
-      insert leader + line + "\n"
+      E.insert leader + line + "\n"
       leader = spc + ' * '
     end
     if i != paras.length - 1
-      insert leader + "\n"
+      E.insert leader + "\n"
       leader = spc + ' * '
     end
   end
-  insert spc + ' */' + "\n"
+  E.insert spc + ' */' + "\n"
   echo "[Comment reformatted]"
   return ETRUE
 end
 
 def formatcomment(n)
-  line = $line
+  line = E.line
   if line =~ /^\s*#/
     return formatrubycomment(n)
   elsif line =~ /^\s*\/\*/
@@ -190,4 +190,4 @@ end
 # Tell MicroEMACS about the new command.
 
 ruby_command "formatcomment"
-bind "formatcomment", meta(';')
+E.bind "formatcomment", meta(';')

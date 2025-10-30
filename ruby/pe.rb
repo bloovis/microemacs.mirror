@@ -119,10 +119,124 @@ def ctlxctrl(c)
   Key.new(c, Key::CTLX | Key::CTRL)
 end
 
-# Get a keystroke from the user, return it packaged in a Key object.
+# Editor class to encapsulate global variables and functions
+# define in ruby.c
 
-def getkey
-  return Key.new(cgetkey, 0)
+class E
+  # C function wrappers
+
+  def self.cmd(c, f, n, k, s)
+    e_cmd(c, f, n, k, s)
+  end
+
+  def self.iscmd(c)
+    e_iscmd(c)
+  end
+
+  def self.insert(s)
+    e_insert(s)
+  end
+
+  def self.popup(s)
+    e_popup(s)
+  end
+
+  # We have to define our own equivalent of bindtokey
+  # instead of using the command built into to MicroEMACS,
+  # because the latter prompts for a keystroke.
+  # Parameters:
+  #   name: string containing the function name
+  #   key:  keycode
+  #   mode: (optional) true if binding to mode, false if global (default)
+  def self.bind(name, key, mode=false)
+    e_cbind(name, key.to_i, mode)	# Call C helper function
+  end
+
+  def self.reply(s)
+    e_reply(s)
+  end
+
+  # Get a keystroke from the user, return it packaged in a Key object.
+  def self.getkey
+    Key.new(cgetkey, 0)
+  end
+
+  def self.setmode(s)
+    e_setmode(s)
+  end
+
+  def self.timenow
+    e_timenow
+  end
+
+  def self.sym2str(s)
+    e_sym2str
+  end
+
+  # Global variable getters and setters
+  def self.lineno
+    $e_lineno
+  end
+
+  def self.lineno=(n)
+    $e_lineno = n
+  end
+
+  def self.offset
+    $e_offset
+  end
+
+  def self.offset=(n)
+    $e_offset = n
+  end
+
+  def self.char
+    $e_char
+  end
+
+  def self.char=(c)
+    $e_char = c
+  end
+
+  def self.filename
+    $e_filename
+  end
+
+  def self.filename=(s)
+    $e_filename = s
+  end
+
+  def self.tabsize
+    $e_tabsize
+  end
+
+  def self.tabsize=(n)
+    $e_tabsize = n
+  end
+
+  def self.fillcol
+    $e_fillcol
+  end
+
+  def self.fillcol=(n)
+    $e_fillcol = n
+  end
+
+  def self.bflag
+    $e_bflag
+  end
+
+  def self.bflag=(n)
+    $e_bflag = n
+  end
+
+  def self.bname
+    $e_bname
+  end
+
+  def self.bname=(s)
+    $e_bname = s
+  end
 end
 
 # Check if an unknown method is MicroEMACS function.  If so,
@@ -142,11 +256,11 @@ end
 #   s = array of strings to be fed to eread
 
 def method_missing(m, *args, &block)
-  #STDERR.puts "method_missing #{m}, has .name = #{m.respond_to?(:name)}"
+  STDERR.puts "method_missing #{m}, has .name = #{m.respond_to?(:name)}"
   c = m.to_s # was sym2str(m)
-  #STDERR.puts "c = #{c.inspect}"
-  super unless iscmd(c)
-  #STDERR.puts "Calling cmd #{m}"
+  STDERR.puts "c = #{c.inspect}"
+  super unless E.iscmd(c)
+  STDERR.puts "Calling cmd #{m}"
   f = 0
   n = 1
   k = Key::KRANDOM
@@ -167,19 +281,7 @@ def method_missing(m, *args, &block)
     end
   end
   #STDERR.puts "calling cmd(#{c}, #{f}, #{n}, #{k})"
-  cmd(c, f, n, k, s)
-end
-
-# We have to define our own equivalent of bindtokey
-# instead of using the command built into to MicroEMACS,
-# because the latter prompts for a keystroke.
-# Parameters:
-#   name: string containing the function name
-#   key:  keycode
-#   mode: (optional) true if binding to mode, false if global (default)
-
-def bind(name, key, mode=false)
-  cbind(name, key.to_i, mode)	# Call C helper function
+  E.cmd(c, f, n, k, s)
 end
 
 # A mode is a record containing a name and a set of key bindings;
@@ -274,7 +376,7 @@ Encoding.default_internal = 'UTF-8'
 class Time
   unless Time.respond_to?(:now)
     class << self
-      define_method(:now) { timenow }
+      define_method(:now) { E.timenow }
     end
   end
 end
@@ -285,6 +387,6 @@ end
 # the same as name, using our own sym2str function (defined in ruby.c).
 class Symbol
   unless :name.respond_to?(:name)
-    define_method(:to_s) { sym2str(self) }
+    define_method(:to_s) { E.sym2str(self) }
   end
 end

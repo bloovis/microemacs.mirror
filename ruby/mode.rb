@@ -3,30 +3,30 @@
 #   load "mode.rb"
 
 def c_mode
-  setmode "C"
+  E.setmode "C"
   bind "gnu_indent", ctrl('j'), true
   echo "This is C mode"
 end
 
 def crystal_mode
-  setmode "Crystal"
+  E.setmode "Crystal"
   bind "ruby_indent", ctrl('j'), true
   echo "This is Crystal mode"
 end
 
 def ruby_mode
-  setmode "Ruby"
+  E.setmode "Ruby"
   bind "ruby_indent", ctrl('j'), true
   echo "This is Ruby mode"
 end
 
 def shell_mode
-  setmode "Shell"
+  E.setmode "Shell"
   echo "This is shell mode"
 end
 
 def cplusplus_mode
-  setmode "C++"
+  E.setmode "C++"
   bind "gnu_indent", ctrl('j'), true
   echo "This is C++ mode"
 end

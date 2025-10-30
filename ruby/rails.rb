@@ -34,18 +34,18 @@ end
 
 def findmethod
   name = nil
-  old_lineno = $lineno
-  old_offset = $offset
+  old_lineno = E.lineno
+  old_offset = E.offset
   while true
-    if $line =~ /\s*def\s+(\w+)/
+    if E.line =~ /\s*def\s+(\w+)/
       name = $1
       break
     elsif back_line != ETRUE
       break
     end
   end
-  $lineno = old_lineno
-  $offset = old_offset
+  E.lineno = old_lineno
+  E.offset = old_offset
   return name
 end
 
@@ -54,18 +54,18 @@ end
 
 def findclass
   name = nil
-  old_lineno = $lineno
-  old_offset = $offset
+  old_lineno = E.lineno
+  old_offset = E.offset
   while true
-    if $line =~ /\s*class\s+(\w+)/
+    if E.line =~ /\s*class\s+(\w+)/
       name = $1
       break
     elsif back_line != ETRUE
       break
     end
   end
-  $lineno = old_lineno
-  $offset = old_offset
+  E.lineno = old_lineno
+  E.offset = old_offset
   return name
 end
 
@@ -75,7 +75,7 @@ end
 def loadview(n)
   klass = n.nil? ? findclass : nil
   if klass.nil?
-    klass = reply "Class name: "
+    klass = E.reply "Class name: "
     if klass.nil? || klass.length == 0
       return EFALSE
     end
@@ -85,7 +85,7 @@ def loadview(n)
   end
   func = n.nil? ? findmethod : nil
   if func.nil?
-    func = reply "Method name: "
+    func = E.reply "Method name: "
     if func.nil? | func.length == 0
       return EFALSE
     end
@@ -104,7 +104,7 @@ end
 def loadmodel(n)
   klass = n.nil? ? findclass : nil
   if klass.nil?
-    klass = reply "Class name: "
+    klass = E.reply "Class name: "
     if klass.nil? || klass.length == 0
       return EFALSE
     end
@@ -126,7 +126,7 @@ end
 def loadcontroller(n)
   klass = n.nil? ? findclass : nil
   if klass.nil?
-    klass = reply "Class name: "
+    klass = E.reply "Class name: "
     if klass.nil? || klass.length == 0
       return EFALSE
     end
@@ -149,6 +149,6 @@ ruby_command "loadview"
 ruby_command "loadmodel"
 ruby_command "loadcontroller"
 
-bind "loadview", ctlx('v')
-bind "loadmodel", ctlx('m')
-bind "loadcontroller", ctlx('c')
+E.bind "loadview", ctlx('v')
+E.bind "loadmodel", ctlx('m')
+E.bind "loadcontroller", ctlx('c')

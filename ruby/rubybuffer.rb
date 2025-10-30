@@ -18,4 +18,4 @@ def rubybuffer(n)
 end
 
 ruby_command "rubybuffer"
-bind "rubybuffer", metactrl('b')
+E.bind "rubybuffer", metactrl('b')

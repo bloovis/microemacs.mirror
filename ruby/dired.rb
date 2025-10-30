@@ -13,7 +13,7 @@ def viewfile(filename, kind)
     return EFALSE
   end
   unless str =~ /^text\//
-    if reply("#{filename} is not text.  Hit enter to continue: ") == nil
+    if E.reply("#{filename} is not text.  Hit enter to continue: ") == nil
       return EFALSE
     end
   end
@@ -38,7 +38,7 @@ end
 def showdir(dir)
   # Switch to the dired buffer and destroy any existing content.
   use_buffer '*dired*'
-  $bflag = 0
+  E.bflag = 0
   goto_bob
   set_mark
   goto_eob
@@ -53,24 +53,24 @@ def showdir(dir)
     return EFALSE
   end
   stderr_str += ""	# suppress warning about unused variable
-  insert fulldir + ":\n"
-  insert output
+  E.insert fulldir + ":\n"
+  E.insert output
 
   # Figure out the offset of the filename in each line.
-  $lineno = 3
-  l = $line
+  E.lineno = 3
+  l = E.line
   if l =~ /^(.*)\.\//
     $nameoffset = $1.length
   else
     $nameoffset = 46	# just a guess
   end
-  $lineno = 5
-  $offset = $nameoffset
+  E.lineno = 5
+  E.offset = $nameoffset
 
   # Make the buffer readonly, attach a mode to it, and bind
   # some keys to special functions.
-  $bflag = BFRO
-  setmode "dired"
+  E.bflag = BFRO
+  E.setmode "dired"
   bind "visitfile", ctrl('m'), true
   bind "openfile", key('o'), true
   bind "displayfile", ctrl('o'), true
@@ -78,11 +78,11 @@ def showdir(dir)
 end
 
 def handlefile(kind)
-  line = $line.chomp
-  if $lineno == 1
+  line = E.line.chomp
+  if E.lineno == 1
     # Extract the portion of the path up to next / after the cursor on line 1
     line.gsub!(/:/, '')
-    offset = $offset
+    offset = E.offset
     after = line[offset..-1]
     if after =~ /^([^\/]*)\//
       afterlen = $1.length
@@ -93,15 +93,15 @@ def handlefile(kind)
     dir = ''
   else
     # Extract the filename from the directory listing.
-    if $lineno < 3
+    if E.lineno < 3
       return EFALSE
     end
-    old_lineno = $lineno
-    old_offset = $offset
+    old_lineno = E.lineno
+    old_offset = E.offset
     goto_bob
-    dir = $line[0..-3]
-    $lineno = old_lineno
-    $offset = old_offset
+    dir = E.line[0..-3]
+    E.lineno = old_lineno
+    E.offset = old_offset
     filename = line[$nameoffset..-1]
     filename.gsub!(/\*/, '')		# executable file
     filename.gsub!(/ -> .*/, '')	# symbolic link
@@ -131,7 +131,7 @@ end
 
 def dired(n)
   # Prompt for the directory name and expand it fully.
-  dir = reply "Enter a directory name: "
+  dir = E.reply "Enter a directory name: "
   unless dir
     return EFALSE
   end
@@ -141,7 +141,7 @@ end
 # Tell MicroEMACS about the new commands.
 
 ruby_command "dired"
-bind "dired", ctlx('d')
+E.bind "dired", ctlx('d')
 ruby_command "visitfile"
 ruby_command "openfile"
 ruby_command "displayfile"

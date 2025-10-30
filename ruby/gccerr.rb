@@ -3,7 +3,7 @@
 def gccerr(n)
   keepgoing = true
   while keepgoing
-    l = $line
+    l = E.line
     if (l !~ /^In file included/ && l =~ /(.*):(\d+):(\d+): (.*)/)
       file = $1
       lno = $2
@@ -31,4 +31,4 @@ def gccerr(n)
 end
 
 ruby_command "gccerr"
-bind "gccerr", metactrl('e')
+E.bind "gccerr", metactrl('e')

@@ -17,7 +17,7 @@ end
 
 class Dot < Pos
   def initialize
-    super $lineno, $offset
+    super E.lineno, E.offset
   end
 end
 
@@ -26,7 +26,7 @@ class Mark < Pos
     if swap_dot_and_mark == EFALSE
       super 0, 0
     else
-      super $lineno, $offset
+      super E.lineno, E.offset
       swap_dot_and_mark
     end
   end
@@ -49,26 +49,26 @@ class Region
 
   # Yield each line (or partial line) in the region
   def each
-    old_lineno = $lineno
-    old_offset = $offset
+    old_lineno = E.lineno
+    old_offset = E.offset
     lineno = @start.lineno 
-    $lineno = lineno
-    line = $line
+    E.lineno = lineno
+    line = E.line
     if @start.offset < line.length
-      yield $line[@start.offset..-1]
+      yield E.line[@start.offset..-1]
     end
     lineno += 1
     while lineno < @end.lineno
-      $lineno = lineno
-      yield $line
+      E.lineno = lineno
+      yield E.line
       lineno += 1
     end
     if @end.offset > 0
-      $lineno = lineno
-      yield $line[0..@end.offset - 1]
+      E.lineno = lineno
+      yield E.line[0..@end.offset - 1]
     end
-    $lineno = old_lineno
-    $offset = old_offset
+    E.lineno = old_lineno
+    E.offset = old_offset
   end
 end
 
@@ -89,7 +89,7 @@ end
 def testregion
   region = Region.new
   region.each do |line|
-    if reply("line = '#{line}'.  Hit enter to continue: ") == nil
+    if E.reply("line = '#{line}'.  Hit enter to continue: ") == nil
       break
     end
   end

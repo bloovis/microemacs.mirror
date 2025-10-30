@@ -7,9 +7,9 @@ require 'open3'
 # if there doesn't appear to be an email address there.
 
 def getemail
-  line = $line
+  line = E.line
   len = line.length
-  offset = $offset
+  offset = E.offset
   # Find the beginning of the email address.
   while offset > 0 && line[offset - 1] =~ /[\w@\.-]/
     offset -= 1
@@ -33,12 +33,12 @@ def findemails(n)
   end
   addresses, stderr_str, status = Open3.capture3('notmuch', 'address', "from:#{email}")
   if status.to_i != 0
-    popup stderr_str
+    E.popup stderr_str
     return EFALSE
   end
-  popup addresses
+  E.popup addresses
   return ETRUE
 end
 
 ruby_command "findemails"
-bind "findemails", ctlx('m')
+E.bind "findemails", ctlx('m')

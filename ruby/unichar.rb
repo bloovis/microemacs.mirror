@@ -46,7 +46,7 @@ def unichar(n)
     'Z' => 'ŹŻŽ'
   }
 
-  ch = $char
+  ch = E.char
   repls = replacements[ch]
   if repls.nil?
     echo "Unrecognized character '#{ch}'"
@@ -64,7 +64,7 @@ def unichar(n)
   prompt << ": "
   while true
     echo prompt
-    k = getkey
+    k = E.getkey
     if k == ctrl('g')
       echo ''
       return EFALSE
@@ -75,7 +75,7 @@ def unichar(n)
 	n = kch.ord - '0'.ord
 	if n < repls.length
 	  newch = repls[n]
-	  $char = newch
+	  E.char = newch
 	  echo "[#{ch} replaced with #{newch}]"
 	  return ETRUE
 	end
@@ -87,4 +87,4 @@ end
 # Tell MicroEMACS about the new command.
 
 ruby_command "unichar"
-bind "unichar", metactrl('c')
+E.bind "unichar", metactrl('c')

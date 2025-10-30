@@ -31,8 +31,8 @@ end
 # that account, but using the newly entered date.
 
 def xact(n)
-  line = $line
-  lineno = $lineno
+  line = E.line
+  lineno = E.lineno
   if line =~ /^(\d\d\d\d\/\d\d\/\d\d)\s+(\(\d+\)\s+)?(\w+.*)/
     date = $1
     checkno = $2
@@ -41,7 +41,7 @@ def xact(n)
     transaction, stderr_str, status = Open3.capture3('ledger', '--no-aliases',
       '-f', 'ledger.dat', 'xact', date, payee)
     if status.to_i != 0
-      popup stderr_str
+      E.popup stderr_str
       return EFALSE
     end
     if transaction.length == 0
@@ -49,7 +49,7 @@ def xact(n)
       return EFALSE
     end
     lines = transaction.split("\n")
-    $line = ''
+    E.line = ''
     lines.each do |line|
       if line =~ /^(\s+)([a-zA-Z].*[a-zA-Z])(\s\s.*)/ ||
 	 line =~ /^(\s+)([a-zA-Z].*[a-zA-Z])(.*)/ ||
@@ -66,11 +66,11 @@ def xact(n)
 	end
 	line = leader + acct + trailer
       end
-      insert line + "\n"
+      E.insert line + "\n"
     end
-    $lineno = lineno
-    $offset = 11
-    insert checkno if checkno
+    E.lineno = lineno
+    E.offset = 11
+    E.insert checkno if checkno
     return ETRUE
   else
     echo "Transaction must start with date and partial payee name"
@@ -83,7 +83,7 @@ end
 # two are entered, convert them to YYYY/MM/DD.
 
 def getdate
-  line = reply "Enter a date: "
+  line = E.reply "Enter a date: "
   if line.nil?
     return nil
   end
@@ -111,7 +111,7 @@ def insdate(n)
     end
     $date = d
   end
-  insert $date + ' '
+  E.insert $date + ' '
   return ETRUE
 end
 
@@ -120,9 +120,9 @@ end
 # return an empty string.
 
 def getword
-  line = $line
+  line = E.line
   len = line.length
-  offset = $offset
+  offset = E.offset
   while offset > 0 && line[offset - 1] =~ /\w/
     offset -= 1
   end
@@ -140,8 +140,8 @@ def replace(al, newal, offset)
     echo "[#{al} unchanged]"
     return ETRUE
   end
-  line = $line
-  $line = line[0..offset - 1] + newal + line[offset + al.length..-1]
+  line = E.line
+  E.line = line[0..offset - 1] + newal + line[offset + al.length..-1]
   echo "[#{al} replaced with #{newal}]"
   return ETRUE
 end
@@ -185,7 +185,7 @@ def insalias(n)
   prompt << ": "
   while true
     echo prompt
-    k = getkey
+    k = E.getkey
     if k == ctrl('g')
       echo ''
       return EFALSE
@@ -209,7 +209,7 @@ end
 
 def cleared(n)
   if n
-    al = reply "Enter account alias (#{$accts.keys.join(',')}): "
+    al = E.reply "Enter account alias (#{$accts.keys.join(',')}): "
     return EFALSE if al.nil?
     acct = $accts[al]
     if acct.nil?
@@ -218,13 +218,13 @@ def cleared(n)
     end
     $acct = acct
   end
-  line = $line
+  line = E.line
   if line =~ /^(\d\d\d\d\/\d\d\/\d\d\s+)(.*)/ ||
      line =~ /^(\s+)(\w.*)/
     leader = $1
     rest = $2
     if rest !~ /^\*/
-      $line = leader + '* ' + rest
+      E.line = leader + '* ' + rest
     end
   end
   file_save
@@ -250,7 +250,7 @@ def finddate(n)
   goto_bob
   keepgoing = true
   while keepgoing
-    line = $line
+    line = E.line
     if line =~ /^(\d\d\d\d\/\d\d\/\d\d)/
       if $1 >= $date
 	break
@@ -260,22 +260,22 @@ def finddate(n)
   end
   goto_bol
   ins_nl_and_backup
-  insert $date + ' '
+  E.insert $date + ' '
   return ETRUE
 end
 
 # Tell MicroEMACS about the new commands.
 
 ruby_command "xact"
-bind "xact", ctlx('x')
+E.bind "xact", ctlx('x')
 ruby_command "insdate"
-bind "insdate", ctlx('d')
+E.bind "insdate", ctlx('d')
 ruby_command "cleared"
-bind "cleared", ctlx('c')
+E.bind "cleared", ctlx('c')
 ruby_command "insalias"
-bind "insalias", ctlx('a')
+E.bind "insalias", ctlx('a')
 ruby_command "finddate"
-bind "finddate", ctlx('f')
+E.bind "finddate", ctlx('f')
 
 # Set up some global variables used by the commands.
 

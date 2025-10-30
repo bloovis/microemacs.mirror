@@ -972,30 +972,30 @@ rubyinit (int quiet)
 
   /* Define global functions that can be called from Ruby.
    */
-  rb_define_global_function("cmd", my_cmd, 5);
-  rb_define_global_function("iscmd", my_iscmd, 1);
-  rb_define_global_function("linelen", my_linelen, 0);
-  rb_define_global_function("insert", my_insert, 1);
-  rb_define_global_function("popup", my_popup, 1);
-  rb_define_global_function("cbind", my_cbind, 3);
-  rb_define_global_function("reply", my_reply, 1);
-  rb_define_global_function("cgetkey", my_getkey, 0);
-  rb_define_global_function("setmode", my_setmode, 1);
-  rb_define_global_function("timenow", my_now, 0);
-  rb_define_global_function("sym2str", my_sym2str, 1);
+  rb_define_global_function("e_cmd", my_cmd, 5);
+  rb_define_global_function("e_iscmd", my_iscmd, 1);
+  rb_define_global_function("e_linelen", my_linelen, 0);
+  rb_define_global_function("e_insert", my_insert, 1);
+  rb_define_global_function("e_popup", my_popup, 1);
+  rb_define_global_function("e_cbind", my_cbind, 3);
+  rb_define_global_function("e_reply", my_reply, 1);
+  rb_define_global_function("e_cgetkey", my_getkey, 0);
+  rb_define_global_function("e_setmode", my_setmode, 1);
+  rb_define_global_function("e_timenow", my_now, 0);
+  rb_define_global_function("e_sym2str", my_sym2str, 1);
 
   /* Define some virtual global variables, along with
    * their getters and setters.
    */
-  rb_define_virtual_variable ("$lineno", get_lineno, set_lineno);
-  rb_define_virtual_variable ("$offset", get_offset, set_offset);
-  rb_define_virtual_variable ("$line", get_line, set_line);
-  rb_define_virtual_variable ("$char", get_char, set_char);
-  rb_define_virtual_variable ("$filename", get_filename, set_filename);
-  rb_define_virtual_variable ("$tabsize", get_tabsize, set_tabsize);
-  rb_define_virtual_variable ("$fillcol", get_fillcol, set_fillcol);
-  rb_define_virtual_variable ("$bflag", get_bflag, set_bflag);
-  rb_define_virtual_variable ("$bname", get_bname, set_bname);
+  rb_define_virtual_variable ("$e_lineno", get_lineno, set_lineno);
+  rb_define_virtual_variable ("$e_offset", get_offset, set_offset);
+  rb_define_virtual_variable ("$e_line", get_line, set_line);
+  rb_define_virtual_variable ("$e_char", get_char, set_char);
+  rb_define_virtual_variable ("$e_filename", get_filename, set_filename);
+  rb_define_virtual_variable ("$e_tabsize", get_tabsize, set_tabsize);
+  rb_define_virtual_variable ("$e_fillcol", get_fillcol, set_fillcol);
+  rb_define_virtual_variable ("$e_bflag", get_bflag, set_bflag);
+  rb_define_virtual_variable ("$e_bname", get_bname, set_bname);
 
   /* Add the current directory and the location of pe.rb to the Ruby load path.
    * This allows the user to load other scripts without specifying
