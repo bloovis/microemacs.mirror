@@ -4,7 +4,6 @@
 
 # Unset the verbose flag to suppress the warning
 # about method_missing.
-old_verbose = $VERBOSE
 $VERBOSE = nil
 
 # MicroEMACS functions return a trinary value.  We have
@@ -172,7 +171,7 @@ class E
 
   # Get a keystroke from the user, return it packaged in a Key object.
   def self.getkey
-    Key.new(cgetkey, 0)
+    Key.new(e_cgetkey, 0)
   end
 
   # Set the current buffer's mode.
@@ -379,7 +378,7 @@ def initmode(n)
   #   -*-Mode-*-
   # The mode is lower-cased before checking for the hook function,
   lineno = E.lineno
-  linelen = E.line.length
+  #linelen = E.line.length
   offset = E.offset
   goto_bob
   keepgoing = true
@@ -440,6 +439,3 @@ class Symbol
     define_method(:to_s) { E.sym2str(self) }
   end
 end
-
-# Now we can set the verbose flag to its original value
-$VERBOSE = old_verbose

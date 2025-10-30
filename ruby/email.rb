@@ -2,6 +2,7 @@
 # that match the string under the cursor.
 
 require 'open3'
+require '/usr/local/share/pe/pe.rb'
 
 # Return the email address under the cursor, or any empty string
 # if there doesn't appear to be an email address there.
@@ -42,3 +43,7 @@ end
 
 ruby_command "findemails"
 E.bind "findemails", ctlx('m')
+
+# Run the event loop (only needed in RPC version of Ruby extensions).
+E.run
+
