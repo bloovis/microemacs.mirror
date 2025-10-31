@@ -1,6 +1,6 @@
 # Replacment for built-in gcc-error command.
 
-require '/usr/local/share/pe/pe.rb'
+#require '/usr/local/share/pe/pe.rb'
 
 def gccerr(n)
   keepgoing = true
@@ -36,4 +36,4 @@ ruby_command "gccerr"
 E.bind "gccerr", metactrl('e')
 
 # Run the event loop (only needed in RPC version of Ruby extensions).
-E.run
+#E.run

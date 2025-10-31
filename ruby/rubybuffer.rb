@@ -2,7 +2,7 @@
 # runs the current buffer as a Ruby program.
 
 require 'tempfile'
-require '/usr/local/share/pe/pe.rb'
+#require '/usr/local/share/pe/pe.rb'
 
 def rubybuffer(n)
   file = Tempfile.new('perb')
@@ -22,4 +22,4 @@ ruby_command "rubybuffer"
 E.bind "rubybuffer", metactrl('b')
 
 # Run the event loop (only needed in RPC version of Ruby extensions).
-E.run
+#E.run

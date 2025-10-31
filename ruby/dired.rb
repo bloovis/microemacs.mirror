@@ -1,7 +1,7 @@
 # dired.rb
 
 require 'open3'
-require '/usr/local/share/pe/pe.rb'
+#require '/usr/local/share/pe/pe.rb'
 
 $nameoffset = 46
 
@@ -147,4 +147,4 @@ ruby_command "visitfile"
 ruby_command "openfile"
 ruby_command "displayfile"
 
-E.run
+#E.run

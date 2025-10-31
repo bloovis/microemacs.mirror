@@ -2,7 +2,7 @@
 # it demonstrates how the dot, mark, and the region between
 # the two can be encapsulated in classes.
 
-require '/usr/local/share/pe/pe.rb'
+#require '/usr/local/share/pe/pe.rb'
 
 class Pos
   def initialize(ln, off)
@@ -98,4 +98,4 @@ def testregion
 end
 
 # Run the event loop (only needed in RPC version of Ruby extensions).
-E.run
+#E.run

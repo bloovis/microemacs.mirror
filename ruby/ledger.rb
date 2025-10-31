@@ -10,7 +10,7 @@
 # that is included in ledger.dat.
 
 require 'open3'
-require '/usr/local/share/pe/pe.rb'
+#require '/usr/local/share/pe/pe.rb'
 
 def readaliases
   $aliases = {}
@@ -291,4 +291,4 @@ $accts = {
 $acct = $accts['tbtf']
 
 # Run the event loop (only needed in RPC version of Ruby extensions).
-E.run
+#E.run

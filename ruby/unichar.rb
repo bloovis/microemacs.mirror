@@ -4,7 +4,7 @@
 # Examine the character under the cursor, which should be a normal
 # ASCII letter, and offer a set of accented replacements for it.
 
-require '/usr/local/share/pe/pe.rb'
+#require '/usr/local/share/pe/pe.rb'
 
 def unichar(n)
   replacements = {
@@ -92,4 +92,4 @@ ruby_command "unichar"
 E.bind "unichar", metactrl('c')
 
 # Run the event loop (only needed in RPC version of Ruby extensions).
-E.run
+#E.run
