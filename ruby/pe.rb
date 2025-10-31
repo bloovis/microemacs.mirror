@@ -186,7 +186,7 @@ class E
 
   # Convert a string to a symbol.
   def self.sym2str(s)
-    e_sym2str
+    e_sym2str(s)
   end
 
   # Run the event loop (only used in RPC version of Ruby extensions).
