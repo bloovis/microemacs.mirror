@@ -38,7 +38,7 @@ def xact(n)
     date = $1
     checkno = $2
     payee = $3.gsub(/'/, "\\'")
-    # echo "payee = #{payee}"
+    # E.echo "payee = #{payee}"
     transaction, stderr_str, status = Open3.capture3('ledger', '--no-aliases',
       '-f', 'ledger.dat', 'xact', date, payee)
     if status.to_i != 0
@@ -46,7 +46,7 @@ def xact(n)
       return EFALSE
     end
     if transaction.length == 0
-      echo "No matching transaction"
+      E.echo "No matching transaction"
       return EFALSE
     end
     lines = transaction.split("\n")
@@ -74,7 +74,7 @@ def xact(n)
     E.insert checkno if checkno
     return ETRUE
   else
-    echo "Transaction must start with date and partial payee name"
+    E.echo "Transaction must start with date and partial payee name"
     return EFALSE
   end
 end
@@ -95,7 +95,7 @@ def getdate
   elsif line =~ /^(\d+)\/(\d+)$/
     return Time.now.strftime('%Y') + sprintf('/%02d/%02d', $1, $2)
   else
-    echo "Date must be in format YYYY/MM/DD"
+    E.echo "Date must be in format YYYY/MM/DD"
     return nil
   end
 end
@@ -138,12 +138,12 @@ end
 
 def replace(al, newal, offset)
   if al == newal
-    echo "[#{al} unchanged]"
+    E.echo "[#{al} unchanged]"
     return ETRUE
   end
   line = E.line
   E.line = line[0..offset - 1] + newal + line[offset + al.length..-1]
-  echo "[#{al} replaced with #{newal}]"
+  E.echo "[#{al} replaced with #{newal}]"
   return ETRUE
 end
 
@@ -155,7 +155,7 @@ end
 def insalias(n)
   al, offset = getword
   if al.length == 0
-    echo "No word under cursor"
+    E.echo "No word under cursor"
     return EFALSE
   end
   matches = []
@@ -168,7 +168,7 @@ def insalias(n)
     end
   end
   if matches.length == 0
-    echo "No alias found containing #{al}"
+    E.echo "No alias found containing #{al}"
     return EFALSE
   end
   if matches.length == 1
@@ -185,10 +185,10 @@ def insalias(n)
   end
   prompt << ": "
   while true
-    echo prompt
+    E.echo prompt
     k = E.getkey
     if k == ctrl('g')
-      echo ''
+      E.echo ''
       return EFALSE
     end
     if k.normal?
@@ -214,7 +214,7 @@ def cleared(n)
     return EFALSE if al.nil?
     acct = $accts[al]
     if acct.nil?
-      echo "Invalid alias #{al}"
+      E.echo "Invalid alias #{al}"
       return EFALSE
     end
     $acct = acct
@@ -228,13 +228,13 @@ def cleared(n)
       E.line = leader + '* ' + rest
     end
   end
-  file_save
+  E.file_save
   line = `ledger -f ledger.dat bal --cleared '#{$acct}'`
   if line =~ /\$([\-\d\.,]+)/
-    echo "#{$acct} cleared balance = #{$1}"
+    E.echo "#{$acct} cleared balance = #{$1}"
     return ETRUE
   else
-    echo "invalid balance line: #{line.strip}"
+    E.echo "invalid balance line: #{line.strip}"
     return EFALSE
   end
 end
@@ -248,7 +248,7 @@ def finddate(n)
     return EFALSE
   end
   $date = d
-  goto_bob
+  E.goto_bob
   keepgoing = true
   while keepgoing
     line = E.line
@@ -257,25 +257,25 @@ def finddate(n)
 	break
       end
     end
-    keepgoing = forw_line == ETRUE
+    keepgoing = E.forw_line == ETRUE
   end
-  goto_bol
-  ins_nl_and_backup
+  E.goto_bol
+  E.ins_nl_and_backup
   E.insert $date + ' '
   return ETRUE
 end
 
 # Tell MicroEMACS about the new commands.
 
-ruby_command "xact"
+E.ruby_command "xact"
 E.bind "xact", ctlx('x')
-ruby_command "insdate"
+E.ruby_command "insdate"
 E.bind "insdate", ctlx('d')
-ruby_command "cleared"
+E.ruby_command "cleared"
 E.bind "cleared", ctlx('c')
-ruby_command "insalias"
+E.ruby_command "insalias"
 E.bind "insalias", ctlx('a')
-ruby_command "finddate"
+E.ruby_command "finddate"
 E.bind "finddate", ctlx('f')
 
 # Set up some global variables used by the commands.

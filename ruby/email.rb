@@ -29,7 +29,7 @@ end
 def findemails(n)
   email = getemail
   if email.length == 0
-    echo "No email address found under cursor"
+    E.echo "No email address found under cursor"
     return EFALSE
   end
   addresses, stderr_str, status = Open3.capture3('notmuch', 'address', "from:#{email}")
@@ -41,7 +41,7 @@ def findemails(n)
   return ETRUE
 end
 
-ruby_command "findemails"
+E.ruby_command "findemails"
 E.bind "findemails", ctlx('m')
 
 # Run the event loop (only needed in RPC version of Ruby extensions).

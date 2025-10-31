@@ -25,11 +25,11 @@ end
 
 class Mark < Pos
   def initialize
-    if swap_dot_and_mark == EFALSE
+    if E.swap_dot_and_mark == EFALSE
       super 0, 0
     else
       super E.lineno, E.offset
-      swap_dot_and_mark
+      E.swap_dot_and_mark
     end
   end
 end
@@ -76,15 +76,15 @@ end
 
 def testdot
   dot = Dot.new
-  echo "Dot at line #{dot.lineno}, offset #{dot.offset}"
+  E.echo "Dot at line #{dot.lineno}, offset #{dot.offset}"
 end
 
 def testmark
   mark = Mark.new
   if mark.lineno == 0
-    echo "No mark has been set"
+    E.echo "No mark has been set"
   else
-    echo "Mark at line #{mark.lineno}, offset #{mark.offset}"
+    E.echo "Mark at line #{mark.lineno}, offset #{mark.offset}"
   end
 end
 

@@ -10,7 +10,7 @@ def viewfile(filename, kind)
   stdout_s, status = Open3.capture2('file', '-E', '-b', '--mime-type', filename)
   str = stdout_s.chomp
   if status.to_i != 0
-    echo str
+    E.echo str
     return EFALSE
   end
   unless str =~ /^text\//
@@ -20,30 +20,30 @@ def viewfile(filename, kind)
   end
   case kind
   when :visit
-    file_visit filename
+    E.file_visit filename
   when :open
-    only_window
-    split_window
-    forw_window
-    file_visit filename
+    E.only_window
+    E.split_window
+    E.forw_window
+    E.file_visit filename
   when :display
-    only_window
-    split_window
-    forw_window
-    file_visit filename
-    back_window
+    E.only_window
+    E.split_window
+    E.forw_window
+    E.file_visit filename
+    E.back_window
   end
   return ETRUE
 end
 
 def showdir(dir)
   # Switch to the dired buffer and destroy any existing content.
-  use_buffer '*dired*'
+  E.use_buffer '*dired*'
   E.bflag = 0
-  goto_bob
-  set_mark
-  goto_eob
-  kill_region
+  E.goto_bob
+  E.set_mark
+  E.goto_eob
+  E.kill_region
 
   # Insert the contents of the directory, and move
   # the dot to the first entry other than . or ..
@@ -99,7 +99,7 @@ def handlefile(kind)
     end
     old_lineno = E.lineno
     old_offset = E.offset
-    goto_bob
+    E.goto_bob
     dir = E.line[0..-3]
     E.lineno = old_lineno
     E.offset = old_offset
@@ -141,10 +141,10 @@ end
 
 # Tell MicroEMACS about the new commands.
 
-ruby_command "dired"
+E.ruby_command "dired"
 E.bind "dired", ctlx('d')
-ruby_command "visitfile"
-ruby_command "openfile"
-ruby_command "displayfile"
+E.ruby_command "visitfile"
+E.ruby_command "openfile"
+E.ruby_command "displayfile"
 
 #E.run

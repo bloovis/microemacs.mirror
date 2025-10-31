@@ -6,11 +6,11 @@ require 'tempfile'
 
 def rubybuffer(n)
   file = Tempfile.new('perb')
-  goto_line(1)
+  E.goto_line(1)
   keepgoing = true
   while keepgoing
     file.puts(E.line)
-    keepgoing = forw_line == ETRUE
+    keepgoing = E.forw_line == ETRUE
   end
   file.close
   load(file.path)
@@ -18,7 +18,7 @@ def rubybuffer(n)
   return ETRUE
 end
 
-ruby_command "rubybuffer"
+E.ruby_command "rubybuffer"
 E.bind "rubybuffer", metactrl('b')
 
 # Run the event loop (only needed in RPC version of Ruby extensions).

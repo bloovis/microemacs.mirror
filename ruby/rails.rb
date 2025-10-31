@@ -25,7 +25,7 @@ def findroot
       root = root + '/..'
     end
   end
-  echo "Cannot find Rails root directory"
+  E.echo "Cannot find Rails root directory"
   return nil
 end
 
@@ -40,7 +40,7 @@ def findmethod
     if E.line =~ /\s*def\s+(\w+)/
       name = $1
       break
-    elsif back_line != ETRUE
+    elsif E.back_line != ETRUE
       break
     end
   end
@@ -60,7 +60,7 @@ def findclass
     if E.line =~ /\s*class\s+(\w+)/
       name = $1
       break
-    elsif back_line != ETRUE
+    elsif E.back_line != ETRUE
       break
     end
   end
@@ -92,9 +92,9 @@ def loadview(n)
   end
   file = "#{$railsroot}/app/views/#{klass.pluralize.underscore}/#{func}.html.erb"
   if File.exist?(file)
-    return file_visit file
+    return E.file_visit file
   else
-    echo "No such file: #{file}"
+    E.echo "No such file: #{file}"
     return EFALSE
   end
 end
@@ -114,9 +114,9 @@ def loadmodel(n)
   end
   file = "#{$railsroot}/app/models/#{klass.singularize.underscore}.rb"
   if File.exist?(file)
-    return file_visit file
+    return E.file_visit file
   else
-    echo "No such file: #{file}"
+    E.echo "No such file: #{file}"
     return EFALSE
   end
 end
@@ -136,18 +136,18 @@ def loadcontroller(n)
   end
   file = "#{$railsroot}/app/controllers/#{klass.pluralize.underscore}_controller.rb"
   if File.exist?(file)
-    return file_visit file
+    return E.file_visit file
   else
-    echo "No such file: #{file}"
+    E.echo "No such file: #{file}"
     return EFALSE
   end
 end
 
 $railsroot = findroot
 
-ruby_command "loadview"
-ruby_command "loadmodel"
-ruby_command "loadcontroller"
+E.ruby_command "loadview"
+E.ruby_command "loadmodel"
+E.ruby_command "loadcontroller"
 
 E.bind "loadview", ctlx('v')
 E.bind "loadmodel", ctlx('m')

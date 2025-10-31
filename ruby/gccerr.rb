@@ -12,27 +12,27 @@ def gccerr(n)
       col = $3
       err = $4
       if File.exist? file
-	forw_line
-	only_window
-	split_window
-	forw_window
-	file_visit file
-	goto_line lno.to_i
-	forw_char col.to_i - 1
-	echo "#{err}"
+	E.forw_line
+	E.only_window
+	E.split_window
+	E.forw_window
+	E.file_visit file
+	E.goto_line lno.to_i
+	E.forw_char col.to_i - 1
+	E.echo "#{err}"
         return ETRUE
       else
-	echo "File #{file} does not exist"
+	E.echo "File #{file} does not exist"
         return EFALSE
       end
     end
-    keepgoing = forw_line == ETRUE
+    keepgoing = E.forw_line == ETRUE
   end
-  echo "No more gcc errors"
+  E.echo "No more gcc errors"
   return EFALSE
 end
 
-ruby_command "gccerr"
+E.ruby_command "gccerr"
 E.bind "gccerr", metactrl('e')
 
 # Run the event loop (only needed in RPC version of Ruby extensions).

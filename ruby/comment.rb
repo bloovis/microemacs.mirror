@@ -27,14 +27,14 @@ def formatrubycomment(n)
     spc = $1
     rest = $2
     if rest[0] != '#'
-      echo "This line does not look like a Ruby or Perl comment"
+      E.echo "This line does not look like a Ruby or Perl comment"
       return EFALSE
     end
   end
 
   # Collect the text of each paragraph in the comment.
-  goto_bol
-  set_mark
+  E.goto_bol
+  E.set_mark
   paras = []
   para = ''
   while E.line =~ /^\s*#\s*(.*)/
@@ -45,7 +45,7 @@ def formatrubycomment(n)
     end
     para << rest + '  '
     if forw_line != ETRUE
-      goto_eol
+      E.goto_eol
       break
     end
   end
@@ -54,7 +54,7 @@ def formatrubycomment(n)
   end
 
   # Kill the existing comment.
-  kill_region
+  E.kill_region
 
   # Reconstruct the comment, ensuring that the paragraphs don't
   # go past the fill column.
@@ -82,7 +82,7 @@ def formatrubycomment(n)
       E.insert leader + "\n"
     end
   end
-  echo '[Comment reformatted]'
+  E.echo '[Comment reformatted]'
   return ETRUE
 end
 
@@ -93,13 +93,13 @@ def formatccomment(n)
   # Extract the leading spaces so we know how much
   # to indent each line.
   unless E.line =~ /^\s*\/\*/
-    echo "This line does not look like start of C comment"
+    E.echo "This line does not look like start of C comment"
     return EFALSE
   end
 
   # Collect the text of each paragraph in the comment.
-  goto_bol
-  set_mark
+  E.goto_bol
+  E.set_mark
   paras = []
   para = ''
   keepgoing = true
@@ -129,8 +129,8 @@ def formatccomment(n)
     else
       para << rest + '  '
     end
-    if forw_line != ETRUE
-      goto_eol
+    if E.forw_line != ETRUE
+      E.goto_eol
       break
     end
   end
@@ -139,7 +139,7 @@ def formatccomment(n)
   end
 
   # Kill the existing comment.
-  kill_region
+  E.kill_region
 
   # Reconstruct the comment, ensuring that the paragraphs don't
   # go past the fill column.
@@ -171,7 +171,7 @@ def formatccomment(n)
     end
   end
   E.insert spc + ' */' + "\n"
-  echo "[Comment reformatted]"
+  E.echo "[Comment reformatted]"
   return ETRUE
 end
 
@@ -182,12 +182,12 @@ def formatcomment(n)
   elsif line =~ /^\s*\/\*/
     return formatccomment(n)
   else
-    echo "Line doesn't contain start of Ruby or C comment"
+    E.echo "Line doesn't contain start of Ruby or C comment"
     return EFALSE
   end
 end
 
 # Tell MicroEMACS about the new command.
 
-ruby_command "formatcomment"
+E.ruby_command "formatcomment"
 E.bind "formatcomment", meta(';')

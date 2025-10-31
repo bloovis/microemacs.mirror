@@ -51,7 +51,7 @@ def unichar(n)
   ch = E.char
   repls = replacements[ch]
   if repls.nil?
-    echo "Unrecognized character '#{ch}'"
+    E.echo "Unrecognized character '#{ch}'"
     return EFALSE
   end
   prompt = ''
@@ -65,10 +65,10 @@ def unichar(n)
   end
   prompt << ": "
   while true
-    echo prompt
+    E.echo prompt
     k = E.getkey
     if k == ctrl('g')
-      echo ''
+      E.echo ''
       return EFALSE
     end
     if k.normal?
@@ -78,7 +78,7 @@ def unichar(n)
 	if n < repls.length
 	  newch = repls[n]
 	  E.char = newch
-	  echo "[#{ch} replaced with #{newch}]"
+	  E.echo "[#{ch} replaced with #{newch}]"
 	  return ETRUE
 	end
       end
@@ -88,7 +88,7 @@ end
 
 # Tell MicroEMACS about the new command.
 
-ruby_command "unichar"
+E.ruby_command "unichar"
 E.bind "unichar", metactrl('c')
 
 # Run the event loop (only needed in RPC version of Ruby extensions).

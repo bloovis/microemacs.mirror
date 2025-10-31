@@ -4,7 +4,7 @@
 
 # Unset the verbose flag to suppress the warning
 # about method_missing.
-$VERBOSE = nil
+#$VERBOSE = nil
 
 # MicroEMACS functions return a trinary value.  We have
 # to use an "E" prefix to avoid conflicts with Ruby's
@@ -286,51 +286,52 @@ class E
   def self.bname=(s)
     $e_bname = s
   end
-end
 
-# Check if an unknown method is MicroEMACS function.  If so,
-# marshall its various arguments and call it; otherwise pass
-# the exception on, which typically aborts the currently
-# running Ruby program.
-#
-# In order to invoke a MicroEMACS command, method_missing
-# uses two C helper functions:
-#
-# iscmd(c) - returns true if the name c is a MicroEMACS command
-# cmd(c, f, n, k, s) - invoke a MicroEMACS command:
-#   c = name of command
-#   f = argument flag (0 if no argument present, 1 if argument present)
-#   n = argument (integer)
-#   k = keystroke (only looked at by selfinsert)
-#   s = array of strings to be fed to eread
+  # Check if an unknown method is MicroEMACS function.  If so,
+  # marshall its various arguments and call it; otherwise pass
+  # the exception on, which typically aborts the currently
+  # running Ruby program.
+  #
+  # In order to invoke a MicroEMACS command, method_missing
+  # uses two C helper functions:
+  #
+  # iscmd(c) - returns true if the name c is a MicroEMACS command
+  # cmd(c, f, n, k, s) - invoke a MicroEMACS command:
+  #   c = name of command
+  #   f = argument flag (0 if no argument present, 1 if argument present)
+  #   n = argument (integer)
+  #   k = keystroke (only looked at by selfinsert)
+  #   s = array of strings to be fed to eread
 
-def method_missing(m, *args, &block)
-  #STDERR.puts "method_missing #{m}, has .name = #{m.respond_to?(:name)}"
-  c = m.to_s # was sym2str(m)
-  #STDERR.puts "c = #{c.inspect}"
-  super unless E.iscmd(c)
-  #STDERR.puts "Calling cmd #{m}"
-  f = 0
-  n = 1
-  k = Key::KRANDOM
-  s = []
-  args.each do |arg|
-    case arg
-    when Integer
-      # printf "arg = 0x%x\n", arg
-      f = 1
-      n = arg
-    when Key
-      # puts "key = #{arg.to_s}"
-      k = arg.to_i
-    when String
-      s << arg
-    else
-      puts "unknown arg type: method = #{m}, arg = #{arg}, class = #{arg.class}"
+  def self.method_missing(m, *args, &block)
+    #STDERR.puts "method_missing #{m}, has .name = #{m.respond_to?(:name)}"
+    c = m.to_s # was sym2str(m)
+    #STDERR.puts "c = #{c.inspect}"
+    super(m, *args) unless E.iscmd(c)
+    #STDERR.puts "Calling cmd #{m}"
+    f = 0
+    n = 1
+    k = Key::KRANDOM
+    s = []
+    args.each do |arg|
+      case arg
+      when Integer
+	# printf "arg = 0x%x\n", arg
+	f = 1
+	n = arg
+      when Key
+	# puts "key = #{arg.to_s}"
+	k = arg.to_i
+      when String
+	s << arg
+      else
+	puts "unknown arg type: method = #{m}, arg = #{arg}, class = #{arg.class}"
+      end
     end
+    #STDERR.puts "calling cmd(#{c}, #{f}, #{n}, #{k})"
+    self.cmd(c, f, n, k, s)
   end
-  #STDERR.puts "calling cmd(#{c}, #{f}, #{n}, #{k})"
-  E.cmd(c, f, n, k, s)
+
 end
 
 # A mode is a record containing a name and a set of key bindings;
@@ -380,12 +381,12 @@ def initmode(n)
   lineno = E.lineno
   #linelen = E.line.length
   offset = E.offset
-  goto_bob
+  E.goto_bob
   keepgoing = true
   while keepgoing
     l = E.line.chomp
     if l =~ /^\s*$/	# skip leading blank lines
-      keepgoing = forw_line == ETRUE
+      keepgoing = E.forw_line == ETRUE
     else
       keepgoing = false
       if l =~ /-\*-(\w+)-\*-/
