@@ -877,6 +877,8 @@ int rubycall (const char *name, int f,	/* Call a Ruby command.		*/
  * Helpers
  */
 int rubyinit (int quiet);		/* Initialize Ruby.		*/
+int rubyinit_set_error (const char *fmt, ...);
+					/* Set error msg for rubuinit.	*/
 const char * rubyerror (void);		/* Error string from rubyinit	*/
 void rubymode (void);			/* Call ruby "initmode"		*/
 int rubyloadscript (const char *path);	/* Load a ruby script.		*/

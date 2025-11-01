@@ -19,6 +19,8 @@
 
 #include	"def.h"
 
+static char rubyinit_error[100];	/* Buffer containing error message from rubyinit */
+
 #ifndef RUBY_RPC	/* Only include the common functions at the end of this file. */
 
 #include	<dlfcn.h>
@@ -29,7 +31,6 @@
 
 static void *ruby_handle;	/* Handle to libruby.so, NULL if rubyinit failed */
 static int rubyinit_called;	/* TRUE if rubyinit has been called */
-char rubyinit_error[100];	/* Buffer containing error message from rubyinit */
 
 void *ruby_fptrs[100];
 
@@ -880,33 +881,6 @@ rubyloadscript (const char *path)
 }
 
 /*
- * Helper function for rubyinit: store an error message in
- * rubyinit_error and return FALSE.
- */
-static int
-set_rubyinit_error (const char *fmt, ...)
-{
-  va_list ap;
-
-  va_start (ap, fmt);
-  vsnprintf (rubyinit_error, sizeof (rubyinit_error), fmt, ap);
-  va_end (ap);
-  return FALSE;
-}
-
-
-/*
- * Return error string from failed rubyinit call, or empty
- * string if rubyinit succeeded.
- */
-const char *
-rubyerror (void)
-{
-  return rubyinit_error;
-}
-
-
-/*
  * Load the Ruby library, initialize the pointers to the APIs,
  * define some C helper functions, and load the Ruby helper code
  * in pe.rb. Return TRUE on success, or FALSE on failure.
@@ -1015,7 +989,7 @@ rubyinit (int quiet)
   if (access (global_pe_rb, R_OK) != F_OK)
     {
       ruby_handle = NULL;
-      return set_rubyinit_error ("The file %s does not exist; cannot initialize Ruby",
+      return rubyinit_set_error ("The file %s does not exist; cannot initialize Ruby",
 				 global_pe_rb);
       return FALSE;
     }
@@ -1210,4 +1184,30 @@ rubymode (void)
   if (rubyinit (FALSE) != TRUE)
     return;
   rubycall ("initmode", FALSE, 0);
+}
+
+/*
+ * Helper function for rubyinit: store an error message in
+ * rubyinit_error and return FALSE.
+ */
+int
+rubyinit_set_error (const char *fmt, ...)
+{
+  va_list ap;
+
+  va_start (ap, fmt);
+  vsnprintf (rubyinit_error, sizeof (rubyinit_error), fmt, ap);
+  va_end (ap);
+  return FALSE;
+}
+
+
+/*
+ * Return error string from failed rubyinit call, or empty
+ * string if rubyinit succeeded.
+ */
+const char *
+rubyerror (void)
+{
+  return rubyinit_error;
 }

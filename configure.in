@@ -49,6 +49,7 @@ AC_ARG_WITH(ruby,
 [if test $withval = "rpc" ; then
   CFLAGS_RUBY="-DUSE_RUBY=1 -DRUBY_RPC"
   EXTRA_OBJS="$EXTRA_OBJS ruby.o rubyrpc.o"
+  LIBS="$LIBS -ljson-c"
 else
   EXTRA_OBJS="$EXTRA_OBJS ruby.o rubyapi.o"
   if test $withval = "yes" ; then
