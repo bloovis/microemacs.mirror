@@ -19,6 +19,8 @@
 
 #include	"def.h"
 
+#ifndef RUBY_RPC	/* Only include the common functions at the end of this file. */
+
 #include	<dlfcn.h>
 #include	<unistd.h>
 
@@ -834,7 +836,7 @@ check_exception (int state)
  * Run the Ruby code in the passed-in string.  Return TRUE
  * if successful, or FALSE otherwise.
  */
-static int
+int
 runruby (const char * line)
 {
   int state;
@@ -866,8 +868,8 @@ loadhelper (VALUE arg)
  * from rb_protect, which allows us to catch any exceptions
  * in the loaded file.
  */
-static int
-loadscript (const char *path)
+int
+rubyloadscript (const char *path)
 {
   VALUE script;
   int state;
@@ -1022,7 +1024,7 @@ rubyinit (int quiet)
    * redefining Object#method_missing may cause infinite loop.
    */
   ruby_verbose = Qnil;
-  if (loadscript (global_pe_rb) == FALSE)
+  if (rubyloadscript (global_pe_rb) == FALSE)
     {
       ruby_handle = NULL;
       return FALSE;
@@ -1036,9 +1038,9 @@ rubyinit (int quiet)
    */
   home_pe_rb = fftilde ("~/.pe.rb");
   if (access (home_pe_rb, R_OK) == F_OK)
-    return loadscript (home_pe_rb);
+    return rubyloadscript (home_pe_rb);
   else if (access (local_pe_rb, R_OK) == F_OK)
-    return loadscript (local_pe_rb);
+    return rubyloadscript (local_pe_rb);
   else
     return TRUE;
 }
@@ -1117,6 +1119,12 @@ rubycall (const char *name, int f, int n)
     }
 }
 
+#endif /* !RUBY_RPC */
+
+/*
+ * Code common to both implementations of Ruby extensions.
+ */
+
 /*
  * Prompt for a string, and evaluate the string using the
  * Ruby interpreter.  Return TRUE if the string was evaluated
@@ -1151,7 +1159,7 @@ rubyload (int f, int n, int k)
     return status;
   if ((status = ereply ("Ruby file to load: ", line, sizeof (line))) != TRUE)
     return status;
-  return loadscript (line);
+  return rubyloadscript (line);
 }
 
 /*

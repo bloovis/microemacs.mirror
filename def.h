@@ -863,15 +863,24 @@ int foldcase (int f, int n, int k);	/* Set casefold flag            */
 /*
  * Defined by "ruby.c".
  */
-int rubystring (int f, int n, int k);	/* Execute a Ruby string.	*/
-int rubycommand (int f, int n, int k);	/* Define a Ruby command.	*/
-int rubyload (int f, int n, int k);	/* Load a Ruby script.		*/
 
-int rubyinit (int quiet);		/* Initialize Ruby.		*/
-const char * rubyerror (void);		/* Error string from rubyinit	*/
+/*
+ * Commands
+ */
+int rubystring (int f, int n, int k);	/* Execute a Ruby string.	*/
+int rubyload (int f, int n, int k);	/* Load a Ruby script.		*/
+int rubycommand (int f, int n, int k);	/* Define a Ruby command.	*/
 int rubycall (const char *name, int f,	/* Call a Ruby command.		*/
 	      int n);
+
+/*
+ * Helpers
+ */
+int rubyinit (int quiet);		/* Initialize Ruby.		*/
+const char * rubyerror (void);		/* Error string from rubyinit	*/
 void rubymode (void);			/* Call ruby "initmode"		*/
+int rubyloadscript (const char *path);	/* Load a ruby script.		*/
+int runruby (const char * line);	/* Evaluate a line of ruby code */
 
 /*
  * Defined by "spell.c".

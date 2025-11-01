@@ -4211,34 +4211,39 @@ fi
 # Check whether --with-ruby was given.
 if test ${with_ruby+y}
 then :
-  withval=$with_ruby; EXTRA_OBJS="$EXTRA_OBJS ruby.o rubyapi.o"
-if test $withval = "yes" ; then
-  RUBY=ruby
+  withval=$with_ruby; if test $withval = "rpc" ; then
+  CFLAGS_RUBY="-DUSE_RUBY=1 -DRUBY_RPC"
+  EXTRA_OBJS="$EXTRA_OBJS ruby.o rubyrpc.o"
 else
-  version=$withval
-  pc=`find $HOME/.rbenv/versions/$version -name "*.pc" | head -1`
-  if test -z "$pc" ; then
-    pc=`find /usr/local/lib/pkgconfig -name "ruby-*.pc" | head -1`
-  fi
-  if test -f "$pc" ; then
-    export PKG_CONFIG_PATH=`dirname $pc`
-    RUBY=`basename $pc .pc`
-  else
+  EXTRA_OBJS="$EXTRA_OBJS ruby.o rubyapi.o"
+  if test $withval = "yes" ; then
     RUBY=ruby
+  else
+    version=$withval
+    pc=`find $HOME/.rbenv/versions/$version -name "*.pc" | head -1`
+    if test -z "$pc" ; then
+      pc=`find /usr/local/lib/pkgconfig -name "ruby-*.pc" | head -1`
+    fi
+    if test -f "$pc" ; then
+      export PKG_CONFIG_PATH=`dirname $pc`
+      RUBY=`basename $pc .pc`
+    else
+      RUBY=ruby
+    fi
   fi
+  libdir=`pkg-config --variable=libdir $RUBY`
+  libruby_so=`pkg-config --variable=LIBRUBY_SO $RUBY`
+  fullruby_so=$libdir/$libruby_so
+  if test -f $fullruby_so ; then
+    LIBRUBY=$fullruby_so
+  else
+    LIBRUBY=$libruby_so
+  fi
+  CFLAGS_RUBY="`pkg-config --cflags $RUBY` -DUSE_RUBY=1 -DLIBRUBY=$LIBRUBY"
+  case "${host}" in
+  *linux*) LIBS="$LIBS -ldl" ;;
+  esac
 fi
-libdir=`pkg-config --variable=libdir $RUBY`
-libruby_so=`pkg-config --variable=LIBRUBY_SO $RUBY`
-fullruby_so=$libdir/$libruby_so
-if test -f $fullruby_so ; then
-  LIBRUBY=$fullruby_so
-else
-  LIBRUBY=$libruby_so
-fi
-CFLAGS_RUBY="`pkg-config --cflags $RUBY` -DUSE_RUBY=1 -DLIBRUBY=$LIBRUBY"
-case "${host}" in
-*linux*) LIBS="$LIBS -ldl" ;;
-esac
 
 else case e in #(
   e) CFLAGS_RUBY=""
