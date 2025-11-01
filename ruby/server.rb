@@ -357,10 +357,9 @@ public
   # getkey  -> get "getkey"
   # insert  -> set "insert, string
   # popup   -> set "popup", string
-  # cbind   -> set "cbind", key, name
   # setmode -> set "setmode", int
   # bflag   -> set "bflag", int
-
+  # bind    -> set "bind", key, "T/F"+name
   def self.line
     return get_string("line", "")
   end
@@ -376,6 +375,12 @@ public
 
   def self.lineno=(val)
     set("lineno", val, "")
+  end
+
+  def self.bind(name, key, mode=false)
+    # This is hack: prefix the name with a "T" or "F", indicating
+    # the value of mode.
+    set("bind", key.to_i, (mode ? "T" : "F") + name.gsub('_','-'))
   end
 
   ###

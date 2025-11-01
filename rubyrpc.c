@@ -461,6 +461,15 @@ static struct
   const char *line;
 } vars = {42, "old line"};
 
+/*
+ * handle_set - handle a set command
+ *
+ * The Ruby server uses a "set" message to ask MicroEMACS to perform
+ * tasks that are not commands.  These can set variables
+ * like the current line number or the current line, but
+ * can also perform other actions, like prompting the
+ * user for a replay, or inserting text.
+ */
 int
 handle_set(int id, json_object *params)
 {
@@ -473,24 +482,47 @@ handle_set(int id, json_object *params)
     {
       vars.line = get_string(params, "string");
       response = make_normal_response(0, "", id);
-      send_message(response);
-      return TRUE;
     }
   else if (strcmp(name, "lineno") == 0)
     {
       vars.lineno = get_int(params, "int");
       response = make_normal_response(0, "", id);
-      send_message(response);
-      return TRUE;
     }
-  else
+  else if (strcmp(name, "bind") == 0)
     {
-      response = make_error_response(-32602, "no such variable", id);
-      send_message(response);
-      return TRUE;
-    }
+      const char *str;
+      int key;
 
-  return FALSE;
+      key = get_int(params, "int");
+      str = get_string(params, "string");
+      if (str == NULL)
+	response = make_error_response(-32602, "missing command name", id);
+      else
+	{
+	  /* This is a hack: the name has a prefix "T" or "T", indicating
+	   * the value of mode.
+	   */
+	  int mode = str[0] == 'T';
+	  const char *cmd = &str[1];
+	  SYMBOL *sp;
+
+	  if ((sp = symlookup (cmd)) == NULL)
+	    {
+	      eprintf ("%s: no such command", cmd);
+	      response = make_error_response(-32602, "no such command", id);
+	    }
+	  else
+	    {
+	      if (mode)
+		setmodebinding (key, sp);
+	      else
+		setbinding (key, sp);
+	      response = make_normal_response(0, "", id);
+	    }
+	}
+    }
+  send_message(response);
+  return TRUE;
 }
 
 int
@@ -763,8 +795,9 @@ runruby (const char * line)
 int
 rubycall (const char *name, int f, int n)
 {
-  eprintf ("[rubycall for RPC not implemented]");
-  return FALSE;
+  const char *strings[1];
+
+  return call_server(name, f, n, 0, 0, strings);
 }
 
 #if TEST
