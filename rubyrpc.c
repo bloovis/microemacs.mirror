@@ -27,9 +27,13 @@
 
 #include	"def.h"
 
+static int rubyinit_called;	/* TRUE if rubyinit has been called */
 char rubyinit_error[100];	/* Buffer containing error message from rubyinit */
 
-#define TEST 0
+#define TEST 0			/* Enable test program. */
+#define DEBUG 1			/* Enable debug log. */
+
+static FILE *logfile;		/* Log file handle. */
 
 /* Information about the server: its pipe handles
  * and the ID of the last message sent to it.
@@ -42,6 +46,24 @@ struct
   int id;
 } server;
 
+
+static void
+dprintf(const char *fmt, ...)
+{
+#if DEBUG
+  va_list ap;
+
+  if (logfile == NULL)
+    {
+      logfile = fopen("rubyrpc.log", "w");
+      if (logfile == NULL)
+	return;
+    }
+  va_start (ap, fmt);
+  vfprintf (logfile, fmt, ap);
+  va_end (ap);
+#endif
+}
 
 void
 send_message(json_object *root)
@@ -57,7 +79,7 @@ send_message(json_object *root)
       fwrite(str, 1, nbytes, server.output);
       fflush(server.output);
     }
-  printf("====\nSent %s\n", str);
+  dprintf("====\nSent %s\n", str);
   json_object_put(root);
 }
 
@@ -237,7 +259,7 @@ read_rpc_message(void)
    */
   if (fgets (response, sizeof (response), server.input) == NULL)
     {
-      printf("Unable to read line from %s\n", server.filename);
+      dprintf("Unable to read line from %s\n", server.filename);
       return NULL;
     }
   if ((ret = sscanf(response, "%d", &nbytes)) == 1)
@@ -249,37 +271,37 @@ read_rpc_message(void)
 
 	  if ((nread = fread(json, 1, nbytes, server.input)) != nbytes)
 	    {
-	      printf("Tried reading %d bytes, but read %d instead\n", nbytes, nread);
+	      dprintf("Tried reading %d bytes, but read %d instead\n", nbytes, nread);
 	      free(json);
 	      return NULL;
 	    }
 	  else
 	    {
 	      json[nbytes] = '\0';
-	      printf("====\nReceived %s\n", json);
+	      dprintf("====\nReceived %s\n", json);
 	    }
 	}
       else
 	{
-	  printf("Unexpected zero-length response\n");
+	  dprintf("Unexpected zero-length response\n");
 	  return NULL;
 	}
     }
   else
     {
-      printf("sscanf returned %d\n", ret);
+      dprintf("sscanf returned %d\n", ret);
       return NULL;
     }
   if (json == NULL)
     {
-      printf("Unable to read JSON\n");
+      dprintf("Unable to read JSON\n");
       return NULL;
     }
 
   /* Construct a JSON object representing the string we just read. */
-  //printf("About to convert '%s' to json object\n", json);
+  //dprintf("About to convert '%s' to json object\n", json);
   root = json_tokener_parse(json);
-  //printf("Converted '%s' to json object, result is %p\n", json, root);
+  //dprintf("Converted '%s' to json object, result is %p\n", json, root);
   free(json);
   return root;
 }
@@ -312,7 +334,7 @@ get_string(json_object *jobj, const char *name)
 
   if (json_object_object_get_ex(jobj, name, &value) != 1)
     {
-      printf("Unable to get %s from JSON\n", name);
+      dprintf("Unable to get %s from JSON\n", name);
       return NULL;
     }
   return json_object_get_string(value);
@@ -325,7 +347,7 @@ get_int(json_object *jobj, const char *name)
 
   if (json_object_object_get_ex(jobj, name, &value) != 1)
     {
-      printf("Unable to get %s from JSON\n", name);
+      dprintf("Unable to get %s from JSON\n", name);
       return 0;
     }
   return json_object_get_int(value);
@@ -337,7 +359,7 @@ get_nth_string(json_object *jobj, int i)
   json_object *element = json_object_array_get_idx(jobj, i);
   if (element == NULL)
     {
-      printf("Unable to fetch %dth element of array\n", i);
+      dprintf("Unable to fetch %dth element of array\n", i);
     }
   return json_object_get_string(element);
 }
@@ -346,61 +368,91 @@ int
 handle_cmd( int id, json_object *params)
 {
   const char *name;
-  int flag, prefix, key;
-  json_object *strings;
+  int flag, prefix, key, result;
+  json_object *strings, *response;
   char buf[128];
+  SYMBOL *sp;
 
   // name
   name = get_string(params, "name");
-  printf("name: %s\n", name);
+  dprintf("name: %s\n", name);
 
   // flag
   flag = get_int(params, "flag");
-  printf("flag: %d\n", flag);
+  dprintf("flag: %d\n", flag);
 
   // prefix
   prefix = get_int(params, "prefix");
-  printf("prefix: %d\n", prefix);
+  dprintf("prefix: %d\n", prefix);
 
   // key
   key = get_int(params, "key");
-  printf("key: %d\n", key);
+  dprintf("key: %d\n", key);
 
   // strings
   buf[0] = '\0';
   if (json_object_object_get_ex(params, "strings", &strings) != 1)
-    printf("No strings in request.  That's OK.\n");
+    dprintf("No strings in request.  That's OK.\n");
   else
     {
       int i;
       int n = json_object_array_length(strings);
 
+      /* Put the strings in the reply queue, so that ereply
+       * will pick them up without prompting.
+       */
       for (i = 0; i < n; i++)
 	{
 	  const char *str = get_nth_string(strings, i);
 	  replyq_put (str);
 	}
     }
-  /* Have to do something real here.  Let's pretend we did call the method.
-   */
-  if (strcmp (name, "echo") == 0)
-    eecho(flag, prefix, key);
 
-  /* Send a response if this is not a notification.
+  /* Look up the command in the symbol table.
    */
-  if (id == 0)
-    printf("This is a notification, no response required.\n");
+  sp = symlookup (name);
+  if (sp == NULL)
+    {
+      eprintf ("Unknown command %s", name);
+      result = FALSE;
+    }
   else
     {
-      json_object *response;
+      /* We found the command in the symbol table, and
+       * it's one that req
+       * If it's a macro, replay the macro.
+       * If it's a command, call it.
+       */
+      result = FALSE;
+      if (sp->s_macro)
+	{
+	  if (kbdmip != NULL || kbdmop != NULL)
+	    {
+	      eprintf ("Not now");
+	      result = FALSE;
+	    }
+	  else
+	    result = domacro (sp->s_macro, 1);
+	}
+      else
+	{
+	  startsaveundo ();
+	  result = sp->s_funcp (flag, prefix, key);
+	  endsaveundo ();
+	}
 
-      /* The caller expects a response. Send it. */
-      printf("Caller requires response.\n");
-      snprintf(buf, sizeof(buf) - 1, "handle_command: ran %s", name);
-      response = make_normal_response(0, buf, id);
-      send_message(response);
+      /* Send a response, unless it's not a notification (indicated
+       * by a zero id) that expects no response.
+       */
+      if (id != 0)
+	{
+	  dprintf("Caller requires response.\n");
+	  snprintf(buf, sizeof(buf) - 1, "handle_cmd: ran %s, result %d", name, result);
+	  response = make_normal_response(result, buf, id);
+	  send_message(response);
+	}
     }
-  return TRUE;
+  return TRUE;	/* keep reading messages from the server. */
 }
 
 static struct
@@ -416,7 +468,7 @@ handle_set(int id, json_object *params)
 
   // name
   const char *name = get_string(params, "name");
-  printf("handle_set: name: %s\n", name);
+  dprintf("handle_set: name: %s\n", name);
   if (strcmp(name, "line") == 0)
     {
       vars.line = get_string(params, "string");
@@ -448,7 +500,7 @@ handle_get(int id, json_object *params)
 
   // name
   const char *name = get_string(params, "name");
-  printf("handle_get: name: %s\n", name);
+  dprintf("handle_get: name: %s\n", name);
   if (strcmp(name, "line") == 0)
     {
       response = make_normal_response(0, vars.line, id);
@@ -464,7 +516,8 @@ handle_get(int id, json_object *params)
   else if (strcmp(name, "iscmd") == 0)
     {
       const char *cmd = get_string(params, "string");
-      if (cmd != NULL && (strcmp(cmd, "goto-line") == 0 || strcmp(cmd, "echo") == 0))
+
+      if (cmd != NULL && symlookup(cmd) != NULL)
 	response = make_normal_response(TRUE, "found", id);
       else
 	response = make_normal_response(FALSE, "not found", id);
@@ -479,6 +532,9 @@ handle_get(int id, json_object *params)
     }
 }
 
+/*
+ * Handle an RPC method call from the server.
+ */
 int
 handle_call(json_object *root)
 {
@@ -488,16 +544,16 @@ handle_call(json_object *root)
 
   method = get_string(root, "method");
   if (method == NULL) {
-    printf("Unable to get method from JSON\n");
+    dprintf("Unable to get method from JSON\n");
     return FALSE;
   }
   id = get_int(root, "id");
-  printf("handle_call: method %s, id %d\n", method, id);
+  dprintf("handle_call: method %s, id %d\n", method, id);
 
   // params
   if (json_object_object_get_ex(root, "params", &params) != 1)
     {
-      printf("Unable to get params from JSON\n");
+      dprintf("Unable to get params from JSON\n");
       return FALSE;
     }
 
@@ -539,7 +595,7 @@ handle_result(json_object *root, int *resultp)
   string = get_string(root, "string");
   if (string == NULL)
     string = "<none>";
-  printf("handle_result: id %d, result %d, string '%s'\n", id, *resultp, string);
+  dprintf("handle_result: id %d, result %d, string '%s'\n", id, *resultp, string);
 
   /* If this result matches the method call we sent earlier,
    * return false, saying we're done and return to the editor.
@@ -547,6 +603,45 @@ handle_result(json_object *root, int *resultp)
   return id != server.id;
 }
 
+static int
+popup (const char *message)
+{
+  char *copy;
+  char *start, *end;
+
+  /* Clear the popup buffer.
+   */
+  blistp->b_flag &= ~BFCHG;
+  if (bclear (blistp) != TRUE)
+    return FALSE;
+  strcpy (blistp->b_fname, "");
+
+  /* Split the string into lines and write each one to the popup buffer.
+   * In Ruby this would be: message.split("\n").each {|l| addline(l)}
+   * Instead, we use a horrible kludge where we copy the string,
+   * and work through it, changing each \n to a zero.
+   */
+  copy = strdup(message);
+  if (copy == NULL)
+    return FALSE;
+  start = copy;
+  end = start + strlen(copy);
+  while (start < end)
+    {
+      char *newline = strchr (start, '\n');
+      if (newline == NULL)
+	newline = end;
+      *newline = '\0';
+      addline (start);
+      start = newline + 1;
+    }
+  free (copy);
+
+  /* Display the popup buffer.
+   */
+  return popblist ();
+}
+  
 int
 handle_error(json_object *root)
 {
@@ -554,19 +649,21 @@ handle_error(json_object *root)
   json_object *error;
   const char *message;
 
-  printf("--- handle_error ---\n");
+  dprintf("--- handle_error ---\n");
   id = get_int(root, "id");
-  printf("id: %d\n", id);
+  dprintf("id: %d\n", id);
 
   if (json_object_object_get_ex(root, "error", &error) != 1)
     {
-      printf("Unable to get error from JSON\n");
+      dprintf("Unable to get error from JSON\n");
       return FALSE;
     }
   code = get_int(error, "code");
-  printf("code: %d\n", code);
+  dprintf("code: %d\n", code);
   message = get_string(error, "message");
-  printf("message: %s\n", message);
+  dprintf("message: %s\n", message);
+  if (code == -32000)
+    popup (message);
   return FALSE;
 }
 
@@ -594,7 +691,7 @@ call_server(const char *method, int flag, int prefix, int key, int nstrings,
       json_object *msg = read_rpc_message();
       if (msg == NULL)
 	{
-	  printf("Couldn't read RPC message\n");
+	  dprintf("Couldn't read RPC message\n");
 	  break;
 	}
 
@@ -610,9 +707,9 @@ call_server(const char *method, int flag, int prefix, int key, int nstrings,
       else if (is_call(msg))
 	keep_going = handle_call(msg);
       else
-	printf("Unrecognized message.\n");
+	dprintf("Unrecognized message.\n");
     }
-  printf("call_server: returning %d\n", result);
+  dprintf("call_server: returning %d\n", result);
   return result;
 }
 
@@ -620,6 +717,12 @@ int
 rubyinit (int quiet)
 {
   static const char *filename = STRINGIFY(PREFIX) "/share/pe/server.rb";
+
+  /* If we've been called before, return the status from that call.
+   */
+  if (rubyinit_called)
+    return strlen(rubyerror()) == 0;
+  rubyinit_called = TRUE;
 
   if (access (filename, R_OK) != F_OK)
     {
@@ -647,8 +750,14 @@ rubyloadscript (const char *path)
 int
 runruby (const char * line)
 {
+  const char *exec_strings[1];
+
+  exec_strings[0] = line;
+  return call_server("exec", 1, 42, 9, 1, exec_strings);
+#if 0
   eprintf ("[runruby for RPC not implemented]");
   return FALSE;
+#endif
 }
 
 int
@@ -672,7 +781,7 @@ main(int argc, const char *argv[])
 
   if (argc < 2)
     {
-      printf("usage: rpc server (e.g., server.rb)\n");
+      dprintf("usage: rpc server (e.g., server.rb)\n");
       exit(1);
     }
   filename = argv[1];
