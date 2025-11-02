@@ -443,6 +443,7 @@ handle_cmd( int id, json_object *params)
       else
 	{
 	  startsaveundo ();
+	  dprintf("handle_cmd: running %s\n", name);
 	  result = sp->s_funcp (flag, prefix, key);
 	  endsaveundo ();
 	}
@@ -768,11 +769,23 @@ int
 call_server(const char *method, int flag, int prefix, int key, int nstrings,
             const char *strings[])
 {
+  static volatile int level = 0;
   json_object *root;
   int keep_going = TRUE;
   int result = FALSE;
 
-  dprintf ("call_server: method %s, initmode_flag d\n", method, initmode_flag);
+  dprintf ("call_server: level %d, method %s, initmode_flag %d\n", level, method, initmode_flag);
+  if (strcmp (method, "initmode") == 0 && level > 0)
+    {
+      /* We have to delay the call to the Ruby initmode, to
+       * prevent a hang caused by reentrancy.
+       */
+      dprintf ("call_server: setting initmode_flag\n");
+      initmode_flag = TRUE;
+      return TRUE;
+    }
+
+  level++;
   server.id += 2;
   root = make_rpc_request(method, flag, prefix, key, nstrings, strings, server.id); /* was "stuff" */
   send_message(root);
@@ -805,7 +818,8 @@ call_server(const char *method, int flag, int prefix, int key, int nstrings,
 	dprintf("Unrecognized message.\n");
     }
 
-  dprintf("call_server: returning %d\n", result);
+  dprintf("call_server: returning %d from method %s\n", result, method);
+  level--;
 
   /* Horrible hack: if there was an attempt to call initmode during
    * the processing of the command we just executed, to prevent recursion
@@ -875,28 +889,11 @@ rubyloadscript (const char *path)
 int
 rubycall (const char *name, int f, int n)
 {
-  static int level = 0;
   const char *strings[1];
   int result;
 
-  dprintf ("rubycall: name %s, level %d\n", name, level);
-  level++;
-  if (strcmp (name, "initmode") == 0)
-    {
-      /* We have to delay the call to the Ruby initmode, to
-       * prevent a hang caused by reentrancy.
-       */
-      dprintf ("rubycall: setting initmode_flag\n");
-      initmode_flag = TRUE;
-      level--;
-      result = TRUE;
-    }
-  else
-    {
-      level--;
-      result = call_server(name, f, n, 0, 0, strings);
-      dprintf ("rubycall: done calling %s\n", name);
-    }
+  dprintf ("rubycall: calling %s\n", name);
+  result = call_server(name, f, n, 0, 0, strings);
   return result;
 }
 

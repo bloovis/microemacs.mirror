@@ -457,7 +457,7 @@ public
     json = read_response
     dprint "self.cmd: response = #{json}"
     @@id += 2
-    return !json.nil?
+    return json.nil? ? EFALSE : json["result"]
   end
 
   # Helper function that fetches the optional string parameter for a command.
