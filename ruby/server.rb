@@ -187,8 +187,9 @@ private
       end
     end
     dprint "method_missing: calling #{c}"
-    self.cmd(c, f, n, k, s)
+    ret = self.cmd(c, f, n, k, s)
     dprint "method_missing: done calling #{c}"
+    return ret
   end
 
   # Send a hash as RPC message.
