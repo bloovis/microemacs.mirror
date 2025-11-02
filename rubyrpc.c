@@ -27,6 +27,7 @@
 
 #include	"def.h"
 
+static volatile int initmode_flag;	/* TRUE if rubymode has been called */
 static int rubyinit_called;	/* TRUE if rubyinit has been called */
 char rubyinit_error[100];	/* Buffer containing error message from rubyinit */
 
@@ -61,6 +62,7 @@ dprintf(const char *fmt, ...)
     }
   va_start (ap, fmt);
   vfprintf (logfile, fmt, ap);
+  fflush (logfile);
   va_end (ap);
 #endif
 }
@@ -423,8 +425,7 @@ handle_cmd( int id, json_object *params)
     }
   else
     {
-      /* We found the command in the symbol table, and
-       * it's one that req
+      /* We found the command in the symbol table.
        * If it's a macro, replay the macro.
        * If it's a command, call it.
        */
@@ -451,7 +452,7 @@ handle_cmd( int id, json_object *params)
        */
       if (id != 0)
 	{
-	  dprintf("Caller requires response.\n");
+	  dprintf("handle_cmd: ran %s, result %d\n", name, result);
 	  snprintf(buf, sizeof(buf) - 1, "handle_cmd: ran %s, result %d", name, result);
 	  response = make_normal_response(result, buf, id);
 	  send_message(response);
@@ -559,6 +560,13 @@ handle_set(int id, json_object *params)
 	  response = make_normal_response(0, "", id);
 	}
     }
+  else if (strcmp(name, "filename") == 0)
+    {
+      const char *str = get_string(params, "string");
+      replyq_put (str);
+      filename (FALSE, 0, KRANDOM);
+      response = make_normal_response(0, "", id);
+    }
   else
     response = make_error_response (-32602, "no such variable", id);
 
@@ -581,7 +589,7 @@ handle_get(int id, json_object *params)
       free (line);
     }
   else if (strcmp(name, "lineno") == 0)
-    response = make_normal_response(lineno (curwp->w_dot.p), "", id);
+    response = make_normal_response(lineno (curwp->w_dot.p) + 1, "", id);
   else if (strcmp(name, "iscmd") == 0)
     {
       const char *cmd = get_string(params, "string");
@@ -609,6 +617,8 @@ handle_get(int id, json_object *params)
     response = make_normal_response(curbp->b_flag, "", id);
   else if (strcmp(name, "offset") == 0)
     response = make_normal_response(curwp->w_dot.o, "", id);
+  else if (strcmp(name, "filename") == 0)
+    response = make_normal_response(0, curbp->b_fname, id);
   else
     response = make_error_response(-32602, "no such variable", id);
 
@@ -762,6 +772,7 @@ call_server(const char *method, int flag, int prefix, int key, int nstrings,
   int keep_going = TRUE;
   int result = FALSE;
 
+  dprintf ("call_server: method %s, initmode_flag d\n", method, initmode_flag);
   server.id += 2;
   root = make_rpc_request(method, flag, prefix, key, nstrings, strings, server.id); /* was "stuff" */
   send_message(root);
@@ -793,7 +804,22 @@ call_server(const char *method, int flag, int prefix, int key, int nstrings,
       else
 	dprintf("Unrecognized message.\n");
     }
+
   dprintf("call_server: returning %d\n", result);
+
+  /* Horrible hack: if there was an attempt to call initmode during
+   * the processing of the command we just executed, to prevent recursion
+   * we simply set a flag.  Now that the command is done, we can safely
+   * call initmode.
+   */
+  if (initmode_flag == TRUE)
+    {
+      initmode_flag = FALSE;
+      dprintf("call_server: calling initmode\n");
+      const char *strings[1];
+      call_server("initmode", 0, 0, 0, 0, strings);
+    }
+
   return result;
 }
 
@@ -849,9 +875,29 @@ rubyloadscript (const char *path)
 int
 rubycall (const char *name, int f, int n)
 {
+  static int level = 0;
   const char *strings[1];
+  int result;
 
-  return call_server(name, f, n, 0, 0, strings);
+  dprintf ("rubycall: name %s, level %d\n", name, level);
+  level++;
+  if (strcmp (name, "initmode") == 0)
+    {
+      /* We have to delay the call to the Ruby initmode, to
+       * prevent a hang caused by reentrancy.
+       */
+      dprintf ("rubycall: setting initmode_flag\n");
+      initmode_flag = TRUE;
+      level--;
+      result = TRUE;
+    }
+  else
+    {
+      level--;
+      result = call_server(name, f, n, 0, 0, strings);
+      dprintf ("rubycall: done calling %s\n", name);
+    }
+  return result;
 }
 
 #if TEST

@@ -370,7 +370,6 @@ public
 
   def self.line=(val)
     set("line", 0, val)
-    @@id += 2
   end
 
   def self.lineno
@@ -395,6 +394,14 @@ public
 
   def self.offset
     return get_int("offset", "")
+  end
+
+  def self.filename
+    return get_string("filename", "")
+  end
+
+  def self.filename=(val)
+    set("filename", 0, val)
   end
 
   ####
@@ -473,8 +480,7 @@ public
   end
 end
 
-# Non-command functions needed by MicroEMACS to run
-# ruby "eval" and "load" statements.
+# Non-command functions needed by MicroEMACS.
 
 def exec(n, &b)
   cmd = E.getstr(&b)
@@ -495,6 +501,93 @@ def loadfile(n, &b)
     return [EFALSE, "loadfile called without a string"]
   end
 end
+
+# A mode is a record containing a name and a set of key bindings;
+# this record is attached to a particular buffer.  Key bindings
+# in a mode override those in the global key binding table.
+#
+# MicroEMACS calls initmode whenever a new buffer is opened.
+# It uses the following two stratagies to determine the name
+# of the mode for the buffer:
+#
+#   1. Look at the first non-blank line, and if it contains
+#      the string -*-MODE-*-, MODE specifies the mode name
+#   2. If strategy #1 fails, look at the filename, and see if
+#      it matches any of the patterns in the $modetable below
+#
+# If a mode name is determined, run the function MODE_mode,
+# if present, where MODE is the mode name.  The user must provide
+# one or more of these functions to implement the desired modes.
+#
+# A mode function will typically perform any necessary buffer
+# manipulation, then define one or more MicroEMACS functions,
+# and finally bind some keys to that mode.  See dired.rb
+# for an example.
+
+# Table associating filename patterns to mode names.
+$modetable = [
+  [ /\.c$/,   "c" ],
+  [ /\.rb$/,  "ruby" ],
+  [ /\.cc$/,  "cplusplus" ],
+  [ /\.cpp$/, "cplusplus" ],
+  [ /\.cr$/,  "crystal" ],
+  [ /\.sh$/,  "shell" ]
+]
+
+# This function is called whenever a file is read into a buffer.
+# It attempts to determine the mode for the file, and then
+# call the function associated with that mode.
+
+def initmode(n)
+  mode = nil
+  f = E.filename
+
+  # Try to determine the mode from the first non-blank line
+  # in the file, which could contain a mode specification like this:
+  #   -*-Mode-*-
+  # The mode is lower-cased before checking for the hook function,
+  lineno = E.lineno
+  #linelen = E.line.length
+  offset = E.offset
+  E.goto_bob
+  keepgoing = true
+  while keepgoing
+    l = E.line.chomp
+    if l =~ /^\s*$/	# skip leading blank lines
+      keepgoing = E.forw_line == ETRUE
+    else
+      keepgoing = false
+      if l =~ /-\*-(\w+)-\*-/
+	mode = $1.downcase
+      end
+    end
+  end
+  E.lineno = lineno
+  E.offset = offset
+
+  # Try to determine the mode from the filename pattern.
+  if mode.nil?
+    match = $modetable.find {|a| f =~ a[0] }
+    if match
+      mode = match[1]
+    end
+  end
+
+  # If a mode hook function exists, call it
+  if mode.nil?
+    # echo "[unable to determine mode]"
+    return
+  end
+  hook = mode + "_mode"
+  if Object.respond_to?(hook, true)
+    Object.send hook
+  else
+    # echo "[unknown mode hook #{hook}]"
+  end
+end
+
+# Set the default encoding for strings.
+Encoding.default_internal = 'UTF-8'
 
 # Some example MicroEMACS commands written in Ruby.  A command
 # returns either a result code, or a tuple containing:
