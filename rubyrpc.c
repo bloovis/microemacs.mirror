@@ -181,8 +181,13 @@ make_normal_response(
   json_object_object_add(root, "result", jresult);
 
   // "string": ...
-  json_object *jstring = json_object_new_string(string);
-  json_object_object_add(root, "string", jstring);
+  if (string == NULL)
+    json_object_object_add(root, "string", NULL);
+  else
+    {
+      json_object *jstring = json_object_new_string(string);
+      json_object_object_add(root, "string", jstring);
+    }
 
   // id
   json_object *jid = json_object_new_int(id);
@@ -534,17 +539,9 @@ handle_get(int id, json_object *params)
   const char *name = get_string(params, "name");
   dprintf("handle_get: name: %s\n", name);
   if (strcmp(name, "line") == 0)
-    {
-      response = make_normal_response(0, vars.line, id);
-      send_message(response);
-      return TRUE;
-    }
+    response = make_normal_response(0, vars.line, id);
   else if (strcmp(name, "lineno") == 0)
-    {
-      response = make_normal_response(vars.lineno, "", id);
-      send_message(response);
-      return TRUE;
-    }
+    response = make_normal_response(vars.lineno, "", id);
   else if (strcmp(name, "iscmd") == 0)
     {
       const char *cmd = get_string(params, "string");
@@ -553,15 +550,26 @@ handle_get(int id, json_object *params)
 	response = make_normal_response(TRUE, "found", id);
       else
 	response = make_normal_response(FALSE, "not found", id);
-      send_message(response);
-      return TRUE;
+    }
+  else if (strcmp(name, "reply") == 0)
+    {
+      int result;
+      char buf[NCOL];
+      const char *prompt = get_string(params, "string");
+
+      if (prompt != NULL)
+	{
+	  result = ereply ("%s", buf, sizeof (buf), prompt);
+	  response = make_normal_response(result, result == ABORT ? NULL : buf, id);
+	}
+      else
+	response = make_error_response(-32602, "missing reply prompt", id);
     }
   else
-    {
-      response = make_error_response(-32602, "no such variable", id);
-      send_message(response);
-      return TRUE;
-    }
+    response = make_error_response(-32602, "no such variable", id);
+
+  send_message(response);
+  return TRUE;
 }
 
 /*

@@ -325,7 +325,7 @@ private
   # - name: the name of the string
   # - string: additional string parameter (could be nil)
   def self.get_string(name, string)
-    send_message({method: "get", params: {name: name}, string: string, id: @@id})
+    send_message({method: "get", params: {name: name, string: string}, id: @@id})
     json = read_response
     @@id += 2
     return json.nil? ? "" : json["string"]
@@ -381,6 +381,10 @@ public
     # This is hack: prefix the name with a "T" or "F", indicating
     # the value of mode.
     set("bind", key.to_i, (mode ? "T" : "F") + name.gsub('_','-'))
+  end
+
+  def self.reply(s)
+    get_string("reply", s)
   end
 
   ###
