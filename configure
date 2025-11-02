@@ -4156,8 +4156,8 @@ then :
 fi
 
 
-CFLAGS_DEBUG="-g"
-CFLAGS_OPTIMIZE=-O
+CFLAGS_DEBUG="-g -O"
+CFLAGS_OPTIMIZE="-O"
 
 EXTRA_OBJS=""
 case "${host}" in

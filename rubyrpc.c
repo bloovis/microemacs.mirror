@@ -478,7 +478,7 @@ static struct
 int
 handle_set(int id, json_object *params)
 {
-  json_object *response;
+  json_object *response = NULL;
 
   // name
   const char *name = get_string(params, "name");
