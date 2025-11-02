@@ -27,7 +27,6 @@
 
 #include	"def.h"
 
-static volatile int initmode_flag;	/* TRUE if rubymode has been called */
 static int rubyinit_called;	/* TRUE if rubyinit has been called */
 char rubyinit_error[100];	/* Buffer containing error message from rubyinit */
 
@@ -86,7 +85,7 @@ send_message(json_object *root)
 }
 
 /*
- * Make a JSON request for a call to an editor command.
+ * Make a JSON request for a call to a Ruby command.
  * method: name of command
  * flag: 1 if command was preceded by a C-u numeric prefix
  * prefix: numeric prefix (undefined if flag is 0)
@@ -679,7 +678,7 @@ handle_call(json_object *root)
  * we can stop reading messages.
  */
 int
-handle_result(json_object *root, int *resultp)
+handle_result(json_object *root, int expected_id, int *resultp)
 {
   int id;
   const char *string;
@@ -690,12 +689,12 @@ handle_result(json_object *root, int *resultp)
   string = get_string(root, "string");
   if (string == NULL)
     string = "<none>";
-  dprintf("handle_result: id %d, result %d, string '%s'\n", id, *resultp, string);
+  dprintf("handle_result: id %d, expected id %d, result %d, string '%s'\n", id, expected_id, *resultp, string);
 
   /* If this result matches the method call we sent earlier,
    * return false, saying we're done and return to the editor.
    */
-  return id != server.id;
+  return id != expected_id;
 }
 
 static int
@@ -769,25 +768,13 @@ int
 call_server(const char *method, int flag, int prefix, int key, int nstrings,
             const char *strings[])
 {
-  static volatile int level = 0;
   json_object *root;
   int keep_going = TRUE;
   int result = FALSE;
+  int id = server.id;
 
-  dprintf ("call_server: level %d, method %s, initmode_flag %d\n", level, method, initmode_flag);
-  if (strcmp (method, "initmode") == 0 && level > 0)
-    {
-      /* We have to delay the call to the Ruby initmode, to
-       * prevent a hang caused by reentrancy.
-       */
-      dprintf ("call_server: setting initmode_flag\n");
-      initmode_flag = TRUE;
-      return TRUE;
-    }
-
-  level++;
   server.id += 2;
-  root = make_rpc_request(method, flag, prefix, key, nstrings, strings, server.id); /* was "stuff" */
+  root = make_rpc_request(method, flag, prefix, key, nstrings, strings, id);
   send_message(root);
 
   /* Loop reading responses from the server.  There maybe one or more
@@ -796,6 +783,7 @@ call_server(const char *method, int flag, int prefix, int key, int nstrings,
    */
   while (keep_going == TRUE)
     {
+      dprintf ("call_server: waiting for a message\n");
       json_object *msg = read_rpc_message();
       if (msg == NULL)
 	{
@@ -809,7 +797,7 @@ call_server(const char *method, int flag, int prefix, int key, int nstrings,
        * - method call
        */
       if (is_result(msg))
-	keep_going = handle_result(msg, &result);
+	keep_going = handle_result(msg, id, &result);
       else if (is_error(msg))
 	keep_going = handle_error(msg);
       else if (is_call(msg))
@@ -819,21 +807,6 @@ call_server(const char *method, int flag, int prefix, int key, int nstrings,
     }
 
   dprintf("call_server: returning %d from method %s\n", result, method);
-  level--;
-
-  /* Horrible hack: if there was an attempt to call initmode during
-   * the processing of the command we just executed, to prevent recursion
-   * we simply set a flag.  Now that the command is done, we can safely
-   * call initmode.
-   */
-  if (initmode_flag == TRUE)
-    {
-      initmode_flag = FALSE;
-      dprintf("call_server: calling initmode\n");
-      const char *strings[1];
-      call_server("initmode", 0, 0, 0, 0, strings);
-    }
-
   return result;
 }
 
@@ -871,10 +844,6 @@ runruby (const char * line)
 
   exec_strings[0] = line;
   return call_server("exec", 1, 42, 9, 1, exec_strings);
-#if 0
-  eprintf ("[runruby for RPC not implemented]");
-  return FALSE;
-#endif
 }
 
 int

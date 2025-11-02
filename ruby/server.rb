@@ -186,8 +186,9 @@ private
 	#dprint "unknown arg type: method = #{m}, arg = #{arg}, class = #{arg.class}"
       end
     end
-    #dprint "calling cmd(#{c}, #{f}, #{n}, #{k})"
+    dprint "method_missing: calling #{c}"
     self.cmd(c, f, n, k, s)
+    dprint "method_missing: done calling #{c}"
   end
 
   # Send a hash as RPC message.
@@ -220,14 +221,15 @@ private
     return JSON.parse(str)
   end
 
-  # Read a JSON response, and if the ID matches, return the hash
+  # If a JSON response is not provided, read a JSON response.
+  # If the ID in the response matches, return the hash
   # representing the JSON.  If the ID doesn't match, or if
   # there's another error, return nil.
-  def self.read_response
+  def self.read_response(expected_id, json=nil)
     # Read the JSON string and convert it to a hash.
-    json = read_message
     unless json
-      return nil
+      json = read_message
+      return nil unless json
     end
 
     # Parse the JSON and determine if it indicates success or error.
@@ -238,8 +240,8 @@ private
     else
       result = json["result"].to_i
       id = json["id"].to_i
-      if id != @@id
-	dprint "response ID was #{id}, expected #{@@id}"
+      if id != expected_id
+	dprint "response ID was #{id}, expected #{expected_id}"
 	return nil
       else
 	dprint "Got expected response id #{id}"
@@ -250,11 +252,12 @@ private
 
   # Process an incoming command, return true if successful,
   # false if unrecoverable error.
-  def self.process_command
-    # Read JSON message.
-    json = read_message
+  def self.process_command(json=nil)
+    # Read JSON message if it was not passed in.
     unless json
-      return false
+      dprint "process_command: waiting for a message"
+      json = read_message
+      return false unless json
     end
 
     # Parse the JSON and extract the parameters.
@@ -298,7 +301,7 @@ private
     if respond_to?(method,true)
       exc = nil
       begin
-        # Command can fetch the optionsl string array (strs) with yield.
+        # Command can fetch the optional string array (strs) with yield.
 	# We ignore the key parameter for now.  Maybe pass it to yield?
         ret = send(method, flag == 1 ? prefix : nil) { strs }
       rescue => x
@@ -308,6 +311,7 @@ private
 	send_message({id: id, error: {code: -32000, message: "Exception:\n#{exc}"}})
 	exc = nil
       else
+	dprint "#{method} returned #{ret}"
 	if ret.is_a?(Array)
 	  result = ret[0]
 	  msg = ret[1]
@@ -324,6 +328,7 @@ private
     else
       send_message({id: id, error: {code: -32601, message: "Method not found"}})
     end
+    dprint "process_command: returning true"
     return true
   end
 
@@ -332,7 +337,7 @@ private
   # - string: additional string parameter (could be nil)
   def self.get_string(name, string)
     send_message({method: "get", params: {name: name, string: string}, id: @@id})
-    json = read_response
+    json = read_response(@@id)
     @@id += 2
     return json.nil? ? "" : json["string"]
   end
@@ -342,14 +347,14 @@ private
   # - string: additional string parameter (could be empty)
   def self.get_int(name, string)
     send_message({method: "get", params: {name: name, string: string}, id: @@id})
-    json = read_response
+    json = read_response(@@id)
     @@id += 2
     return json.nil? ? 0 : json["result"]
   end
 
   def self.set(name, int, string)
     send_message({method: "set", params: {name: name, int: int, string: string}, id: @@id})
-    read_response
+    read_response(@@id)
     @@id += 2
   end
 
@@ -448,13 +453,32 @@ public
   # Run a MicroEMACS command, return true if successful.
   def self.cmd(name, flag, prefix, key, s)
     return unless self.iscmd(name)
+    id = @@id
     send_message({method: "cmd",
 	params: {name: name,
 		 flag: flag,
 		 prefix: prefix,
 		 key: key,
-		 strings: s}, id: @@id})
-    json = read_response
+		 strings: s}, id: id})
+
+    # Keeping reading messages.  If we get method call message,
+    # process that.  Exit the loop when we see the expected response message.
+    done = false
+    until done
+      json = read_message
+      if json
+	if json["method"]
+	  process_command(json)
+	else
+	  json = read_response(id, json)
+	  if json
+	    done = true
+	  end
+	end
+      else
+	done = true
+      end
+    end
     dprint "self.cmd: response = #{json}"
     @@id += 2
     return json.nil? ? EFALSE : json["result"]
@@ -575,14 +599,14 @@ def initmode(n)
 
   # If a mode hook function exists, call it
   if mode.nil?
-    # echo "[unable to determine mode]"
-    return
+    return [ETRUE, "unable to determine mode"]
   end
   hook = mode + "_mode"
   if Object.respond_to?(hook, true)
     Object.send hook
+    return [ETRUE, "called mode hook #{hook}"]
   else
-    # echo "[unknown mode hook #{hook}]"
+    return [ETRUE, "unknown mode hook #{hook}"]
   end
 end
 
