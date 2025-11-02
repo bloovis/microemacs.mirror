@@ -883,6 +883,8 @@ const char * rubyerror (void);		/* Error string from rubyinit	*/
 void rubymode (void);			/* Call ruby "initmode"		*/
 int rubyloadscript (const char *path);	/* Load a ruby script.		*/
 int runruby (const char * line);	/* Evaluate a line of ruby code */
+char *ruby_getline(void);		/* Make a copy of current line	*/
+void ruby_setline(const char *s);	/* Set current line		*/
 
 /*
  * Defined by "spell.c".

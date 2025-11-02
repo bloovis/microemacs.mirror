@@ -313,33 +313,17 @@ get_line (ID id, VALUE *var)
 {
   VALUE ret;
   VALUE utf8;
-  LINE *lp;
   char *str;
-  int len;
 
   /* Make a copy of the line with an extra space for a newline.
    */
-  lp = curwp->w_dot.p;
-  len = llength (lp);
-  str = (char *) malloc (len + 1);
+  str = ruby_getline();
   if (str == NULL)
-    {
-      eprintf ("Out of memory in get_line!");
-      return Qnil;
-    }
-  memcpy (str, lgets (lp), len);
-
-  /* Append a newline if this is not the last line.
-   */
-  if (lp != lastline (curbp))
-    {
-      str[len] = '\n';
-      ++len;
-    }
+    return Qnil;
 
   /* Make the copy of the line into a Ruby string, and free the copy.
    */
-  ret = rb_str_new (str, len);
+  ret = rb_str_new (str, strlen (str));
   utf8 = rb_str_new_cstr("utf-8");
   rb_funcall (ret, rb_intern ("force_encoding"), 1, utf8);
   free (str);
@@ -355,24 +339,13 @@ set_line (VALUE val, ID id, VALUE *var)
   int len;
   char *str;
 
-  /* Make a copy of the string, and zap any terminating
-   * newline.
-   */
-  str = strdup (StringValueCStr (val));
+  str = StringValueCStr (val);
   if (str == NULL)
     {
       eprintf ("Out of memory in set_line!");
       return;
     }
-  len = strlen (str);
-  if (len > 0 && str[len - 1] == '\n')
-    str[len - 1] = '\0';
-
-  /* Replace the line.
-   */
-  len = wllength (curwp->w_dot.p);
-  curwp->w_dot.o = len;
-  lreplace (len, str, TRUE);
+  ruby_setline (str);
 }
 
 /*
@@ -910,7 +883,7 @@ rubyinit (int quiet)
   fptrcount = sizeof (ruby_fptrs) / sizeof (ruby_fptrs[0]);
   if (namecount >= fptrcount)
     {
-      return set_rubyinit_error ("ruby_fptrs has %d entries but needs %d", fptrcount, namecount);
+      return rubyinit_set_error ("ruby_fptrs has %d entries but needs %d", fptrcount, namecount);
     }
 
   /* Open the Ruby runtime library.
@@ -918,7 +891,7 @@ rubyinit (int quiet)
   ruby_handle = dlopen(libruby, RTLD_LAZY);
   if (ruby_handle == NULL)
     {
-      return set_rubyinit_error ("Unable to load %s", libruby);
+      return rubyinit_set_error ("Unable to load %s", libruby);
     }
 
   /* Query the addresses of our required Ruby API functions.
@@ -929,7 +902,7 @@ rubyinit (int quiet)
       if (ruby_fptrs[i] == NULL)
 	{
 	  ruby_handle = NULL;
-	  return set_rubyinit_error ("Unable to get address of ruby function %s", fnames[i]);
+	  return rubyinit_set_error ("Unable to get address of ruby function %s", fnames[i]);
 	}
       else
 	{
@@ -939,7 +912,7 @@ rubyinit (int quiet)
   if ((status = ruby_setup ()) != 0)
     {
       ruby_handle = NULL;
-      return set_rubyinit_error ("ruby_setup returned %d", status);
+      return rubyinit_set_error ("ruby_setup returned %d", status);
     }
 
   /* Initialize the load path for gems.
@@ -1211,3 +1184,69 @@ rubyerror (void)
 {
   return rubyinit_error;
 }
+
+/*
+ * Get the current line's text, with a newline appended
+ * if it's not the last line in the buffer.  Return NULL
+ * on error.  The caller MUST free the string when done.
+ */
+char *
+ruby_getline (void)
+{
+  LINE *lp;
+  char *str;
+  int len;
+
+  /* Make a copy of the line with an extra space for a newline.
+   */
+  lp = curwp->w_dot.p;
+  len = llength (lp);
+  str = (char *) malloc (len + 2);
+  if (str == NULL)
+    {
+      eprintf ("Out of memory in ruby_getline!");
+      return NULL;
+    }
+  memcpy (str, lgets (lp), len);
+
+  /* Append a newline if this is not the last line.
+   */
+  if (lp != lastline (curbp))
+    {
+      str[len] = '\n';
+      ++len;
+    }
+  str[len] = '\0';
+  return str;
+}
+
+/*
+ * Replace the current line with the new string;
+ */
+void
+ruby_setline (const char *line)
+{
+  int len;
+  char *str;
+
+  /* Make a copy of the string, and zap any terminating
+   * newline.
+   */
+  str = strdup (line);
+  if (str == NULL)
+    {
+      eprintf ("Out of memory in ruby_setline!");
+      return;
+    }
+  len = strlen (str);
+  if (len > 0 && str[len - 1] == '\n')
+    str[len - 1] = '\0';
+
+  /* Replace the line.
+   */
+  len = wllength (curwp->w_dot.p);
+  curwp->w_dot.o = len;
+  lreplace (len, str, TRUE);
+  free (str);
+}
+

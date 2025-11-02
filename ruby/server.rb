@@ -26,6 +26,12 @@ EFALSE = 0
 ETRUE  = 1
 EABORT = 2
 
+# The variable E.bflag (the current buffer's flags) is an OR
+# of the following values.
+
+BFCHG = 1	# changed
+BFBAK = 2	# need backup
+BFRO  = 4	# read-only
 
 ###
 ### Key -
@@ -349,17 +355,15 @@ private
 
 public
 
-  # Getters and setters for objects inside the editor.
+  ####
+  #### Getters and setters for objects in the editor
+  ####
+
   # Getters can take an additional string parameter,
   # and setters can take an integer and a string parameter.
-  # iscmd   -> get "iscmd", cmdname
-  # reply   -> get "reply", string
-  # getkey  -> get "getkey"
-  # insert  -> set "insert, string
-  # popup   -> set "popup", string
-  # setmode -> set "setmode", int
-  # bflag   -> set "bflag", int
-  # bind    -> set "bind", key, "T/F"+name
+  # Variables supported: lineno, offset, line, char,
+  # filename, tabsize, fillcol, bflag, bname
+
   def self.line
     return get_string("line", "")
   end
@@ -377,6 +381,26 @@ public
     set("lineno", val, "")
   end
 
+  def self.bflag=(val)
+    set("bflag", val, "")
+  end
+
+  def self.bflag
+    return get_int("bflag", "")
+  end
+
+  def self.offset=(val)
+    set("offset", val, "")
+  end
+
+  def self.offset
+    return get_int("offset", "")
+  end
+
+  ####
+  #### Non-command calls into MicroEMACS.
+  ####
+
   def self.bind(name, key, mode=false)
     # This is hack: prefix the name with a "T" or "F", indicating
     # the value of mode.
@@ -385,6 +409,14 @@ public
 
   def self.reply(s)
     get_string("reply", s)
+  end
+
+  def self.insert(s)
+    set("insert", 0, s);
+  end
+
+  def self.setmode(s)
+    set("mode", 0, s)
   end
 
   ###

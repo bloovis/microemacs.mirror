@@ -460,12 +460,6 @@ handle_cmd( int id, json_object *params)
   return TRUE;	/* keep reading messages from the server. */
 }
 
-static struct
-{
-  int lineno;
-  const char *line;
-} vars = {42, "old line"};
-
 /*
  * handle_set - handle a set command
  *
@@ -485,12 +479,14 @@ handle_set(int id, json_object *params)
   dprintf("handle_set: name: %s\n", name);
   if (strcmp(name, "line") == 0)
     {
-      vars.line = get_string(params, "string");
+      const char *line = get_string(params, "string");
+      ruby_setline (line);
       response = make_normal_response(0, "", id);
     }
   else if (strcmp(name, "lineno") == 0)
     {
-      vars.lineno = get_int(params, "int");
+      int lineno = get_int(params, "int");
+      gotoline (TRUE, lineno, KRANDOM);
       response = make_normal_response(0, "", id);
     }
   else if (strcmp(name, "bind") == 0)
@@ -526,6 +522,46 @@ handle_set(int id, json_object *params)
 	    }
 	}
     }
+  else if (strcmp (name, "bflag") == 0)
+    {
+      curbp->b_flag = get_int(params, "int");
+      curwp->w_flag |= WFMODE;
+      response = make_normal_response(0, "", id);
+    }
+  else if (strcmp (name, "insert") == 0)
+    {
+      const char *str = get_string (params, "string");
+      if (str == NULL)
+	response = make_error_response(-32602, "missing insert string", id);
+      else
+	{
+	  int result = insertwithnl (str, strlen (str));
+	  response = make_normal_response(result, "", id);
+	}
+    }
+  else if (strcmp (name, "offset") == 0)
+    {
+      int offset = get_int(params, "int");
+      if (offset > wllength (curwp->w_dot.p))
+	eprintf ("Offset too large");
+      else
+	curwp->w_dot.o = offset;
+      response = make_normal_response(0, "", id);
+    }
+  else if (strcmp (name, "mode") == 0)
+    {
+      const char *str = get_string (params, "string");
+      if (str == NULL)
+	response = make_error_response(-32602, "missing mode string", id);
+      else
+	{
+	  createmode (str);
+	  response = make_normal_response(0, "", id);
+	}
+    }
+  else
+    response = make_error_response (-32602, "no such variable", id);
+
   send_message(response);
   return TRUE;
 }
@@ -539,9 +575,13 @@ handle_get(int id, json_object *params)
   const char *name = get_string(params, "name");
   dprintf("handle_get: name: %s\n", name);
   if (strcmp(name, "line") == 0)
-    response = make_normal_response(0, vars.line, id);
+    {
+      char *line = ruby_getline ();
+      response = make_normal_response(0, line, id);
+      free (line);
+    }
   else if (strcmp(name, "lineno") == 0)
-    response = make_normal_response(vars.lineno, "", id);
+    response = make_normal_response(lineno (curwp->w_dot.p), "", id);
   else if (strcmp(name, "iscmd") == 0)
     {
       const char *cmd = get_string(params, "string");
@@ -565,6 +605,10 @@ handle_get(int id, json_object *params)
       else
 	response = make_error_response(-32602, "missing reply prompt", id);
     }
+  else if (strcmp(name, "bflag") == 0)
+    response = make_normal_response(curbp->b_flag, "", id);
+  else if (strcmp(name, "offset") == 0)
+    response = make_normal_response(curwp->w_dot.o, "", id);
   else
     response = make_error_response(-32602, "no such variable", id);
 
@@ -781,13 +825,6 @@ rubyinit (int quiet)
 }
 
 int
-rubyloadscript (const char *path)
-{
-  eprintf ("[rubyloadscript for RPC not implemented]");
-  return FALSE;
-}
-
-int
 runruby (const char * line)
 {
   const char *exec_strings[1];
@@ -798,6 +835,15 @@ runruby (const char * line)
   eprintf ("[runruby for RPC not implemented]");
   return FALSE;
 #endif
+}
+
+int
+rubyloadscript (const char *path)
+{
+  char buf[1024];
+
+  snprintf (buf, sizeof(buf) - 1, "load '%s'", path);
+  return runruby (buf);
 }
 
 int
