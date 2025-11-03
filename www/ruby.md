@@ -19,6 +19,9 @@ A Ruby-enabled MicroEMACS will work only on a system that has the same
 version of Ruby as the build system.  You will need to rebuild it for
 each system that has a different version of Ruby.
 
+See the [RPC section](#rpc) for information about an alternative implementation
+of Ruby extensions that may work better on newer systems.
+
 ## Initialization
 
 In order for Ruby commands to run correctly, you will need to
@@ -45,38 +48,41 @@ that implements a command to parse gcc compiler errors and go to
 the relevant lines of code.  This is essentially a rewrite of
 the built-in **gcc-error** command:
 
-    def gccerr(n)
-      keepgoing = true
-      while keepgoing
-        l = $line
-        if (l !~ /^In file included/ && l =~ /(.*):(\d+):(\d+): (.*)/)
-          file = $1
-          lno = $2
-          col = $3
-          err = $4
-          if File.exist? file
-            forw_line
-            only_window
-            split_window
-            forw_window
-            file_visit file
-            goto_line lno.to_i
-            forw_char col.to_i - 1
-            echo "#{err}"
-            return ETRUE
-          else
-            echo "File #{file} does not exist"
-            return EFALSE
-          end
-        end
-        keepgoing = forw_line == ETRUE
-      end
-      echo "No more gcc errors"
-      return EFALSE
-    end
+```
 
-    ruby_command "gccerr"
-    bind "gccerr", metactrl('e')
+def gccerr(n)
+  keepgoing = true
+  while keepgoing
+    l = E.line
+    if (l !~ /^In file included/ && l =~ /(.*):(\d+):(\d+): (.*)/)
+      file = $1
+      lno = $2
+      col = $3
+      err = $4
+      if File.exist? file
+	E.forw_line
+	E.only_window
+	E.split_window
+	E.forw_window
+	E.file_visit file
+	E.goto_line lno.to_i
+	E.forw_char col.to_i - 1
+	E.echo "#{err}"
+        return ETRUE
+      else
+	E.echo "File #{file} does not exist"
+        return EFALSE
+      end
+    end
+    keepgoing = E.forw_line == ETRUE
+  end
+  E.echo "No more gcc errors"
+  return EFALSE
+end
+
+E.ruby_command "gccerr"
+E.bind "gccerr", metactrl('e')
+```
 
 Some things to note about this example:
 
@@ -89,10 +95,11 @@ Some things to note about this example:
   numeric parameters in some cases.
 
 * It invokes built-in MicroEMACS commands, using their names with dashes replaced
-  by underscores.  For example, it invokes the `file-visit` command by calling
-  the `file_visit` method.
+  by underscores, and prefixed with "E.".  For example, it invokes the `file-visit` command by calling
+  the `E.file_visit` method.  Use the "E." prefix for all MicroEMACS functions
+  and Ruby-accessible variables.
 
-* It uses the global variable `$line` to get the contents of the current line.
+* It uses the global variable `E.line` to get the contents of the current line.
 
 * It checks the status of the **forw-line** command by comparing it with
   the constant `ETRUE`, which corresponds to the constant `TRUE` in the
@@ -141,20 +148,24 @@ effect as using **ruby-string** and a `load` Ruby statement.
 
 Ruby code can call built-in MicroEMACS commands (written in C) by
 invoking them as normal functions, but with the '-' characters
-in the names replaced by '_'.  For example, invoke the **forw-char**
-function by calling `forw_char`.
+in the names replaced by '_', and with an "E." prefix.  For example, invoke the **forw-char**
+function by calling `E.forw_char`.
 
 You can pass an optional numeric parameter to a built-function.
 For example, to move the dot forward by 8 characters, use this code:
 
-    forw_char 8
+```
+E.forw_char 8
+```
 
 Some commands prompt the user for one or more strings.  You can
 supply these strings to a command by passing them as parameters.
 For example, to replace all occurrences of `Windows` to `Linux`
 in the current buffer, use this code:
 
-    replace_string "Windows", "Linux"
+```
+E.replace_string "Windows", "Linux"
+```
 
 Some built-in commands prompt the user for a keystroke.  Two examples
 are **help** and **bind-to-key**.  These commands will not work as
@@ -166,7 +177,7 @@ the problem with the **bind-to-key** command.  For example, the `gccerr.rb`
 code above used this helper to bind the **gccerr** command to
 the **M-C-E** key:
 
-    bind "gccerr", metactrl('e')
+    E.bind "gccerr", metactrl('e')
 
 Commands return a trinary value indicating success, failure, or abort.
 In Ruby, these values are:
@@ -183,7 +194,7 @@ The **echo** command is useful when debugging Ruby code.  It displays
 a string on the echo line, so you can use it to display debug
 messages.  For example, this code displays the current line number:
 
-    echo "line number is #{$lineno}"
+    E.echo "line number is #{E.lineno}"
 
 ## Defining Commands in Ruby
 
@@ -191,44 +202,53 @@ You can create a new command in Ruby by first defining a function
 that takes a single numeric parameter.  This parameter gives the
 numeric argument that the user typed as a prefix (using **C-U**).  If the
 user didn't specify a numeric argument, the parameter will be `nil`.
+The function must return an EFALSE or ETRUE value to indicate
+failure or success, respectively.
 
-Then use the **ruby-command** built-in command to inform
+Then use the **E.ruby-command** built-in command to inform
 MicroEMACS of the new command.
 
 Referring to the `gccerr.rb` example above, we can see that
 the code first defines a new command function:
 
-    def gccerr(n)
-      .. ruby code ...
-    end
+def gccerr(n)
+  .. ruby code ...
+  return ETRUE
+  ...
+  return EFALSE
+end
 
 Then it tells MicroEMACS about the new command:
 
-    ruby_command "gccerr"
+```
+E.ruby_command "gccerr"
+```
 
 Finally, it binds the new command to the **M-C-E** key:
 
-    bind "gccerr", metactrl('e')
+```
+E.bind "gccerr", metactrl('e')
+```
 
 ### Helper Functions
 
 MicroEMACS provides several helper functions
 for use in Ruby commands.
 
-`insert(string)`
+`E.insert(string)`
 
 This function inserts the value of the `string` parameter into the current
 buffer at the dot. The string may contain newline characters, which are treated as
 line breaks.
 
-`setmode(name)`
+`E.setmode(name)`
 
 This function deletes the current buffer's mode, if any.
 It then creates a mode called `name`, with an empty key binding table, and attaches
 it to the buffer.  See the [Modes](modes.md) section for
 more information about modes.
 
-`bind(name, key, mode=false)`
+`E.bind(name, key, mode=false)`
 
 This function binds the command whose name is the string `name`
 to the keycode `key`.  If the `mode` parameter is present, and is
@@ -237,20 +257,20 @@ Otherrwise, the binding is made global, i.e., available in
 all buffers. See below for the helper functions
 that provide keycodes.
 
-`reply(string)`
+`E.reply(string)`
 
 This function prompts the user on the echo line with the specified
 string, then reads an input line from the user.  It returns the input
 line without a terminating newline, or nil if the user aborts
 the input using Control-G.
 
-`getkey`
+`E.getkey`
 
 This function waits for the user to enter a keystroke, then returns
 a **Key** object describing the keystroke.  See the next section
 for a description of the **Key** object.
 
-`popup(string)`
+`E.popup(string)`
 
 This function creates a pop-up window, with the contents specified
 by the `string` parameter.  The string may contain newline characters.
@@ -266,7 +286,9 @@ by passing it as a parameter when calling the command.
 As of this writing, the only command that looks at the keycode is **ins-self**.
 Given that fact, the following example inserts an 'x' character in to the current buffer:
 
-    ins_self key('x')
+``
+E.ins_self key('x')
+```
 
 The `bind` helper function, described above, also takes a keycode parameter.
 
@@ -321,7 +343,7 @@ the `to_s` of the Control-G keycode is 'C-G'.
 MicroEMACS provides several global virtual variables that may be both read
 and written in Ruby code.
 
-`$line`
+`E.line`
 
 This variable contains the current line (the line containing the dot),
 with a newline character appended if this is not the last line in the
@@ -330,47 +352,49 @@ with the specified string.  A newline at the end of the string is removed,
 but newlines at other positions in the string are left unchanged and cause
 line breaks.
 
-`$char`
+`E.char`
 
 This variable contains the character at the dot.  Writing to this variable
 replaces the character at the dot with the specified string (which can
 be of any length).
 
-`$lineno`
+`E.lineno`
 
 This variable contains the line number of the line containing the dot.
 The value is 1-based, for compatibility with the **goto-line** function.
 Writing to this variable causes the dot to be moved to the specified line.
 
-`$offset`
+`E.offset`
 
 This variable contains the offset into the current line of the dot.
-The value is 0-based, so that it can be used as an index into `$line`.
+The value is 0-based, so that it can be used as an index into `E.line`.
 Writing to this variable moves the dot to the specified offset within
 the current line.
 
-`$filename`
+`E.filename`
 
 This variable contains the current buffer's filename.  Writing to this
 variable changes the current buffer's filename.
 
-`$tabsize`
+`E.tabsize`
 
 This variable contains the current tab width.  Writing to this variable
 sets the tab width, as in the **set-tab-size** command.
 
-`$fillcol`
+`E.fillcol`
 
 This variable contains the current fill column for paragraph justification.  Writing to this variable
 sets the fill column, as in the **set-fill-column** command.
 
-`$bflag`
+`E.bflag`
 
 This variable contains the current buffer's flags, and can be read or written.
 The flags are an OR of these values: BFCHG (buffer has changed), BFBAK (buffer
 needs a backup), and BFRO (buffer is read-only).  For example, this code:
 
-    $bflag &= ~BFCHG
+```
+E.bflag &= ~BFCHG
+```
 
 turns off the "buffer changed" flag.  This is a dangerous operation, because
 it could result in data loss.
@@ -386,7 +410,9 @@ read because MicroEMACS puts the terminal into "raw" mode.
 If you need to see the exception information, you can restart MicroEMACS
 with stderr redirected to a file:
 
-    pe 2>ruby.log
+```
+pe 2>ruby.log
+```
 
 Then, if you can reproduce the crash, the file `ruby.log` will contain
 the exception information.
@@ -398,12 +424,16 @@ you will need to send it a signal from another terminal window.  In that
 window, find the ID of the process that is running MicroEMACS, using a
 command such as this:
 
-    ps -x | grep pe
+```
+ps -x | grep pe
+```
 
 Then using the process ID that this command displays, kill the Ruby
 code using:
 
-    kill -SIGINT <id>
+```
+kill -SIGINT <id>
+```
 
 The helper code in `pe.rb` catches this signal and raises an exception that
 aborts the errant Ruby code and return control to MicroEMACS.
@@ -477,3 +507,42 @@ you installed with `rbenv`.
 
 Examine the output of `make` to be sure that the correct
 version of the Ruby is used in compilation and linking.
+
+<span id="rpc">
+## Ruby RPC Implementation
+</span>
+
+The original implementation of Ruby extensions worked well in Ruby 3.0,
+as installed on Linux Mint 21 and Ubuntu 22.04.  But more recent
+versions of Ruby, from 3.1 upward, introduced problems that
+are becoming more and more difficult to solve.  See the `Using rbenv`
+section above for details about the problems.
+
+I have seen some hints in the Ruby source code that these problems are caused
+by moving certain commonly class methods to internal C methods, probably for
+performance.  The Ruby interpreter, when invoked normally, is able to
+provide these methods, but I don't know how to make them visible in the
+C API.
+
+It seems likely that this problem is only going to get worse over
+time.  For example, in testing on OpenBSD, I discovered that the rbenv solution can't be used
+there, because OpenBSD uses openssl 3.6, and Ruby 3.1.2 fails
+to compile with that version of openssl.
+
+To avoid these problems, I have written an entirely new
+implementation of Ruby extensions.  This one works by invoking Ruby as
+a separate process and communicating with it via pipes, using the
+[JSON-RPC protocol](https://www.jsonrpc.org/specification) as the message format.  Although this RPC
+implementation makes some extensions work much slower than in the C
+API implementation, it's not so terrible as to be unuable, at least in
+the extensions I use on a daily basis.
+
+To build a Ruby with the RPC implementation, use a configure command like this:
+
+```
+../configure --with-ruby=rpc
+make
+```
+
+Then as root, copy the file `ruby/server.rb` to the directory `/usr/local/share/pe`.
+Create the directory using `mkdir -p` if it doesn't already exist.
