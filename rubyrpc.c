@@ -31,7 +31,7 @@ static int rubyinit_called;	/* TRUE if rubyinit has been called */
 char rubyinit_error[100];	/* Buffer containing error message from rubyinit */
 
 #define TEST 0			/* Enable test program. */
-#define DEBUG 1			/* Enable debug log. */
+#define DEBUG 0			/* Enable debug log. */
 
 static FILE *logfile;		/* Log file handle. */
 

@@ -5,7 +5,7 @@ require 'json'
 
 # Logging during debugging.
 
-DEBUG = true
+DEBUG = false
 $logfile = nil
 
 def dprint(s)
