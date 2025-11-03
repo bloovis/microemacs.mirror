@@ -33,8 +33,6 @@ char rubyinit_error[100];	/* Buffer containing error message from rubyinit */
 #define TEST 0			/* Enable test program. */
 #define DEBUG 0			/* Enable debug log. */
 
-static FILE *logfile;		/* Log file handle. */
-
 /* Information about the server: its pipe handles
  * and the ID of the last message sent to it.
  */
@@ -47,10 +45,14 @@ struct
 } server;
 
 
+/*
+ * dprintf - print a line to the debug log.
+ */
 static void
 dprintf(const char *fmt, ...)
 {
 #if DEBUG
+  static FILE *logfile;		/* Log file handle. */
   va_list ap;
 
   if (logfile == NULL)
@@ -66,6 +68,15 @@ dprintf(const char *fmt, ...)
 #endif
 }
 
+/*
+ * send_message - send a JSON object to the server
+ *
+ * The JSON object follows the JSON-RPC model, with a few
+ * extra fields to support needed functionality.  Send
+ * it to the server in two pieces:
+ * - a line containing the size of the JSON payload in decimal
+ * - the JSON payload itself
+ */
 void
 send_message(json_object *root)
 {
@@ -85,7 +96,8 @@ send_message(json_object *root)
 }
 
 /*
- * Make a JSON request for a call to a Ruby command.
+ * make_rpc_request - make a JSON request for a call to a Ruby command
+ *
  * method: name of command
  * flag: 1 if command was preceded by a C-u numeric prefix
  * prefix: numeric prefix (undefined if flag is 0)
@@ -155,7 +167,8 @@ make_rpc_request(
 }
 
 /*
- * Make a JSON object for a non-error response.
+ * make_normal_response - make a JSON object for a non-error response.
+ *
  * result: result code
  * string: additional optional string result
  * id: unique request ID
@@ -197,7 +210,8 @@ make_normal_response(
 }
 
 /*
- * Make a JSON object for an error response.
+ * make_error_response - make a JSON object for an error response.
+ *
  * nstrings: number of strings in the strings array (could be 0)
  * strings: array of strings to pass to the caller
  * id: unique request ID
@@ -237,6 +251,12 @@ make_error_response(
   return root;
 }
 
+/*
+ * init_server - intialize the Ruby server
+ *
+ * Open a pipe to the server executable (server.rb).
+ * Return TRUE if successful, FALSE otherwise.
+ */
 int
 init_server(const char *filename)
 {
@@ -250,8 +270,12 @@ init_server(const char *filename)
 
 
 /*
- * Read a JSON message from the server, return the JSON
- * object representing it, or NULL if there's an error.
+ * read_rpc_message - read a JSON message from the server
+ *
+ * Read the JSON payload in two pieces:
+ * - a line containing the size of the JSON payload in decimal
+ * - the JSON payload itself
+ * Return the JSON object representing it, or NULL if there's an error.
  */
 json_object *
 read_rpc_message(void)
@@ -261,7 +285,7 @@ read_rpc_message(void)
   json_object *root;
   char *json = NULL;
 
-  /* Read the response.
+  /* Read the line containing the size of the JSON.
    */
   if (fgets (response, sizeof (response), server.input) == NULL)
     {
@@ -272,6 +296,7 @@ read_rpc_message(void)
     {
       if (nbytes > 0)
 	{
+	  /* Read the JSON payload. */
 	  json = (char *)malloc(nbytes + 1);
 	  int nread;
 
@@ -312,6 +337,9 @@ read_rpc_message(void)
   return root;
 }
 
+/*
+ * is_result - is the JSON object a result message?
+ */
 int
 is_result(json_object *msg)
 {
@@ -319,6 +347,9 @@ is_result(json_object *msg)
   return json_object_object_get_ex(msg, "result", &value) == 1;
 }
 
+/*
+ * is_call - is the JSON object a method call message?
+ */
 int
 is_call(json_object *msg)
 {
@@ -326,6 +357,9 @@ is_call(json_object *msg)
   return json_object_object_get_ex(msg, "method", &value) == 1;
 }
 
+/*
+ * is_error - is the JSON object an error message?
+ */
 int
 is_error(json_object *msg)
 {
@@ -333,6 +367,9 @@ is_error(json_object *msg)
   return json_object_object_get_ex(msg, "error", &value) == 1;
 }
 
+/*
+ * get_string - get a string member from a JSON object
+ */
 const char *
 get_string(json_object *jobj, const char *name)
 {
@@ -346,6 +383,9 @@ get_string(json_object *jobj, const char *name)
   return json_object_get_string(value);
 }
 
+/*
+ * get_int - get an integer member from a JSON object
+ */
 int
 get_int(json_object *jobj, const char *name)
 {
@@ -359,6 +399,9 @@ get_int(json_object *jobj, const char *name)
   return json_object_get_int(value);
 }
 
+/*
+ * get_nth_string - get the nth string member from a JSON array object
+ */
 const char *
 get_nth_string(json_object *jobj, int i)
 {
@@ -370,6 +413,9 @@ get_nth_string(json_object *jobj, int i)
   return json_object_get_string(element);
 }
 
+/*
+ * handle_cmd - process a request to run a MicroEMACS command
+ */
 int
 handle_cmd( int id, json_object *params)
 {
@@ -461,6 +507,14 @@ handle_cmd( int id, json_object *params)
   return TRUE;	/* keep reading messages from the server. */
 }
 
+/*
+ * set_* - set MicroEMACS variables
+ *
+ * These functions implement requests from the Ruby server to perform
+ * "set" operations on virtual variables MicroEMACS.  Some of these
+ * operations do more that setting a variable, e.g., inserting a
+ * string
+ */
 json_object *
 set_line (int id, json_object *params)
 {
@@ -619,6 +673,14 @@ handle_set(int id, json_object *params)
   return TRUE;
 }
 
+/*
+ * get_* - get MicroEMACS variables
+ *
+ * These functions implement requests from the Ruby server to
+ * "get" virtual variables in MicroEMACS.  Some of these
+ * operations do more that getting a variable, e.g., testing
+ * that a particular MicroEMACS command exists.
+ */
 json_object *
 get_line (int id, json_object *params)
 {
@@ -727,7 +789,12 @@ handle_get(int id, json_object *params)
 }
 
 /*
- * Handle an RPC method call from the server.
+ * handle_call - handle an RPC method call from the Ruby server
+ *
+ * There are three types of method calls we can receive:
+ * - cmd - run a MicroEMACS command
+ * - set - set a MicroEMACS virtual variable
+ * - get - get a MicroEMACS virtual variable
  */
 int
 handle_call(json_object *root)
@@ -766,7 +833,9 @@ handle_call(json_object *root)
 }
 
 /*
- * Parse a result object, store the result code to *resultp.
+ * handle_result - parse a result object
+ *
+ * Parse a result object from the server, and store the result code to *resultp.
  *
  * Return a flag saying whether we should keep reading messages:
  *
@@ -797,6 +866,13 @@ handle_result(json_object *root, int expected_id, int *resultp)
   return id != expected_id;
 }
 
+/*
+* popup - pop up a temporary MicroEMACS window
+*
+* Pop up the temporary window (the so-called "blist" or buffer list), and
+* write the message to it.  The message may contain multiple lines,
+* separate by newline characters (\n).
+*/
 static int
 popup (const char *message)
 {
@@ -836,6 +912,13 @@ popup (const char *message)
   return popblist ();
 }
   
+/*
+ * handle_error - parse an error object
+ *
+ * Parse an error object from the server.
+ *
+ * Return false to tell the caller that we can stop reading messages.
+ */
 int
 handle_error(json_object *root)
 {
@@ -862,7 +945,10 @@ handle_error(json_object *root)
 }
 
 /*
- * Call a method in the server, and return the result code it sends back.
+ * call_server - call a method in the server
+ *
+ * Request the server to run a method, which must have the signature
+ * of a MicroEMACS command as written in Ruby. Return the result code it sends back.
  */
 int
 call_server(const char *method, int flag, int prefix, int key, int nstrings,
@@ -910,6 +996,18 @@ call_server(const char *method, int flag, int prefix, int key, int nstrings,
   return result;
 }
 
+/*
+ *****
+ *  Public functions provided by both Ruby implementations.
+ *****
+ */
+
+/*
+ * rubyinit - intialize the Ruby server
+ *
+ * Spawn the Ruby server and open a pipe to it.  Then load the optional
+ * Ruby helpers (.pe.rb) if present.  Return TRUE if successful, FALSE otherwise.
+ */
 int
 rubyinit (int quiet)
 {
@@ -940,6 +1038,9 @@ rubyinit (int quiet)
   return ruby_loadhelpers ();
 }
 
+/*
+ * runruby - evaluate a line of Ruby code
+ */
 int
 runruby (const char * line)
 {
@@ -949,6 +1050,9 @@ runruby (const char * line)
   return call_server("exec", 1, 42, 9, 1, exec_strings);
 }
 
+/*
+ * rubyloadscript - load a Ruby script
+ */
 int
 rubyloadscript (const char *path)
 {
@@ -958,6 +1062,9 @@ rubyloadscript (const char *path)
   return runruby (buf);
 }
 
+/*
+ * rubycall - run a Ruby function.
+ */
 int
 rubycall (const char *name, int f, int n)
 {
