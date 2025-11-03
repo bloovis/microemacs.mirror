@@ -52,6 +52,9 @@
 #define CBAUD 0
 #endif
 
+/* Uncomment the next line to change the cursor shape to a blinking bar. */
+//#define CURSOR_BLINKING_BAR 1
+
 static struct termios oldtty;	/* Old tty state		*/
 static struct termios newtty;	/* New tty state		*/
 static struct termios shelltty;	/* tty state for spawning shell	*/
@@ -109,6 +112,22 @@ ttopen (void)
 		     ECHOK | ECHOCTL | ECHOKE |
 		     IEXTEN;
   memcpy(shelltty.c_cc, cc, sizeof(cc));
+
+  /* Change the cursor shape to a blinking bar. There doesn't seem to
+   * be a way to do this in ncurses, so use an escape sequence.
+   * Here is a complete list of related escape sequences:
+   * "\x1b[0 q" - blinking block
+   * "\x1b[1 q" - blinking block also
+   * "\x1b[2 q" - steady block
+   * "\x1b[3 q" - blinking underline
+   * "\x1b[4 q" - steady underline
+   * "\x1b[5 q" - blinking bar
+   * "\x1b[6 q" - steady bar
+   */
+#if CURSOR_BLINKING_BAR
+  fputs ("\x1b[5 q", stdout);
+  fflush (stdout);
+#endif
 }
 
 
