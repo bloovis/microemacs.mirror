@@ -461,6 +461,131 @@ handle_cmd( int id, json_object *params)
   return TRUE;	/* keep reading messages from the server. */
 }
 
+json_object *
+set_line (int id, json_object *params)
+{
+  const char *line = get_string(params, "string");
+  ruby_setline (line);
+  return make_normal_response(0, "", id);
+}
+
+json_object *
+set_lineno (int id, json_object *params)
+{
+  int lineno = get_int(params, "int");
+  gotoline (TRUE, lineno, KRANDOM);
+  return make_normal_response(0, "", id);
+}
+
+json_object *
+set_bind (int id, json_object *params)
+{
+  const char *str;
+  int key;
+
+  key = get_int(params, "int");
+  str = get_string(params, "string");
+  if (str == NULL)
+    return make_error_response(-32602, "missing command name", id);
+  else
+    {
+      /* This is a hack: the name has a prefix "T" or "T", indicating
+       * the value of mode.
+       */
+      int mode = str[0] == 'T';
+      const char *cmd = &str[1];
+      SYMBOL *sp;
+
+      if ((sp = symlookup (cmd)) == NULL)
+	{
+	  eprintf ("%s: no such command", cmd);
+	  return make_error_response(-32602, "no such command", id);
+	}
+      else
+	{
+	  if (mode)
+	    setmodebinding (key, sp);
+	  else
+	    setbinding (key, sp);
+	  return make_normal_response(0, "", id);
+	}
+    }
+}
+
+json_object *
+set_bflag (int id, json_object *params)
+{
+  curbp->b_flag = get_int(params, "int");
+  curwp->w_flag |= WFMODE;
+  return make_normal_response(0, "", id);
+}
+
+json_object *
+set_insert (int id, json_object *params)
+{
+  const char *str = get_string (params, "string");
+  if (str == NULL)
+    return make_error_response(-32602, "missing insert string", id);
+  else
+    {
+      int result = insertwithnl (str, strlen (str));
+      return make_normal_response(result, "", id);
+    }
+}
+
+json_object *
+set_offset (int id, json_object *params)
+{
+  int offset = get_int(params, "int");
+  if (offset > wllength (curwp->w_dot.p))
+    eprintf ("Offset too large");
+  else
+    curwp->w_dot.o = offset;
+  return make_normal_response(0, "", id);
+}
+
+json_object *
+set_mode (int id, json_object *params)
+{
+  const char *str = get_string (params, "string");
+  if (str == NULL)
+    return make_error_response (-32602, "missing mode string", id);
+  else
+    {
+      createmode (str);
+      return make_normal_response(0, "", id);
+    }
+}
+
+json_object *
+set_filename (int id, json_object *params)
+{
+  const char *str = get_string(params, "string");
+  replyq_put (str);
+  filename (FALSE, 0, KRANDOM);
+  return make_normal_response(0, "", id);
+}
+
+typedef json_object *(*handler)(int id, json_object *params);
+
+#define NSETTERS 8
+
+struct
+{
+  const char *name;
+  handler func;
+} setters [NSETTERS] =
+{
+  { "line",     set_line },
+  { "lineno",   set_lineno },
+  { "bind",     set_bind },
+  { "bflag",    set_bflag },
+  { "insert",   set_insert },
+  { "offset",   set_offset },
+  { "mode",     set_mode },
+  { "filename", set_filename },
+};
+
 /*
  * handle_set - handle a set command
  *
@@ -474,154 +599,129 @@ int
 handle_set(int id, json_object *params)
 {
   json_object *response = NULL;
-
-  // name
+  int i;
   const char *name = get_string(params, "name");
+
   dprintf("handle_set: name: %s\n", name);
-  if (strcmp(name, "line") == 0)
-    {
-      const char *line = get_string(params, "string");
-      ruby_setline (line);
-      response = make_normal_response(0, "", id);
-    }
-  else if (strcmp(name, "lineno") == 0)
-    {
-      int lineno = get_int(params, "int");
-      gotoline (TRUE, lineno, KRANDOM);
-      response = make_normal_response(0, "", id);
-    }
-  else if (strcmp(name, "bind") == 0)
-    {
-      const char *str;
-      int key;
 
-      key = get_int(params, "int");
-      str = get_string(params, "string");
-      if (str == NULL)
-	response = make_error_response(-32602, "missing command name", id);
-      else
+  for (i = 0; i < NSETTERS; i++)
+    {
+      if (strcmp (setters[i].name, name) == 0)
 	{
-	  /* This is a hack: the name has a prefix "T" or "T", indicating
-	   * the value of mode.
-	   */
-	  int mode = str[0] == 'T';
-	  const char *cmd = &str[1];
-	  SYMBOL *sp;
-
-	  if ((sp = symlookup (cmd)) == NULL)
-	    {
-	      eprintf ("%s: no such command", cmd);
-	      response = make_error_response(-32602, "no such command", id);
-	    }
-	  else
-	    {
-	      if (mode)
-		setmodebinding (key, sp);
-	      else
-		setbinding (key, sp);
-	      response = make_normal_response(0, "", id);
-	    }
+	  response = (setters[i].func)(id, params);
+	  send_message (response);
+	  return TRUE;
 	}
     }
-  else if (strcmp (name, "bflag") == 0)
-    {
-      curbp->b_flag = get_int(params, "int");
-      curwp->w_flag |= WFMODE;
-      response = make_normal_response(0, "", id);
-    }
-  else if (strcmp (name, "insert") == 0)
-    {
-      const char *str = get_string (params, "string");
-      if (str == NULL)
-	response = make_error_response(-32602, "missing insert string", id);
-      else
-	{
-	  int result = insertwithnl (str, strlen (str));
-	  response = make_normal_response(result, "", id);
-	}
-    }
-  else if (strcmp (name, "offset") == 0)
-    {
-      int offset = get_int(params, "int");
-      if (offset > wllength (curwp->w_dot.p))
-	eprintf ("Offset too large");
-      else
-	curwp->w_dot.o = offset;
-      response = make_normal_response(0, "", id);
-    }
-  else if (strcmp (name, "mode") == 0)
-    {
-      const char *str = get_string (params, "string");
-      if (str == NULL)
-	response = make_error_response(-32602, "missing mode string", id);
-      else
-	{
-	  createmode (str);
-	  response = make_normal_response(0, "", id);
-	}
-    }
-  else if (strcmp(name, "filename") == 0)
-    {
-      const char *str = get_string(params, "string");
-      replyq_put (str);
-      filename (FALSE, 0, KRANDOM);
-      response = make_normal_response(0, "", id);
-    }
-  else
-    response = make_error_response (-32602, "no such variable", id);
 
+  response = make_error_response (-32602, "no such variable", id);
   send_message(response);
   return TRUE;
 }
 
+json_object *
+get_line (int id, json_object *params)
+{
+  char *line = ruby_getline ();
+  json_object *response = make_normal_response(0, line, id);
+  free (line);
+  return response;
+}
+
+json_object *
+get_lineno (int id, json_object *params)
+{
+  return make_normal_response(lineno (curwp->w_dot.p) + 1, "", id);
+}
+
+json_object *
+get_iscmd (int id, json_object *params)
+{
+  const char *cmd = get_string(params, "string");
+
+  if (cmd != NULL && symlookup(cmd) != NULL)
+    return make_normal_response(TRUE, "found", id);
+  else
+    return make_normal_response(FALSE, "not found", id);
+}
+
+json_object *
+get_reply (int id, json_object *params)
+{
+  int result;
+  char buf[NCOL];
+  const char *prompt = get_string(params, "string");
+
+  if (prompt != NULL)
+    {
+      result = ereply ("%s", buf, sizeof (buf), prompt);
+      return make_normal_response(result, result == ABORT ? NULL : buf, id);
+    }
+  else
+    return make_error_response(-32602, "missing reply prompt", id);
+}
+
+json_object *
+get_bflag (int id, json_object *params)
+{
+  return make_normal_response(curbp->b_flag, "", id);
+}
+
+json_object *
+get_offset (int id, json_object *params)
+{
+  return make_normal_response(curwp->w_dot.o, "", id);
+}
+
+json_object *
+get_filename (int id, json_object *params)
+{
+  return make_normal_response(0, curbp->b_fname, id);
+}
+
+#define NGETTERS 7
+
+struct
+{
+  const char *name;
+  handler func;
+} getters [NGETTERS] =
+{
+  { "line",     get_line },
+  { "lineno",   get_lineno },
+  { "iscmd",    get_iscmd },
+  { "reply",    get_reply },
+  { "bflag",    get_bflag },
+  { "offset",   get_offset },
+  { "filename", get_offset },
+};
+
+/*
+ * handle_get - handle a set command
+ *
+ * The Ruby server uses a "get" message to ask MicroEMACS to return
+ * some internal values
+ */
 int
 handle_get(int id, json_object *params)
 {
   json_object *response;
-
-  // name
+  int i;
   const char *name = get_string(params, "name");
+
   dprintf("handle_get: name: %s\n", name);
-  if (strcmp(name, "line") == 0)
-    {
-      char *line = ruby_getline ();
-      response = make_normal_response(0, line, id);
-      free (line);
-    }
-  else if (strcmp(name, "lineno") == 0)
-    response = make_normal_response(lineno (curwp->w_dot.p) + 1, "", id);
-  else if (strcmp(name, "iscmd") == 0)
-    {
-      const char *cmd = get_string(params, "string");
 
-      if (cmd != NULL && symlookup(cmd) != NULL)
-	response = make_normal_response(TRUE, "found", id);
-      else
-	response = make_normal_response(FALSE, "not found", id);
-    }
-  else if (strcmp(name, "reply") == 0)
+  for (i = 0; i < NGETTERS; i++)
     {
-      int result;
-      char buf[NCOL];
-      const char *prompt = get_string(params, "string");
-
-      if (prompt != NULL)
+      if (strcmp (getters[i].name, name) == 0)
 	{
-	  result = ereply ("%s", buf, sizeof (buf), prompt);
-	  response = make_normal_response(result, result == ABORT ? NULL : buf, id);
+	  response = (getters[i].func)(id, params);
+	  send_message (response);
+	  return TRUE;
 	}
-      else
-	response = make_error_response(-32602, "missing reply prompt", id);
     }
-  else if (strcmp(name, "bflag") == 0)
-    response = make_normal_response(curbp->b_flag, "", id);
-  else if (strcmp(name, "offset") == 0)
-    response = make_normal_response(curwp->w_dot.o, "", id);
-  else if (strcmp(name, "filename") == 0)
-    response = make_normal_response(0, curbp->b_fname, id);
-  else
-    response = make_error_response(-32602, "no such variable", id);
 
+  response = make_error_response(-32602, "no such variable", id);
   send_message(response);
   return TRUE;
 }
