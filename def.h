@@ -885,6 +885,7 @@ int rubyloadscript (const char *path);	/* Load a ruby script.		*/
 int runruby (const char * line);	/* Evaluate a line of ruby code */
 char *ruby_getline(void);		/* Make a copy of current line	*/
 void ruby_setline(const char *s);	/* Set current line		*/
+int ruby_loadhelpers (void);		/* Load local helper scripts.	*/
 
 /*
  * Defined by "spell.c".

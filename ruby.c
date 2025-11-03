@@ -18,13 +18,13 @@
 */
 
 #include	"def.h"
+#include	<unistd.h>
 
 static char rubyinit_error[100];	/* Buffer containing error message from rubyinit */
 
 #ifndef RUBY_RPC	/* Only include the common functions at the end of this file. */
 
 #include	<dlfcn.h>
-#include	<unistd.h>
 
 #define RUBY_DONT_SUBST
 #include	<ruby.h>
@@ -336,7 +336,6 @@ get_line (ID id, VALUE *var)
 static void
 set_line (VALUE val, ID id, VALUE *var)
 {
-  int len;
   char *str;
 
   str = StringValueCStr (val);
@@ -868,8 +867,6 @@ rubyinit (int quiet)
   VALUE dir;
   static const char *libruby = STRINGIFY(LIBRUBY);
   static const char *global_pe_rb = STRINGIFY(PREFIX) "/share/pe/pe.rb";
-  const char *home_pe_rb;
-  static const char *local_pe_rb = "./.pe.rb";
 
   /* If we've been called before, return the status from that call.
    */
@@ -966,30 +963,16 @@ rubyinit (int quiet)
 				 global_pe_rb);
       return FALSE;
     }
-
-  /* When loading pe.rb, temporarily suppress Ruby 2.7 warning about how
-   * redefining Object#method_missing may cause infinite loop.
-   */
-  ruby_verbose = Qnil;
   if (rubyloadscript (global_pe_rb) == FALSE)
     {
       ruby_handle = NULL;
       return FALSE;
     }
-  ruby_verbose = Qtrue;
 
-  /* Construct the name of $HOME/.pe.rb and load that file.
-   * If it doesn't exist, try loading ./.pe.rb.  But don't
-   * cause an error if either file doesn't exist, because
-   * they are optional.
+  /* Load the global helper file, pe.rb, and the optional
+   * local helper file, .pe.rb
    */
-  home_pe_rb = fftilde ("~/.pe.rb");
-  if (access (home_pe_rb, R_OK) == F_OK)
-    return rubyloadscript (home_pe_rb);
-  else if (access (local_pe_rb, R_OK) == F_OK)
-    return rubyloadscript (local_pe_rb);
-  else
-    return TRUE;
+  return ruby_loadhelpers ();
 }
 
 #if 0
@@ -1250,3 +1233,27 @@ ruby_setline (const char *line)
   free (str);
 }
 
+
+/*
+ * Load  optional local helpers (~/./pe.rb or ./.pe.rb)
+ * Return FALSE if there were any errors, TRUE otherwise.
+ */
+int
+ruby_loadhelpers (void)
+{
+  const char *home_pe_rb;
+  static const char *local_pe_rb = "./.pe.rb";
+
+  /* Construct the name of $HOME/.pe.rb and load that file.
+   * If it doesn't exist, try loading ./.pe.rb.  But don't
+   * cause an error if either file doesn't exist, because
+   * they are optional.
+   */
+  home_pe_rb = fftilde ("~/.pe.rb");
+  if (access (home_pe_rb, R_OK) == F_OK)
+    return rubyloadscript (home_pe_rb);
+  else if (access (local_pe_rb, R_OK) == F_OK)
+    return rubyloadscript (local_pe_rb);
+  else
+    return TRUE;
+}

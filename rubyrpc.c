@@ -921,20 +921,23 @@ rubyinit (int quiet)
     return strlen(rubyerror()) == 0;
   rubyinit_called = TRUE;
 
+  /* Load the server script.
+   */
   if (access (filename, R_OK) != F_OK)
     {
       return rubyinit_set_error ("The file %s does not exist; cannot initialize Ruby",
 				 filename);
       return FALSE;
     }
-
   if (init_server(filename) == FALSE)
     {
       rubyinit_set_error ("rubyinit unable to connect to server %s", filename);
       return FALSE;
     }
-  else
-    return TRUE;
+
+  /* Load ~/.pe.rb or ./pe.rb
+   */
+  return ruby_loadhelpers ();
 }
 
 int

@@ -2,10 +2,6 @@
 # As root, copy it to /usr/local/share/pe/pe.rb
 # (create the directory /usr/local/share/pe if necessary).
 
-# Unset the verbose flag to suppress the warning
-# about method_missing.
-#$VERBOSE = nil
-
 # MicroEMACS functions return a trinary value.  We have
 # to use an "E" prefix to avoid conflicts with Ruby's
 # builtin constants.
