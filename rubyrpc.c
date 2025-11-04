@@ -31,7 +31,13 @@ static int rubyinit_called;	/* TRUE if rubyinit has been called */
 char rubyinit_error[100];	/* Buffer containing error message from rubyinit */
 
 #define TEST 0			/* Enable test program. */
-#define DEBUG 0			/* Enable debug log. */
+#define DEBUG 1			/* Enable debug log. */
+
+/* JSON-RPC error codes
+ */
+#define ERROR_METHOD    -32601	/* Method not found */
+#define ERROR_PARAMS    -32602	/* Invalid params */
+#define ERROR_EXCEPTION -32000	/* Server error - exception */
 
 /* Information about the server: its pipe handles
  * and the ID of the last message sent to it.
@@ -508,6 +514,52 @@ handle_cmd( int id, json_object *params)
 }
 
 /*
+ * popup - pop up a temporary MicroEMACS window
+ *
+ * Pop up the temporary window (the so-called "blist" or buffer list), and
+ * write the message to it.  The message may contain multiple lines,
+ * separate by newline characters (\n).
+ */
+static int
+popup (const char *message)
+{
+  char *copy;
+  char *start, *end;
+
+  /* Clear the popup buffer.
+   */
+  blistp->b_flag &= ~BFCHG;
+  if (bclear (blistp) != TRUE)
+    return FALSE;
+  strcpy (blistp->b_fname, "");
+
+  /* Split the string into lines and write each one to the popup buffer.
+   * In Ruby this would be: message.split("\n").each {|l| addline(l)}
+   * Instead, we use a horrible kludge where we copy the string,
+   * and work through it, changing each \n to a zero.
+   */
+  copy = strdup(message);
+  if (copy == NULL)
+    return FALSE;
+  start = copy;
+  end = start + strlen(copy);
+  while (start < end)
+    {
+      char *newline = strchr (start, '\n');
+      if (newline == NULL)
+	newline = end;
+      *newline = '\0';
+      addline (start);
+      start = newline + 1;
+    }
+  free (copy);
+
+  /* Display the popup buffer.
+   */
+  return popblist ();
+}
+  
+/*
  * set_* - set MicroEMACS variables
  *
  * These functions implement requests from the Ruby server to perform
@@ -540,7 +592,7 @@ set_bind (int id, json_object *params)
   key = get_int(params, "int");
   str = get_string(params, "string");
   if (str == NULL)
-    return make_error_response(-32602, "missing command name", id);
+    return make_error_response(ERROR_PARAMS, "missing command name", id);
   else
     {
       /* This is a hack: the name has a prefix "T" or "T", indicating
@@ -553,7 +605,7 @@ set_bind (int id, json_object *params)
       if ((sp = symlookup (cmd)) == NULL)
 	{
 	  eprintf ("%s: no such command", cmd);
-	  return make_error_response(-32602, "no such command", id);
+	  return make_error_response(ERROR_METHOD, "no such command", id);
 	}
       else
 	{
@@ -579,7 +631,7 @@ set_insert (int id, json_object *params)
 {
   const char *str = get_string (params, "string");
   if (str == NULL)
-    return make_error_response(-32602, "missing insert string", id);
+    return make_error_response(ERROR_PARAMS, "missing insert string", id);
   else
     {
       int result = insertwithnl (str, strlen (str));
@@ -603,7 +655,7 @@ set_mode (int id, json_object *params)
 {
   const char *str = get_string (params, "string");
   if (str == NULL)
-    return make_error_response (-32602, "missing mode string", id);
+    return make_error_response (ERROR_PARAMS, "missing mode string", id);
   else
     {
       createmode (str);
@@ -620,9 +672,19 @@ set_filename (int id, json_object *params)
   return make_normal_response(0, "", id);
 }
 
+json_object *
+set_popup (int id, json_object *params)
+{
+  const char *str = get_string(params, "string");
+  popup (str);
+  return make_normal_response(0, "", id);
+}
+
+/* Table of setter functions
+ */
 typedef json_object *(*handler)(int id, json_object *params);
 
-#define NSETTERS 8
+#define NSETTERS 9
 
 struct
 {
@@ -638,6 +700,7 @@ struct
   { "offset",   set_offset },
   { "mode",     set_mode },
   { "filename", set_filename },
+  { "popup",    set_popup },
 };
 
 /*
@@ -668,7 +731,7 @@ handle_set(int id, json_object *params)
 	}
     }
 
-  response = make_error_response (-32602, "no such variable", id);
+  response = make_error_response (ERROR_PARAMS, "no such variable", id);
   send_message(response);
   return TRUE;
 }
@@ -720,7 +783,7 @@ get_reply (int id, json_object *params)
       return make_normal_response(result, result == ABORT ? NULL : buf, id);
     }
   else
-    return make_error_response(-32602, "missing reply prompt", id);
+    return make_error_response(ERROR_PARAMS, "missing reply prompt", id);
 }
 
 json_object *
@@ -741,7 +804,13 @@ get_filename (int id, json_object *params)
   return make_normal_response(0, curbp->b_fname, id);
 }
 
-#define NGETTERS 7
+json_object *
+get_key (int id, json_object *params)
+{
+  return make_normal_response(getkey (), "", id);
+}
+
+#define NGETTERS 8
 
 struct
 {
@@ -755,7 +824,8 @@ struct
   { "reply",    get_reply },
   { "bflag",    get_bflag },
   { "offset",   get_offset },
-  { "filename", get_offset },
+  { "filename", get_filename },
+  { "key",      get_key },
 };
 
 /*
@@ -783,7 +853,7 @@ handle_get(int id, json_object *params)
 	}
     }
 
-  response = make_error_response(-32602, "no such variable", id);
+  response = make_error_response(ERROR_METHOD, "no such variable", id);
   send_message(response);
   return TRUE;
 }
@@ -867,52 +937,6 @@ handle_result(json_object *root, int expected_id, int *resultp)
 }
 
 /*
-* popup - pop up a temporary MicroEMACS window
-*
-* Pop up the temporary window (the so-called "blist" or buffer list), and
-* write the message to it.  The message may contain multiple lines,
-* separate by newline characters (\n).
-*/
-static int
-popup (const char *message)
-{
-  char *copy;
-  char *start, *end;
-
-  /* Clear the popup buffer.
-   */
-  blistp->b_flag &= ~BFCHG;
-  if (bclear (blistp) != TRUE)
-    return FALSE;
-  strcpy (blistp->b_fname, "");
-
-  /* Split the string into lines and write each one to the popup buffer.
-   * In Ruby this would be: message.split("\n").each {|l| addline(l)}
-   * Instead, we use a horrible kludge where we copy the string,
-   * and work through it, changing each \n to a zero.
-   */
-  copy = strdup(message);
-  if (copy == NULL)
-    return FALSE;
-  start = copy;
-  end = start + strlen(copy);
-  while (start < end)
-    {
-      char *newline = strchr (start, '\n');
-      if (newline == NULL)
-	newline = end;
-      *newline = '\0';
-      addline (start);
-      start = newline + 1;
-    }
-  free (copy);
-
-  /* Display the popup buffer.
-   */
-  return popblist ();
-}
-  
-/*
  * handle_error - parse an error object
  *
  * Parse an error object from the server.
@@ -939,7 +963,7 @@ handle_error(json_object *root)
   dprintf("code: %d\n", code);
   message = get_string(error, "message");
   dprintf("message: %s\n", message);
-  if (code == -32000)
+  if (code == ERROR_EXCEPTION)
     popup (message);
   return FALSE;
 }

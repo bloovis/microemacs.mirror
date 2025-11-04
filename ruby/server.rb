@@ -2,6 +2,10 @@
 
 require 'json'
 
+# JSON-RPC error codes
+
+ERROR_METHOD    = -32601	# Method not found
+ERROR_EXCEPTION = -32000	# Server error - exception
 
 # Logging during debugging.
 
@@ -309,7 +313,7 @@ private
         exc = x.message + "\n" + x.backtrace.join("\n")
       end
       if exc
-	send_message({id: id, error: {code: -32000, message: "Exception:\n#{exc}"}})
+	send_message({id: id, error: {code: ERROR_EXCEPTION, message: "Exception:\n#{exc}"}})
 	exc = nil
       else
 	dprint "#{method} returned #{ret}"
@@ -327,7 +331,7 @@ private
 	end
       end
     else
-      send_message({id: id, error: {code: -32601, message: "Method not found"}})
+      send_message({id: id, error: {code: ERROR_METHOD, message: "Method not found"}})
     end
     dprint "process_command: returning true"
     return true
@@ -408,6 +412,14 @@ public
 
   def self.filename=(val)
     set("filename", 0, val)
+  end
+
+  def self.popup(s)
+    set("popup", 0, s)
+  end
+
+  def self.getkey
+    return Key.new(get_int("key", ""))
   end
 
   ####
@@ -613,57 +625,5 @@ end
 
 # Set the default encoding for strings.
 Encoding.default_internal = 'UTF-8'
-
-# Some example MicroEMACS commands written in Ruby.  A command
-# returns either a result code, or a tuple containing:
-# - result code: ETRUE if successful, error code otherwise
-# - message to display on status line (could be empty string)
-
-def blorch(n)
-  STDERR.puts "blorch: n #{n}}"
-  return [EFALSE, "Blorch is unhappy about something"]
-end
-
-def stuff(n, &b)
-  str = E.getstr(&b)
-  if str
-    E.echo "Stuff received #{str}"
-    return [ETRUE, "stuff: str #{str}"]
-  else
-    return ETRUE
-  end
-end
-
-def bad(n)
-  # Try raising an exception.
-  len = nil.length
-
-  return [ETRUE, "bad"]
-end
-
-def callback(n)
-  # Try an echo.
-  E.echo("This is an echo test")
-
-  result = E.goto_line 42
-  dprint "goto_line returned #{result}"
-
-  # Try getting and setting a string variable using E class methods.
-  line = E.line
-  dprint "line = '#{line}'"
-  E.line = "New line!"
-  line = E.line
-  dprint "line after set = '#{line}'"
-
-  # Try getting and setting an integer variable using E class methods.
-  lineno = E.lineno
-  dprint "lineno = #{lineno}"
-  E.lineno = lineno + 10
-  lineno = E.lineno
-  dprint "lineno after set = #{lineno}"
-
-  # We're done in this MicroEMACS function.  Return a success response.
-  return [ETRUE, "callback"]
-end
 
 E.server_loop
