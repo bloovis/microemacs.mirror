@@ -64,6 +64,7 @@ int actual_ncol;
 static void
 drawborders (void)
 {
+#if 0
   int row, col;
 
   for (row = 0; row < actual_nrow; row++)
@@ -73,43 +74,18 @@ drawborders (void)
 	  mvaddch (row, col, ACS_VLINE);
 	}
     }
+#endif
 }
 
 /*
  * Initialize the terminal.  Get the handles for console input and output.
  * Take a peek at the video buffer to see what video attributes are being used.
- *
- * The tricky code deals with splitting the window into side-by-side
- * pages (when npages is greater than one).  It tricks the rest of the
- * editor into thinking the screen is longer and narrower than it really is,
- * and leaves room for a vertical border between pages.
  */
 void
 ttinit (void)
 {
-  int new_nrow, new_ncol;
-
   actual_nrow = nrow;
   actual_ncol = ncol;
-
-  if (npages < 1)
-    {
-      npages = 1;
-    }
-  
-  new_nrow = nrow * npages;
-  new_ncol = (ncol - npages + 1) / npages;
-
-  if (new_nrow > NROW || new_ncol > NCOL)
-    {
-      npages = 1;
-    }
-  else
-    {
-      nrow = new_nrow;
-      ncol = new_ncol;
-      drawborders ();
-    }
 }
 
 /*
@@ -123,17 +99,8 @@ tttidy (void)
 static void
 get_actual_pos (int row, int col, int *actual_row, int *actual_col)
 {
-  if (npages > 1)
-    {
-      int page = row / actual_nrow;
-      *actual_row = row % actual_nrow;
-      *actual_col = (page * (ncol + 1)) + col;
-    }
-  else
-    {
-      *actual_row = row;
-      *actual_col = col;
-    }
+  *actual_row = row;
+  *actual_col = col;
 }
 
 /*
@@ -160,17 +127,7 @@ ttmove (int row, int col)
 void
 tteeol (void)
 {
-  if (npages > 1)
-    {
-      int actual_row, actual_col, i;
-
-      get_actual_pos (ttrow, ttcol, &actual_row, &actual_col);
-      for (i = ttcol; i < ncol; i++)
-	addch (' ');
-      move (actual_row, actual_col);
-    }
-  else
-    clrtoeol ();
+  clrtoeol ();
 }
 
 /*

@@ -532,7 +532,6 @@ extern int zflag;
 
 extern int nrow;
 extern int ncol;
-extern int npages;
 extern const char *version[];
 extern int ttrow;
 extern int ttcol;

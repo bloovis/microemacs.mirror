@@ -128,11 +128,6 @@ main (int argc, char *argv[])
 	{
 	  switch (arg[1])
 	    {
-	    case '2':
-	    case '3':
-	    case '4':
-	      npages = arg[1] - '0';
-	      break;
 #if	BACKUP
 	    case 'b':
 	      bflag = TRUE;
