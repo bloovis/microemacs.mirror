@@ -40,6 +40,9 @@ const char *version[] = {
 #if USE_RUBY
   " (ruby)"
 #endif
+#if RUBY_RPC
+  " (rpc)"
+#endif
 #if USE_PCRE2
   " (pcre2)"
 #endif

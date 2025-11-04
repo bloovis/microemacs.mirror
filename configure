@@ -4212,7 +4212,7 @@ fi
 if test ${with_ruby+y}
 then :
   withval=$with_ruby; if test $withval = "rpc" ; then
-  CFLAGS_RUBY="-DUSE_RUBY=1 -DRUBY_RPC"
+  CFLAGS_RUBY="-DUSE_RUBY=1 -DRUBY_RPC=1"
   EXTRA_OBJS="$EXTRA_OBJS ruby.o rubyrpc.o"
   LIBS="$LIBS -ljson-c"
 else
