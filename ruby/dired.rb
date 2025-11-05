@@ -7,7 +7,7 @@ $nameoffset = 46
 
 def viewfile(filename, kind)
   # Check that the file is plain text.
-  stdout_s, status = Open3.capture2('file', '-E', '-b', '--mime-type', filename)
+  stdout_s, status = Open3.capture2('file', '-b', '--mime-type', filename)
   str = stdout_s.chomp
   if status.to_i != 0
     E.echo str

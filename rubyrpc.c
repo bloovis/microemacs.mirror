@@ -266,9 +266,10 @@ make_error_response(
 int
 init_server(const char *filename)
 {
-  const char *args[1];
+  const char *args[2];
 
-  args[0] = NULL;
+  args[0] = filename;
+  args[1] = NULL;
   server.id = 1;
   server.filename = strdup(filename);
   return openpipe (filename, args, &server.input, &server.output);
