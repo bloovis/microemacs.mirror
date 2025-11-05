@@ -19,7 +19,13 @@ I have added support for many new features over the years:
 * optional PCRE2 (Perl-compatible regular expressions)
 * extensions written in Ruby
 
-In the past I ported it to
+MicroEMACS, unlike every other text editor in the known universe, does *not*
+support syntax highlighting.  I investigated this possibility,
+but rejected the idea, due to additional code complexity and my lack of enthusiasm or
+burning need for this popular crutch.  See [here](https://www.linusakesson.net/programming/syntaxhighlighting/)
+for a discussion of the case against syntax highlighting.
+
+In the past I ported MicroEMACS to
 numerous operating systems, but currently this source tree supports
 only Linux, Android (using termux), OpenBSD, FreeBSD, and Windows (using MinGW).  I seem to have lost the source
 for the MS-DOS and OS/2 versions, but they are unlikely to be useful in
