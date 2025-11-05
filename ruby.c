@@ -439,8 +439,8 @@ get_lineno (ID id, VALUE *var)
 static void
 set_lineno (VALUE val, ID id, VALUE *var)
 {
-  int lineno = NUM2INT (val);
-  gotoline (TRUE, lineno, KRANDOM);
+  int new_lineno = NUM2INT (val);
+  gotoline (TRUE, new_lineno, KRANDOM);
 }
 
 /*
@@ -1083,13 +1083,13 @@ int
 rubyload (int f, int n, int k)
 {
   int status;
-  char line[NCOL];
+  char fname[NFILEN];
 
   if ((status = rubyinit (FALSE)) != TRUE)
     return status;
-  if ((status = ereply ("Ruby file to load: ", line, sizeof (line))) != TRUE)
+  if ((status = egetfname ("Ruby file to load: ", fname, sizeof (fname))) != TRUE)
     return status;
-  return rubyloadscript (line);
+  return rubyloadscript (fname);
 }
 
 /*
