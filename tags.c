@@ -249,7 +249,7 @@ readtagfile (const char *fname)
   tagfile *	curfile = NULL;
   tagref *	newref;
   char *	tmp;
-  int		lineno;
+  int		linenum;
   long		offset;
 
   /* Open the TAGS file.
@@ -313,8 +313,8 @@ readtagfile (const char *fname)
 	   */
 	  if ((tmp = strchr (eol, '\001')) != NULL)
 	    eol = tmp + 1;	/* skip past control-A */
-	  lineno = strtol (eol, &eol, 10);
-	  if (lineno == 0 || *eol != ',')
+	  linenum = strtol (eol, &eol, 10);
+	  if (linenum == 0 || *eol != ',')
 	    {
 	      eprintf ("Badly formed line number for %s", line);
 	      /* s = FIOERR; */
@@ -326,7 +326,7 @@ readtagfile (const char *fname)
 
 	  /* Add this to the end of the list of references.
 	   */
-	  if ((newref = addtagref (line, curfile, lineno, offset, 0)) == NULL)
+	  if ((newref = addtagref (line, curfile, linenum, offset, 0)) == NULL)
 	    {
 	      eprintf ("Unable to allocate tagref");
 	      s = FIOERR;

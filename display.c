@@ -139,6 +139,12 @@ int ttbot = HUGE;		/* Bottom of scroll region.     */
 
 int leftcol = 0;		/* Left column of window        */
 
+/* Left column and number of columns for lines of text,
+ * leaving room for an optional line number display
+ */
+int tleftcol;
+int tncol;
+
 VIDEO *vscreen[NROW - 1];	/* Edge vector, virtual.        */
 VIDEO *pscreen[NROW - 1];	/* Edge vector, physical.       */
 #if	MEMMAP			/* don't need pscreen           */
@@ -199,6 +205,20 @@ vtinit (void)
 
   ttopen ();
   ttinit ();
+  if (showlinenumbers)
+    {
+      /* Set starting column and number of columns for text portion
+       * of a line in the virtual text buffer.  We leave room for
+       * six characters, to be used to display the line number.
+       */
+      tleftcol = 6;
+      tncol = ncol - 6;
+    }
+  else
+    {
+      tleftcol = 0;
+      tncol = ncol;
+    }
   vp = &video[0];
   for (i = 0; i < NROW - 1; ++i)
     {
@@ -268,7 +288,7 @@ vtputc (int c)
   if (vtcol >= leftcol + ncol)
     vttext[ncol - 1] = '$';
   else if (c == '\t')
-    vtputs (spaces, tabsize - (vtcol % tabsize));
+    vtputs (spaces, tabsize - ((vtcol - tleftcol) % tabsize));
   else if (CISCTRL (c) != FALSE)
     {
       vtputc ('^');
@@ -298,7 +318,7 @@ vtputs (const uchar *s, int n)
 
   while (s < end)
     {
-      c = ugetc (s, 0, &ulen);
+      c = ugetc (s, 0, &ulen);		/* Get next Unicode character */
       s += ulen;
       if (vtcol >= leftcol + ncol)
 	{
@@ -306,7 +326,7 @@ vtputs (const uchar *s, int n)
 	  return;
 	}
       else if (c == '\t')
-	vtputs (spaces, tabsize - (vtcol % tabsize));
+	vtputs (spaces, tabsize - ((vtcol - tleftcol) % tabsize));
       else if (c < 0x80 && CISCTRL (c) != FALSE)
 	{
 	  vtputc ('^');
@@ -329,6 +349,22 @@ static void
 vtstring (const char *s)
 {
   vtputs ((const uchar *)s, strlen (s));
+}
+
+/*
+ * Display a line number at the specified row.
+ */
+static void
+vtputlineno (int row, int linenumber)
+{
+  static char buf[20];
+
+  if (showlinenumbers)
+    {
+      snprintf(buf, sizeof (buf), "%5d│", linenumber + 1);
+      vtmove (row, 0);
+      vtstring (buf);
+    }
 }
 
 
@@ -404,17 +440,17 @@ update (void)
       else
 	curcol += uwidth(c);
     }
-  if (curcol >= ncol + curwp->w_leftcol)
+  if (curcol >= tncol + curwp->w_leftcol)
     {				/* need scroll right?   */
-      curwp->w_leftcol = curcol - ncol / 2;
+      curwp->w_leftcol = curcol - tncol / 2;
       curwp->w_flag |= WFHARD;	/* force redraw         */
     }
   else if (curcol < curwp->w_leftcol)
     {				/* need scroll left?    */
-      if (curcol < ncol / 2)	/* near left end?       */
+      if (curcol < tncol / 2)	/* near left end?       */
 	curwp->w_leftcol = 0;	/* put left edge at 0   */
       else
-	curwp->w_leftcol = curcol - ncol / 2;
+	curwp->w_leftcol = curcol - tncol / 2;
       curwp->w_flag |= WFHARD;	/* force redraw         */
     }
   curcol -= curwp->w_leftcol;	/* adjust column        */
@@ -426,6 +462,9 @@ update (void)
     {
       if (wp->w_flag != 0)
 	{			/* Need update.         */
+	  BUFFER *bp = wp->w_bufp;
+	  int linenumber = 0;
+
 	  if ((wp->w_flag & WFFORCE) == 0)
 	    {
 	      /* See if the dot is visible.		*/
@@ -434,7 +473,7 @@ update (void)
 		{
 		  if (lp == wp->w_dot.p)
 		    goto out;
-		  if (lp == wp->w_bufp->b_linep)
+		  if (lp == bp->b_linep)
 		    break;
 		  lp = lforw (lp);
 		}
@@ -455,7 +494,7 @@ update (void)
 	  else
 	    i = wp->w_ntrows / 2;
 	  lp = wp->w_dot.p;
-	  while (i != 0 && lp != firstline (wp->w_bufp))
+	  while (i != 0 && lp != firstline (bp))
 	    {
 	      --i;
 	      lp = lback (lp);
@@ -464,18 +503,22 @@ update (void)
 	  wp->w_flag |= WFHARD;	/* Force full.          */
 	out:
 	  lp = wp->w_linep;	/* Try reduced update.  */
+	  if (showlinenumbers)
+	    linenumber = blineno (bp, lp);
 	  i = wp->w_toprow;
 	  if ((wp->w_flag & ~WFMODE) == WFEDIT)
 	    {
 	      while (lp != wp->w_dot.p)
 		{
 		  ++i;
+		  ++linenumber;
 		  lp = lforw (lp);
 		}
 	      vscreen[i]->v_color = CTEXT;
 	      vscreen[i]->v_flag |= (VFCHG | VFHBAD);
+	      vtputlineno (i, linenumber);
 	      leftcol = wp->w_leftcol;
-	      vtmove (i, 0);
+	      vtmove (i, tleftcol);
 	      vtputs (lgets (lp), llength (lp));
 	      vteeol ();
 	      leftcol = 0;
@@ -491,12 +534,17 @@ update (void)
 		  vscreen[i]->v_color = CTEXT;
 		  vscreen[i]->v_flag |= (VFCHG | VFHBAD);
 		  vtmove (i, 0);
-		  if (lp != wp->w_bufp->b_linep)
+		  if (lp != bp->b_linep)
 		    {
+		      vtputlineno (i, linenumber);
+		      vtmove (i, tleftcol);
 		      vtputs (lgets (lp), llength (lp));
 		      lp = lforw (lp);
+		      ++linenumber;
 		    }
 		  vteeol ();
+		  if (lp == bp->b_linep)
+		    linenumber = -1;
 		  ++i;
 		}
 	      leftcol = 0;
@@ -529,7 +577,7 @@ update (void)
 	  uline (i, vscreen[i], &blanks);
 	  ucopy (vscreen[i], pscreen[i]);
 	}
-      ttmove (currow, curcol);
+      ttmove (currow, curcol + tleftcol);
       ttflush ();
       return;
     }
@@ -554,7 +602,7 @@ update (void)
 	}
       if (offs == nrow - 1)
 	{			/* Might get it all.    */
-	  ttmove (currow, curcol);
+	  ttmove (currow, curcol + tleftcol);
 	  ttflush ();
 	  return;
 	}
@@ -575,7 +623,7 @@ update (void)
       traceback (offs, size, size, size);
       for (i = 0; i < size; ++i)
 	ucopy (vscreen[offs + i], pscreen[offs + i]);
-      ttmove (currow, curcol);
+      ttmove (currow, curcol + tleftcol);
       ttflush ();
       return;
     }
@@ -590,7 +638,7 @@ update (void)
 	  ucopy (vp1, vp2);
 	}
     }
-  ttmove (currow, curcol);
+  ttmove (currow, curcol + tleftcol);
   ttflush ();
 }
 
@@ -631,7 +679,7 @@ uline (int row, VIDEO *vvp, VIDEO *pvp)
 {
 #if	MEMMAP
   ttcolor (vvp->v_color);
-  putline (row + 1, 1, (const wchar_t *) &vvp->v_text[0]);
+  putline (row, 0, (const wchar_t *) &vvp->v_text[0]);
 #else
   wchar_t *cp1;
   wchar_t *cp2;

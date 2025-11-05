@@ -252,7 +252,7 @@ ttputc (int c)
 }
 
 /*
- * High speed screen update.  row and col are 1-based.
+ * High speed screen update.  row and col are 0-based.
  */
 void
 putline (int row, int col, const wchar_t *buf)
@@ -261,11 +261,6 @@ putline (int row, int col, const wchar_t *buf)
   SMALL_RECT region;
   static CHAR_INFO cinfo[NCOL];
   int i;
-
-  /* Adjust row and col to zero-based values.
-   */
-  row--;
-  col--;
 
   /* The size of the data to copy is the remaining number of characters
    * on the line.

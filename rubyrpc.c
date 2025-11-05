@@ -31,7 +31,7 @@ static int rubyinit_called;	/* TRUE if rubyinit has been called */
 char rubyinit_error[100];	/* Buffer containing error message from rubyinit */
 
 #define TEST 0			/* Enable test program. */
-#define DEBUG 1			/* Enable debug log. */
+#define DEBUG 0			/* Enable debug log. */
 
 /* JSON-RPC error codes
  */
@@ -578,8 +578,8 @@ set_line (int id, json_object *params)
 json_object *
 set_lineno (int id, json_object *params)
 {
-  int lineno = get_int(params, "int");
-  gotoline (TRUE, lineno, KRANDOM);
+  int new_lineno = get_int(params, "int");
+  gotoline (TRUE, new_lineno, KRANDOM);
   return make_normal_response(0, "", id);
 }
 

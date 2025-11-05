@@ -167,15 +167,16 @@ freeundo (UNDO *up)
 
 
 /*
- * Calculate the zero-based line number for a given line pointer.
+ * Calculate the zero-based line number for a given line pointer
+ * and buffer.
  */
 int
-lineno (const LINE *lp)
+blineno (const BUFFER *bp, const LINE *lp)
 {
   LINE *clp;
   int nline;
 
-  clp = firstline (curbp);
+  clp = firstline (bp);
   nline = 0;
   for (;;)
     {
@@ -185,6 +186,16 @@ lineno (const LINE *lp)
       ++nline;
     }
   return nline;
+}
+
+/*
+ * Calculate the zero-based line number for a given line pointer
+ * in the current buffer.
+ */
+int
+lineno (const LINE *lp)
+{
+  return blineno (curbp, lp);
 }
 
 /*

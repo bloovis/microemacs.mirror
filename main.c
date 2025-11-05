@@ -87,6 +87,7 @@ int inprof;			/* True if reading profile      */
 int bflag;			/* True if -b option specified  */
 const char *cscope_path = "cscope";	/* Name of cscope program	*/
 int noupdatecscope;		/* True if -d option specified	*/
+int showlinenumbers;		/* True if -l option specified	*/
 int mouse;			/* True if -m option specified  */
 int rflag;			/* True if -r option specified  */
 int xflag;			/* True if -x option specified  */
@@ -145,6 +146,9 @@ main (int argc, char *argv[])
 	      n++;
 	      if (n < argc)
 		line = atoi (argv[n]);
+	      break;
+	    case 'l':
+	      showlinenumbers = 1;
 	      break;
 	    case 'm':
 	      mouse = TRUE;

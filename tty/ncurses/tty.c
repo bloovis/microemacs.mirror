@@ -55,28 +55,6 @@ int     tcinsl  =       11;
 int     tcdell  =       11;
 #endif
 
-int actual_nrow;
-int actual_ncol;
-
-/*
- * Draw vertical borders between pages when npages is greater than zero.
- */
-static void
-drawborders (void)
-{
-#if 0
-  int row, col;
-
-  for (row = 0; row < actual_nrow; row++)
-    {
-      for (col = ncol; col < actual_ncol; col += ncol + 1)
-	{
-	  mvaddch (row, col, ACS_VLINE);
-	}
-    }
-#endif
-}
-
 /*
  * Initialize the terminal.  Get the handles for console input and output.
  * Take a peek at the video buffer to see what video attributes are being used.
@@ -84,8 +62,6 @@ drawborders (void)
 void
 ttinit (void)
 {
-  actual_nrow = nrow;
-  actual_ncol = ncol;
 }
 
 /*
@@ -94,13 +70,6 @@ ttinit (void)
 void
 tttidy (void)
 {
-}
-
-static void
-get_actual_pos (int row, int col, int *actual_row, int *actual_col)
-{
-  *actual_row = row;
-  *actual_col = col;
 }
 
 /*
@@ -113,10 +82,7 @@ get_actual_pos (int row, int col, int *actual_row, int *actual_col)
 void
 ttmove (int row, int col)
 {
-  int actual_row, actual_col;
-
-  get_actual_pos (row, col, &actual_row, &actual_col);
-  move (actual_row, actual_col);
+  move (row, col);
   ttrow = row;
   ttcol = col;
 }
@@ -137,7 +103,6 @@ void
 tteeop (void)
 {
   clrtobot ();
-  drawborders ();
 }
 
 /*
@@ -196,14 +161,13 @@ ttresize (void)
 }
 
 /*
- * High speed screen update.  row and col are 1-based.
+ * High speed screen update.  row and col are 0-based.
  */
 void
 putline (int row, int col, const wchar_t *buf)
 {
-  int actual_row, actual_col;
-
-  get_actual_pos (row - 1, col - 1, &actual_row, &actual_col);
-  move (actual_row, actual_col);
-  ttputs (buf, ncol - col + 1);
+  /* Write line text to screen.
+   */
+  move (row, col);
+  ttputs (buf, ncol - col);
 }

@@ -525,6 +525,7 @@ extern int inprof;
 extern int bflag;
 extern int rflag;
 extern int noupdatecscope;
+extern int showlinenumbers;
 extern const char *cscope_path;
 extern int mouse;
 extern int xflag;
@@ -1031,7 +1032,10 @@ void endsaveundo (void);		/* End of undo sequence.	*/
 void disablesaveundo (void);		/* Disable subsequent saveundos	*/
 void enablesaveundo (void);		/* Enable subsequent saveundos	*/
 void killundo (BUFFER *bp);		/* Kill undo records for buffer	*/
-int lineno (const LINE *lp);		/* Get zero-based line number.	*/
+int blineno (const BUFFER *bp, const LINE *lp);
+					/* Get zero-based line number.	*/
+int lineno (const LINE *lp);		/* Get zero-based line number	*/
+					/*  for current buffer.		*/
 void setundochanged (void);		/* Set buffer changed flags.	*/
 
 /*
