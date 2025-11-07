@@ -804,7 +804,12 @@ showbindings (int f, int mode)
 		++cp1;
 	      while (cp1 < &buf[16])	/* Goto column 16.      */
 		*cp1++ = ' ';
-	      strcpy (cp1, sp->s_name);	/* Add function name.   */
+
+	      /* Add function name, but make sure we don't go
+	       * past the end of the bufer in case the name is very long.
+	       * Also leave from for the "+" that might follow.
+	       */
+	      strncpy (cp1, sp->s_name, sizeof(buf) - 18);
 	      if (mode)
 		strcat (cp1++, "+");
 	      if (addline (buf) == FALSE)
