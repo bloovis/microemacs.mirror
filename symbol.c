@@ -806,7 +806,7 @@ showbindings (int f, int mode)
 		*cp1++ = ' ';
 
 	      /* Add function name, but make sure we don't go
-	       * past the end of the bufer in case the name is very long.
+	       * past the end of the buffer in case the name is very long.
 	       * Also leave from for the "+" that might follow.
 	       */
 	      strncpy (cp1, sp->s_name, sizeof(buf) - 18);
