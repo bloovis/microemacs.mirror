@@ -186,6 +186,28 @@ static void setscores (int offs, int size);
 static void traceback (int offs, int size, int i, int j);
 #endif
 
+
+/*
+ * If showlinenumbers is TRUE, it means the user wants MicroEMACS to display
+ * line numbers.  Set the starting column and number of columns for the text
+ * portion of a line in the virtual text buffer.  We leave room for six
+ * characters, to be used to display the line number.
+ */
+static void
+setcolumns (void)
+{
+  if (showlinenumbers)
+    {
+      tleftcol = 6;
+      tncol = ncol - 6;
+    }
+  else
+    {
+      tleftcol = 0;
+      tncol = ncol;
+    }
+}
+
 /*
  * Initialize the data structures used
  * by the display code. The edge vectors used
@@ -205,20 +227,7 @@ vtinit (void)
 
   ttopen ();
   ttinit ();
-  if (showlinenumbers)
-    {
-      /* Set starting column and number of columns for text portion
-       * of a line in the virtual text buffer.  We leave room for
-       * six characters, to be used to display the line number.
-       */
-      tleftcol = 6;
-      tncol = ncol - 6;
-    }
-  else
-    {
-      tleftcol = 0;
-      tncol = ncol;
-    }
+  setcolumns ();
   vp = &video[0];
   for (i = 0; i < NROW - 1; ++i)
     {
@@ -1030,4 +1039,24 @@ mouseevent (int f, int n, int k)
   eprintf ("[Mouse button %d, row %d, column %d]",
 	   mouse_button, mouse_row, mouse_column);
   return (TRUE);
+}
+
+/*
+ * Set the showlinenumbers variable to TRUE if the supplied argument
+ * is non-zero, FALSE otherwise.  This variable tells MicroEMACS
+ * if it should display line numbers.
+ * 
+ */
+int
+displines (int f, int n, int k)
+{
+  EWINDOW *wp;
+
+  showlinenumbers = (n != 0);
+  setcolumns();
+  sgarbf = TRUE;
+  ALLWIND (wp)		/* Redraw all.          */
+    wp->w_flag |= WFMODE | WFHARD;
+  update ();
+  return TRUE;
 }

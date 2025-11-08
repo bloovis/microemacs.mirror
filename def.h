@@ -665,6 +665,7 @@ void update (void);			/* Make sure display is right.	*/
 void vtinit (void);			/* Initialize video display.	*/
 void vttidy (void);			/* Tidy display before exit.	*/
 int mouseevent (int f, int n, int k);	/* Handle mouse button event.	*/
+int displines (int f, int n, int k);	/* Display line numbers.	*/
 
 /*
  * Defined by "echo.c".

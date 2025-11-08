@@ -288,7 +288,8 @@ KEY key[] = {
 #endif
   {-1,			jeffexit,	"jeff-exit"},
   {-1,			displaymessage,	"display-message"},
-  {-1,			redo,		"redo"}
+  {-1,			redo,		"redo"},
+  {-1,			displines,	"display-line-numbers"}
 };
 
 #define	NKEY	(sizeof(key) / sizeof(key[0]))
@@ -827,6 +828,8 @@ showbindings (int f, int mode)
  * directory list command, the buffer list command, etc.). This
  * lets MicroEMACS produce its own wall chart. The bindings to
  * "ins-self" are only displayed if there is an argument.
+ * If an argument is supplied, keys bound to "ins-self" will
+ * also be displayed.
  */
 int
 wallchart (int f, int n, int k)
