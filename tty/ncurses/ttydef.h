@@ -21,8 +21,6 @@
  *	Ncurses terminal file.
  */
 
-/* #define	GOSLING	1 */	/* Compile in fancy display.    */
-#define	MEMMAP 1		/* Ncurses emulates memory mapped video.*/
 #define XKEYS			/* Use termcap to handle function keys  */
 #define IGNORE_TERMCAP		/* Ignore termcap defs. of func. keys   */
 

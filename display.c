@@ -145,14 +145,12 @@ int leftcol = 0;		/* Left column of window        */
 int tleftcol;
 int tncol;
 
+/*
+ * The virtual screen, representing what we want the real
+ * screen to look like.
+ */
 VIDEO *vscreen[NROW - 1];	/* Edge vector, virtual.        */
-VIDEO *pscreen[NROW - 1];	/* Edge vector, physical.       */
-#if	MEMMAP			/* don't need pscreen           */
 VIDEO video[NROW - 1];		/* Actual screen data.          */
-#else
-VIDEO video[2 * (NROW - 1)];	/* Actual screen data.          */
-#endif
-VIDEO blanks;			/* Blank line image.            */
 static uchar spaces[NCOL];	/* ASCII spaces.		*/
 
 /*
@@ -162,30 +160,12 @@ int mouse_button;		/* 0=left, 1=middle, 2=right	*/
 int mouse_row;			/* screen row (0 = top)		*/
 int mouse_column;		/* screen column (0 = left)	*/
 
-#if	GOSLING
-/*
- * This matrix is written as an array because
- * we do funny things in the "setscores" routine, which
- * is very compute intensive, to make the subscripts go away.
- * It would be "SCORE	score[NROW][NROW]" in old speak.
- * Look at "setscores" to understand what is up.
- */
-SCORE score[NROW * NROW];
-#endif
-
 /*
  * Forward declarations.
  */
 static void vtputs (const uchar *s, int n);
-static void ucopy (VIDEO *vvp, VIDEO *pvp);
-static void uline (int row, VIDEO *vvp, VIDEO *pvp);
+static void uline (int row, VIDEO *vvp);
 static void modeline (EWINDOW *wp);
-#if GOSLING
-static void hash (VIDEO *vp);
-static void setscores (int offs, int size);
-static void traceback (int offs, int size, int i, int j);
-#endif
-
 
 /*
  * If showlinenumbers is TRUE, it means the user wants MicroEMACS to display
@@ -213,7 +193,7 @@ setcolumns (void)
  * by the display code. The edge vectors used
  * to access the screens are set up. The operating
  * system's terminal I/O channel is set up. Fill the
- * "blanks" array with ASCII blanks. The rest is done
+ * "spaces" array with ASCII blanks. The rest is done
  * at compile time. The original window is marked
  * as needing full update, and the physical screen
  * is marked as garbage, so all the right stuff happens
@@ -233,15 +213,7 @@ vtinit (void)
     {
       vscreen[i] = vp;
       ++vp;
-#if	MEMMAP
-      /* don't need pscreen */
-#else
-      pscreen[i] = vp;
-      ++vp;
-#endif
     }
-  blanks.v_color = CTEXT;
-  wmemset (blanks.v_text, ' ', NCOL);
   memset (spaces, ' ', NCOL);
 }
 
@@ -289,7 +261,9 @@ vtmove (int row, int col)
  * of 8, it is possible for the virtual cursor to hit the
  * right margin before the next tab stop is reached. This
  * makes the tab code loop if you are not careful.
- * Three guesses how we found this.
+ * Three guesses how we found this.  The variable leftcol
+ * gives the left column number of the visible part of the window;
+ * this is used to implement left and right scrolling.
  */
 static void
 vtputc (int c)
@@ -315,9 +289,10 @@ vtputc (int c)
 /*
  * Write a string to the virtual display.  Essentially similar
  * to vtputc(), except that a string and count are the parameters
- * instead of a single character.
+ * instead of a single character.  The variable leftcol
+ * gives the left column number of the visible part of the window;
+ * this is used to implement left and right scrolling.
  */
-
 static void
 vtputs (const uchar *s, int n)
 {
@@ -412,18 +387,12 @@ update (void)
 {
   LINE *lp;
   EWINDOW *wp;
-  VIDEO *vp1;
-  VIDEO *vp2;
+  VIDEO *vp;
   int i;
   int c;
   int curcol;
   int currow;
   uchar *s, *end;
-#if GOSLING
-  int hflag;
-  int offs;
-  int size;
-#endif
 
   if (curmsgf != FALSE || newmsgf != FALSE)
     {
@@ -432,8 +401,11 @@ update (void)
     }
   curmsgf = newmsgf;		/* Sync. up right now.  */
 
-  curcol = 0;			/* find current column  */
-  lp = curwp->w_dot.p;		/* Cursor location.     */
+  /*
+   * Find the column number of the cursor, taking tabs and UTF-8 into account.
+   */
+  curcol = 0;
+  lp = curwp->w_dot.p;		/* The line containing the cursor. */
   s = lgets (lp);
   end = (uchar *) wlgetcptr (lp, curwp->w_dot.o);
   while (s < end)
@@ -449,6 +421,12 @@ update (void)
       else
 	curcol += uwidth(c);
     }
+
+  /* If the cursor column is outside what's currently visible on
+   * the screen, adjust the current window's left column
+   * to make it visible.  This will effectively produce a left
+   * or right scroll.
+   */
   if (curcol >= tncol + curwp->w_leftcol)
     {				/* need scroll right?   */
       curwp->w_leftcol = curcol - tncol / 2;
@@ -464,9 +442,9 @@ update (void)
     }
   curcol -= curwp->w_leftcol;	/* adjust column        */
 
-#if GOSLING
-  hflag = FALSE;		/* Not hard.            */
-#endif
+  /*
+   * Examine all windows to see which ones need a screen update.
+   */
   ALLWIND(wp)
     {
       if (wp->w_flag != 0)
@@ -476,7 +454,9 @@ update (void)
 
 	  if ((wp->w_flag & WFFORCE) == 0)
 	    {
-	      /* See if the dot is visible.		*/
+	      /* If the dot is not visible, reframe this
+	       * window so that it is visible.
+	       */
 	      lp = wp->w_linep;
 	      for (i = 0; i < wp->w_ntrows; ++i)
 		{
@@ -487,6 +467,13 @@ update (void)
 		  lp = lforw (lp);
 		}
 	    }
+
+	  /* We must reframe the window.  First, check if
+	   * the reposition-window command has set w_force to
+	   * a non-zero value N, which means the dot should be
+	   * shown on row N in the window. If w_force wasn't set,
+	   * reposition the dot in the middle of the window.
+	   */
 	  i = wp->w_force;	/* Reframe this one.    */
 	  if (i > 0)
 	    {
@@ -502,6 +489,11 @@ update (void)
 	    }
 	  else
 	    i = wp->w_ntrows / 2;
+
+	  /* We have set i to the row on which we want the dot
+	   * to be shown in the window.  Given that, figure out
+	   * which line should be shown at the top of the window.
+	   */
 	  lp = wp->w_dot.p;
 	  while (i != 0 && lp != firstline (bp))
 	    {
@@ -510,11 +502,23 @@ update (void)
 	    }
 	  wp->w_linep = lp;
 	  wp->w_flag |= WFHARD;	/* Force full.          */
+
 	out:
-	  lp = wp->w_linep;	/* Try reduced update.  */
+	  /* We've reframed the window so that the dot is
+	   * visible.  We can now do a reduced or full update.
+	   * First, get the window's top line and calculate
+	   * its line number if we're displaying line numbers.
+	   * Set i to the row number of this line in the
+	   * virtual screen
+	   */
+	  lp = wp->w_linep;
 	  if (showlinenumbers)
 	    linenumber = blineno (bp, lp);
 	  i = wp->w_toprow;
+
+	  /* If the window had a simple edit done to a single line,
+	   * we only have to update the virtual screen for that line.
+	   */
 	  if ((wp->w_flag & ~WFMODE) == WFEDIT)
 	    {
 	      while (lp != wp->w_dot.p)
@@ -532,12 +536,22 @@ update (void)
 	      vteeol ();
 	      leftcol = 0;
 	    }
+
+	  /* If the window requires a hard update, we must update
+	   * every one of its lines in the virtual screen.
+	   */
 	  else if ((wp->w_flag & (WFEDIT | WFHARD)) != 0)
 	    {
-#if GOSLING
-	      hflag = TRUE;
-#endif
+	      /* Set leftcol to tell vtputc and vtputs the
+	       * the left boundary column number of the 
+	       * visible part of the window.
+	       */
 	      leftcol = wp->w_leftcol;
+
+	      /* For each line in the visible part of the window,
+	       * update the corresponding row in the virtual
+	       * screen.
+	       */
 	      while (i < wp->w_toprow + wp->w_ntrows)
 		{
 		  vscreen[i]->v_color = CTEXT;
@@ -545,34 +559,48 @@ update (void)
 		  vtmove (i, 0);
 		  if (lp != bp->b_linep)
 		    {
+		      /* We haven't reached the end of the buffer.
+		       * Write the line number (if enabled) to the virtual
+		       * screen, then the text of the line itself.
+		       */
 		      vtputlineno (i, linenumber);
 		      vtmove (i, tleftcol);
 		      vtputs (lgets (lp), llength (lp));
 		      lp = lforw (lp);
 		      ++linenumber;
 		    }
-		  vteeol ();
-		  if (lp == bp->b_linep)
-		    linenumber = -1;
+		  vteeol ();	/* Erase the rest of the row. */
 		  ++i;
 		}
 	      leftcol = 0;
 	    }
+
+	  /* We've updated the virtual screen for this window.
+	   * If the window requires a mode line change, write out
+	   * an updated mode line to the virtual screen.
+	   */
 	  if ((wp->w_flag & WFMODE) != 0)
 	    modeline (wp);
 	  wp->w_flag = 0;
 	  wp->w_force = 0;
 	}
     }
-  lp = curwp->w_linep;		/* Cursor location.     */
+
+  /* Figure out the row number of the cursor location.
+   */
+  lp = curwp->w_linep;
   currow = curwp->w_toprow;
   while (lp != curwp->w_dot.p)
     {
       ++currow;
       lp = lforw (lp);
     }
+
   if (sgarbf != FALSE)
-    {				/* Screen is garbage.   */
+    {
+      /* The "screen is garbage" flag is set, so write out every
+       * line in the virtual screen to the physical screen.
+       */
       sgarbf = FALSE;		/* Erase-page clears    */
       epresf = FALSE;		/* the message area.    */
       tttop = HUGE;		/* Forget where you set */
@@ -582,173 +610,43 @@ update (void)
       ttmove (0, 0);
       tteeop ();
       for (i = 0; i < nrow - 1; ++i)
-	{
-	  uline (i, vscreen[i], &blanks);
-	  ucopy (vscreen[i], pscreen[i]);
-	}
-      ttmove (currow, curcol + tleftcol);
-      ttflush ();
-      return;
+	uline (i, vscreen[i]);
     }
-#if	GOSLING
-  if (hflag != FALSE)
-    {				/* Hard update?         */
+
+  else
+    {
+      /* The screen is not all garbage.  Write out only
+       * the changed lines to the physical screen.
+       */
       for (i = 0; i < nrow - 1; ++i)
-	{			/* Compute hash data.   */
-	  hash (vscreen[i]);
-	  hash (pscreen[i]);
-	}
-      offs = 0;			/* Get top match.       */
-      while (offs != nrow - 1)
 	{
-	  vp1 = vscreen[offs];
-	  vp2 = pscreen[offs];
-	  if (vp1->v_color != vp2->v_color || vp1->v_hash != vp2->v_hash)
-	    break;
-	  uline (offs, vp1, vp2);
-	  ucopy (vp1, vp2);
-	  ++offs;
-	}
-      if (offs == nrow - 1)
-	{			/* Might get it all.    */
-	  ttmove (currow, curcol + tleftcol);
-	  ttflush ();
-	  return;
-	}
-      size = nrow - 1;		/* Get bottom match.    */
-      while (size != offs)
-	{
-	  vp1 = vscreen[size - 1];
-	  vp2 = pscreen[size - 1];
-	  if (vp1->v_color != vp2->v_color || vp1->v_hash != vp2->v_hash)
-	    break;
-	  uline (size - 1, vp1, vp2);
-	  ucopy (vp1, vp2);
-	  --size;
-	}
-      if ((size -= offs) == 0)	/* Get screen size.     */
-	abort ();
-      setscores (offs, size);	/* Do hard update.      */
-      traceback (offs, size, size, size);
-      for (i = 0; i < size; ++i)
-	ucopy (vscreen[offs + i], pscreen[offs + i]);
-      ttmove (currow, curcol + tleftcol);
-      ttflush ();
-      return;
-    }
-#endif
-  for (i = 0; i < nrow - 1; ++i)
-    {				/* Easy update.         */
-      vp1 = vscreen[i];
-      vp2 = pscreen[i];
-      if ((vp1->v_flag & VFCHG) != 0)
-	{
-	  uline (i, vp1, vp2);
-	  ucopy (vp1, vp2);
+	  vp = vscreen[i];
+	  if ((vp->v_flag & VFCHG) != 0)
+	    uline (i, vp);
 	}
     }
+
+  /* Finally move the cursor to its correct location,
+   * and flush any pending output to the terminal.
+   */
   ttmove (currow, curcol + tleftcol);
   ttflush ();
 }
 
 /*
- * Update a saved copy of a line,
- * kept in a VIDEO structure. The "vvp" is
- * the one in the "vscreen". The "pvp" is the one
- * in the "pscreen". This is called to make the
- * virtual and physical screens the same when
- * display has done an update.
- */
-static void
-ucopy (VIDEO *vvp, VIDEO *pvp)
-{
-  vvp->v_flag &= ~VFCHG;	/* Changes done.        */
-#if	MEMMAP
-  /* don't use pscreen */
-#else
-  pvp->v_flag = vvp->v_flag;	/* Update model.        */
-  pvp->v_hash = vvp->v_hash;
-  pvp->v_cost = vvp->v_cost;
-  pvp->v_color = vvp->v_color;
-  memcpy (pvp->v_text, vvp->v_text, ncol);
-#endif
-}
-
-/*
- * Update a single line. This routine only
+ * Update a single line on the physical screen. This routine only
  * uses basic functionality (no insert and delete character,
  * but erase to end of line). The "vvp" points at the VIDEO
- * structure for the line on the virtual screen, and the "pvp"
- * is the same for the physical screen. Avoid erase to end of
+ * structure for the line on the virtual screen.  Avoid erase to end of
  * line when updating CMODE color lines, because of the way that
  * reverse video works on most terminals.
  */
 static void
-uline (int row, VIDEO *vvp, VIDEO *pvp)
+uline (int row, VIDEO *vvp)
 {
-#if	MEMMAP
+  vvp->v_flag &= ~VFCHG;	/* Changes done.        */
   ttcolor (vvp->v_color);
   putline (row, 0, (const wchar_t *) &vvp->v_text[0]);
-#else
-  wchar_t *cp1;
-  wchar_t *cp2;
-  wchar_t *cp3;
-  wchar_t *cp4;
-  wchar_t *cp5;
-  int nbflag;
-
-  if (vvp->v_color != pvp->v_color)
-    {				/* Wrong color, do a    */
-      ttmove (row, 0);		/* full redraw.         */
-      ttcolor (vvp->v_color);
-      ttputs (vvp->v_text, ncol);
-      ttcol += ncol;
-      return;
-    }
-  cp1 = &vvp->v_text[0];	/* Compute left match.  */
-  cp2 = &pvp->v_text[0];
-  while (cp1 != &vvp->v_text[ncol] && cp1[0] == cp2[0])
-    {
-      ++cp1;
-      ++cp2;
-    }
-  if (cp1 == &vvp->v_text[ncol])	/* All equal.           */
-    return;
-  nbflag = FALSE;
-  cp3 = &vvp->v_text[ncol];	/* Compute right match. */
-  cp4 = &pvp->v_text[ncol];
-  while (cp3[-1] == cp4[-1])
-    {
-      --cp3;
-      --cp4;
-      if (cp3[0] != ' ')	/* Note non-blanks in   */
-	nbflag = TRUE;		/* the right match.     */
-    }
-  cp5 = cp3;			/* Is erase good?       */
-  if (nbflag == FALSE && vvp->v_color == CTEXT)
-    {
-      while (cp5 != cp1 && cp5[-1] == ' ')
-	--cp5;
-      /* Alcyon hack */
-      if ((int) (cp3 - cp5) <= tceeol)
-	cp5 = cp3;
-    }
-  /* Alcyon hack */
-  ttmove (row, (int) (cp1 - &vvp->v_text[0]));
-  ttcolor (vvp->v_color);
-#if	0			/* old code */
-  while (cp1 != cp5)
-    {
-      ttputc (*cp1++);
-      ++ttcol;
-    }
-#else /* new code */
-  ttputs (cp1, (int) (cp5 - cp1));
-  ttcol += (cp5 - cp1);
-#endif
-  if (cp5 != cp3)		/* Do erase.            */
-    tteeol ();
-#endif
 }
 
 /*
@@ -805,230 +703,6 @@ modeline (EWINDOW *wp)
     }
   vteeol ();			/* pad out with blanks  */
 }
-
-#if	GOSLING
-/*
- * Compute the hash code for
- * the line pointed to by the "vp". Recompute
- * it if necessary. Also set the approximate redisplay
- * cost. The validity of the hash code is marked by
- * a flag bit. The cost understand the advantages
- * of erase to end of line. Tuned for the VAX
- * by Bob McNamara; better than it used to be on
- * just about any machine.
- */
-static void
-hash (VIDEO *vp)
-{
-  int i;
-  int n;
-  wchar_t *s;
-
-  if ((vp->v_flag & VFHBAD) != 0)
-    {				/* Hash bad.            */
-      s = &vp->v_text[ncol - 1];
-      for (i = ncol; i != 0; --i, --s)
-	if (*s != ' ')
-	  break;
-      n = ncol - i;		/* Erase cheaper?       */
-      if (n > tceeol)
-	n = tceeol;
-      vp->v_cost = i + n;	/* Bytes + blanks.      */
-      for (n = 0; i != 0; --i, --s)
-	n = (n << 5) + n + *s;
-      vp->v_hash = n;		/* Hash code.           */
-      vp->v_flag &= ~VFHBAD;	/* Flag as all done.    */
-    }
-}
-
-/*
- * Compute the Insert-Delete
- * cost matrix. The dynamic programming algorithm
- * described by James Gosling is used. This code assumes
- * that the line above the echo line is the last line involved
- * in the scroll region. This is easy to arrange on the VT100
- * because of the scrolling region. The "offs" is the origin 0
- * offset of the first row in the virtual/physical screen that
- * is being updated; the "size" is the length of the chunk of
- * screen being updated. For a full screen update, use offs=0
- * and size=nrow-1.
- *
- * Older versions of this code implemented the score matrix by
- * a two dimensional array of SCORE nodes. This put all kinds of
- * multiply instructions in the code! This version is written to
- * use a linear array and pointers, and contains no multiplication
- * at all. The code has been carefully looked at on the VAX, with
- * only marginal checking on other machines for efficiency. In
- * fact, this has been tuned twice! Bob McNamara tuned it even
- * more for the VAX, which is a big issue for him because of
- * the 66 line X displays.
- *
- * On some machines, replacing the "for (i=1; i<=size; ++i)" with
- * i = 1; do { } while (++i <=size)" will make the code quite a
- * bit better; but it looks ugly.
- */
-static void
-setscores (int offs, int size)
-{
-  SCORE *sp;
-  int tempcost;
-  int bestcost;
-  int j;
-  int i;
-  VIDEO **vp;
-  VIDEO **pp;
-  SCORE *sp1;
-  VIDEO **vbase;
-  VIDEO **pbase;
-
-  vbase = &vscreen[offs - 1];	/* By hand CSE's.       */
-  pbase = &pscreen[offs - 1];
-  score[0].s_itrace = 0;	/* [0, 0]               */
-  score[0].s_jtrace = 0;
-  score[0].s_cost = 0;
-  sp = &score[1];		/* Row 0, inserts.      */
-  tempcost = 0;
-  vp = &vbase[1];
-  for (j = 1; j <= size; ++j)
-    {
-      sp->s_itrace = 0;
-      sp->s_jtrace = j - 1;
-      tempcost += (*vp)->v_cost;
-      sp->s_cost = tempcost + tcinsl[j];
-      ++vp;
-      ++sp;
-    }
-  sp = &score[NROW];		/* Column 0, deletes.   */
-  for (i = 1; i <= size; ++i)
-    {
-      sp->s_itrace = i - 1;
-      sp->s_jtrace = 0;
-      sp->s_cost = tcdell[i];
-      sp += NROW;
-    }
-  sp1 = &score[NROW + 1];	/* [1, 1].              */
-  pp = &pbase[1];
-  for (i = 1; i <= size; ++i)
-    {
-      sp = sp1;
-      vp = &vbase[1];
-      for (j = 1; j <= size; ++j)
-	{
-	  sp->s_itrace = i - 1;
-	  sp->s_jtrace = j;
-	  bestcost = (sp - NROW)->s_cost;
-	  if (j != size)	/* Cd(A[i])=0 @ Dis.    */
-	    bestcost += tcdell[1];
-	  tempcost = (sp - 1)->s_cost;
-	  tempcost += (*vp)->v_cost;
-	  if (i != size)	/* Ci(B[j])=0 @ Dsj.    */
-	    tempcost += tcinsl[1];
-	  if (tempcost < bestcost)
-	    {
-	      sp->s_itrace = i;
-	      sp->s_jtrace = j - 1;
-	      bestcost = tempcost;
-	    }
-	  tempcost = (sp - NROW - 1)->s_cost;
-	  if ((*pp)->v_color != (*vp)->v_color
-	      || (*pp)->v_hash != (*vp)->v_hash)
-	    tempcost += (*vp)->v_cost;
-	  if (tempcost < bestcost)
-	    {
-	      sp->s_itrace = i - 1;
-	      sp->s_jtrace = j - 1;
-	      bestcost = tempcost;
-	    }
-	  sp->s_cost = bestcost;
-	  ++sp;			/* Next column.         */
-	  ++vp;
-	}
-      ++pp;
-      sp1 += NROW;		/* Next row.            */
-    }
-}
-
-/*
- * Trace back through the dynamic programming cost
- * matrix, and update the screen using an optimal sequence
- * of redraws, insert lines, and delete lines. The "offs" is
- * the origin 0 offset of the chunk of the screen we are about to
- * update. The "i" and "j" are always started in the lower right
- * corner of the matrix, and imply the size of the screen.
- * A full screen traceback is called with offs=0 and i=j=nrow-1.
- * There is some do-it-yourself double subscripting here,
- * which is acceptable because this routine is much less compute
- * intensive then the code that builds the score matrix!
- */
-static void
-traceback (int offs, int size, int i, int j)
-{
-  int itrace;
-  int jtrace;
-  int k;
-  int ninsl;
-  int ndraw;
-  int ndell;
-
-  if (i == 0 && j == 0)		/* End of update.       */
-    return;
-  itrace = score[(NROW * i) + j].s_itrace;
-  jtrace = score[(NROW * i) + j].s_jtrace;
-  if (itrace == i)
-    {				/* [i, j-1]             */
-      ninsl = 0;		/* Collect inserts.     */
-      if (i != size)
-	ninsl = 1;
-      ndraw = 1;
-      while (itrace != 0 || jtrace != 0)
-	{
-	  if (score[(NROW * itrace) + jtrace].s_itrace != itrace)
-	    break;
-	  jtrace = score[(NROW * itrace) + jtrace].s_jtrace;
-	  if (i != size)
-	    ++ninsl;
-	  ++ndraw;
-	}
-      traceback (offs, size, itrace, jtrace);
-      if (ninsl != 0)
-	{
-	  ttcolor (CTEXT);
-	  ttinsl (offs + j - ninsl, offs + size - 1, ninsl);
-	}
-      do
-	{			/* B[j], A[j] blank.    */
-	  k = offs + j - ndraw;
-	  uline (k, vscreen[k], &blanks);
-	}
-      while (--ndraw);
-      return;
-    }
-  if (jtrace == j)
-    {				/* [i-1, j]             */
-      ndell = 0;		/* Collect deletes.     */
-      if (j != size)
-	ndell = 1;
-      while (itrace != 0 || jtrace != 0)
-	{
-	  if (score[(NROW * itrace) + jtrace].s_jtrace != jtrace)
-	    break;
-	  itrace = score[(NROW * itrace) + jtrace].s_itrace;
-	  if (j != size)
-	    ++ndell;
-	}
-      if (ndell != 0)
-	{
-	  ttcolor (CTEXT);
-	  ttdell (offs + i - ndell, offs + size - 1, ndell);
-	}
-      traceback (offs, size, itrace, jtrace);
-      return;
-    }
-  traceback (offs, size, itrace, jtrace);
-  k = offs + j - 1;
-  uline (k, vscreen[k], pscreen[offs + i - 1]);
-}
-#endif	/* GOSLING */
 
 /*
  * Handle mouse button event.
