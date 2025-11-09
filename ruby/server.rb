@@ -7,6 +7,13 @@ require 'json'
 ERROR_METHOD    = -32601	# Method not found
 ERROR_EXCEPTION = -32000	# Server error - exception
 
+# Trap SIGINT so we can cleanly cause Ruby to
+# exit instead of killing MicroEMACS.
+
+Signal.trap('INT') do
+ raise "Received SIGINT signal"
+end
+
 # Logging during debugging.
 
 DEBUG = false

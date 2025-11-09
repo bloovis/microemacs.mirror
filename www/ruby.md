@@ -420,25 +420,37 @@ the exception information.
 ## Aborting Ruby Commands
 
 If your Ruby code is taking too long to run, and you want to stop it,
-you will need to send it a signal from another terminal window.  In that
-window, find the ID of the process that is running MicroEMACS, using a
+you will need to send it a signal from another terminal window.  If you
+are using the [RPC implementation](#rpc) of Ruby extensions (i.e., you configured
+MicroEMACS with `--with-ruby=rpc`), find the ID of the Ruby server
+process by using a command such as this:
+
+```
+ps -x | grep ruby
+```
+
+If you are using the original implementation of Ruby extensions
+(i.e., you configured MicroEMACS with `--with-ruby` or
+`--with-ruby=VERSION`, find the ID of the MicroEMACS process by using a
 command such as this:
 
 ```
 ps -x | grep pe
 ```
 
-Then using the process ID that this command displays, kill the Ruby
+Then using the process ID that you discovered, kill the Ruby
 code using:
 
 ```
 kill -SIGINT <id>
 ```
 
-The helper code in `pe.rb` catches this signal and raises an exception that
+The helper code in `pe.rb` and `server.rb` catches this signal and raises an exception that
 aborts the errant Ruby code and return control to MicroEMACS.
 
+<span id="rbenv">
 ## Using rbenv
+</span>
 
 Some recent Linux distros, such as Ubuntu 24.04 and Fedora 42,
 have versions of the Ruby C API that cause failures in
@@ -515,7 +527,7 @@ version of the Ruby is used in compilation and linking.
 The original implementation of Ruby extensions worked well in Ruby 3.0,
 as installed on Linux Mint 21 and Ubuntu 22.04.  But more recent
 versions of Ruby, from 3.1 upward, introduced problems that
-are becoming more and more difficult to solve.  See the `Using rbenv`
+are becoming more and more difficult to solve.  See the [Using rbenv](#rbenv)
 section above for details about the problems.
 
 I have seen some hints in the Ruby source code that these problems are caused
@@ -528,8 +540,7 @@ It seems likely that this problem is only going to get worse over
 time.  For example, in testing on OpenBSD, I discovered that the rbenv solution can't be used
 there, because OpenBSD uses openssl 3.6, and Ruby 3.1.2 fails
 to compile with that version of openssl.
-
-To avoid these problems, I have written an entirely new
+To avoid the problems described above, I have written an entirely new
 implementation of Ruby extensions.  This one works by invoking Ruby as
 a separate process and communicating with it via pipes, using the
 [JSON-RPC protocol](https://www.jsonrpc.org/specification) as the message format.  Although this RPC
