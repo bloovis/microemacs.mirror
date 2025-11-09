@@ -280,6 +280,30 @@ vteeol (void)
 }
 
 /*
+ * Update the virtual screen for one line.  If lp is
+ * NULL, just write out a blank line; otherwise, write
+ * out the line number (if enabled), then the line itself.
+ * The variable wleftcol gives the leftmost visible
+ * column of the line (used for left/right scrolling).
+ */
+static void
+update_line (LINE *lp, int row, int wleftcol, int linenumber)
+{
+  vscreen[row]->v_color = CTEXT;
+  vscreen[row]->v_flag |= VFCHG;
+  leftcol = wleftcol;
+  vtmove (row, 0);
+  if (lp != NULL)
+    {
+      vtputlineno (row, linenumber);
+      vtmove (row, tleftcol);
+      vtputs (lgets (lp), llength (lp));
+    }
+  vteeol ();
+  leftcol = 0;
+}
+
+/*
  * Make sure that the display is
  * right. This is a three part process. First,
  * scan through all of the windows looking for dirty
@@ -367,6 +391,7 @@ update (void)
 	      for (i = 0; i < wp->w_ntrows; ++i)
 		{
 		  if (lp == wp->w_dot.p)
+		    /* Dot is visible; skip the reframing. */
 		    goto out;
 		  if (lp == bp->b_linep)
 		    break;
@@ -433,14 +458,7 @@ update (void)
 		  ++linenumber;
 		  lp = lforw (lp);
 		}
-	      vscreen[i]->v_color = CTEXT;
-	      vscreen[i]->v_flag |= VFCHG;
-	      vtputlineno (i, linenumber);
-	      leftcol = wp->w_leftcol;
-	      vtmove (i, tleftcol);
-	      vtputs (lgets (lp), llength (lp));
-	      vteeol ();
-	      leftcol = 0;
+	      update_line (lp, i, wp->w_leftcol, linenumber);
 	    }
 
 	  /* If the window requires a hard update, we must update
@@ -448,37 +466,23 @@ update (void)
 	   */
 	  else if ((wp->w_flag & (WFEDIT | WFHARD)) != 0)
 	    {
-	      /* Set leftcol to tell vtputc and vtputs the
-	       * the left boundary column number of the 
-	       * visible part of the window.
-	       */
-	      leftcol = wp->w_leftcol;
-
 	      /* For each line in the visible part of the window,
 	       * update the corresponding row in the virtual
 	       * screen.
 	       */
 	      while (i < wp->w_toprow + wp->w_ntrows)
 		{
-		  vscreen[i]->v_color = CTEXT;
-		  vscreen[i]->v_flag |= VFCHG;
-		  vtmove (i, 0);
-		  if (lp != bp->b_linep)
+		  if (lp == bp->b_linep)
+		    /* Past the end of the buffer, just show a blank line. */
+		    update_line (NULL, i, wp->w_leftcol, linenumber);
+		  else
 		    {
-		      /* We haven't reached the end of the buffer.
-		       * Write the line number (if enabled) to the virtual
-		       * screen, then the text of the line itself.
-		       */
-		      vtputlineno (i, linenumber);
-		      vtmove (i, tleftcol);
-		      vtputs (lgets (lp), llength (lp));
-		      lp = lforw (lp);
+		      update_line (lp, i, wp->w_leftcol, linenumber);
 		      ++linenumber;
+		      lp = lforw (lp);
 		    }
-		  vteeol ();	/* Erase the rest of the row. */
-		  ++i;
+		  i++;
 		}
-	      leftcol = 0;
 	    }
 
 	  /* We've updated the virtual screen for this window.
