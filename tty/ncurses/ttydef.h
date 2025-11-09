@@ -60,6 +60,3 @@
 
 #define	NFKEYS	12		/* # of function keys (k0-k9, K0-K9) */
 #endif
-
-/* Functions. */
-void putline (int row, int col, const wchar_t *buf);

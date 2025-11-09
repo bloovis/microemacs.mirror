@@ -158,7 +158,7 @@ ttresize (void)
  * High speed screen update.  row and col are 0-based.
  */
 void
-putline (int row, int col, const wchar_t *buf)
+ttputline (int row, int col, const wchar_t *buf)
 {
   /* Write line text to screen.
    */

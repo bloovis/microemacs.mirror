@@ -965,7 +965,7 @@ void ttinsl (int row, int bot, int nchunk);
 void ttdell (int row, int bot, int nchunk);
 void ttresize (void);
 void ttbeep (void);
-void putpad (const char *str);
+void ttputline (int row, int col, const wchar_t *buf);
 
 /*
  * Defined by "ttyio.c".

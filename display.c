@@ -287,7 +287,7 @@ vteeol (void)
  * column of the line (used for left/right scrolling).
  */
 static void
-update_line (LINE *lp, int row, int wleftcol, int linenumber)
+vtputline (LINE *lp, int row, int wleftcol, int linenumber)
 {
   vscreen[row]->v_color = CTEXT;
   vscreen[row]->v_flag |= VFCHG;
@@ -458,7 +458,7 @@ update (void)
 		  ++linenumber;
 		  lp = lforw (lp);
 		}
-	      update_line (lp, i, wp->w_leftcol, linenumber);
+	      vtputline (lp, i, wp->w_leftcol, linenumber);
 	    }
 
 	  /* If the window requires a hard update, we must update
@@ -474,10 +474,10 @@ update (void)
 		{
 		  if (lp == bp->b_linep)
 		    /* Past the end of the buffer, just show a blank line. */
-		    update_line (NULL, i, wp->w_leftcol, linenumber);
+		    vtputline (NULL, i, wp->w_leftcol, linenumber);
 		  else
 		    {
-		      update_line (lp, i, wp->w_leftcol, linenumber);
+		      vtputline (lp, i, wp->w_leftcol, linenumber);
 		      ++linenumber;
 		      lp = lforw (lp);
 		    }
@@ -553,7 +553,7 @@ uline (int row, VIDEO *vvp)
 {
   vvp->v_flag &= ~VFCHG;	/* Changes done.        */
   ttcolor (vvp->v_color);
-  putline (row, 0, (const wchar_t *) &vvp->v_text[0]);
+  ttputline (row, 0, (const wchar_t *) &vvp->v_text[0]);
 }
 
 /*
