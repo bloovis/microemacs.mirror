@@ -134,7 +134,6 @@ ttnowindow (void)
 void
 ttcolor (int color)
 {
-  tthue = color;
   bkgdset (' ' | (color == CMODE ? A_REVERSE : A_NORMAL));
 }
 

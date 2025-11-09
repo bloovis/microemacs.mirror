@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2008 Mark Alexander
+    Copyright (C) 2008-2025 Mark Alexander
 
     This file is part of MicroEMACS, a small text editor.
 
@@ -17,80 +17,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-/* $Header: /home/bloovis/cvsroot/pe/display.c,v 1.2 2005-10-18 02:18:08 bloovis Exp $
- *
- * Name:	MicroEMACS
- *		Gosling style redisplay.
- * Version:	30
- * By:		rex::conroy
- *		decvax!decwrl!dec-rhea!dec-rex!conroy
- *
- * The functions in this file handle redisplay. The
- * redisplay system knows almost nothing about the editing
- * process; the editing functions do, however, set some
- * hints to eliminate a lot of the grinding. There is more
- * that can be done; the "vtputc" interface is a real
- * pig. Two conditional compilation flags; the GOSLING
- * flag enables dynamic programming redisplay, using the
- * algorithm published by Jim Gosling in SIGOA. The MEMMAP
- * changes things around for memory mapped video. With
- * both off, the terminal is a VT52.
- *
- * $Log: display.c,v $
- * Revision 1.2  2005-10-18 02:18:08  bloovis
- * Rename some things to avoid conflict with ncurses.
- *
- * Revision 1.1.1.1  2003/11/06 02:51:52  bloovis
- * Imported sources
- *
- * Revision 1.6  2003/05/14 23:09:20  malexander
- * (mouse_event): Rename to mouseevent to avoid conflict with
- * Win32 header files.
- *
- * Revision 1.5  2002/01/23 22:36:07  malexander
- * (mouse_button, mouse_row, mouse_column): New variables for
- * mouse support.
- * (update): Use ALLWIND macro for looping through window list.
- * (mouse_event): New function for handling mouse events; currently does
- * nothing but print row and column of event.
- *
- * Revision 1.4  2001/02/28 21:07:40  malexander
- * * def.h (POS): New structure for holding line position, which replaces
- * dot and mark variable pairs everywhere.
- *
- * Revision 1.3  2000/09/29 00:19:38  malexander
- * Numerous changes to eliminate warnings and add prototypes.
- *
- * Revision 1.2  2000/07/21 16:20:32  malexander
- * Reformatted with GNU indent.
- *
- * Revision 1.1.1.1  2000/07/14 19:23:10  malexander
- * Imported sources
- *
- * Revision 1.3  91/01/07  10:24:00  alexande
- * Remove C++ warnings.  Changes for variable tab size.
- * 
- * Revision 1.3  90/10/23  17:13:54  alexande
- * Change vttext to unsigned, to allow IBM PC graphical characters.
- * 
- * Revision 1.2  90/07/03  13:22:11  alexande
- * Changed video buffers to uchar, to avoid sign-extension problems when
- * using funny IBM PC characters that are >=80h.
- * 
- *
- */
 #include	"def.h"
-
-/*
- * You can change these back to the types
- * implied by the name if you get tight for space. If you
- * make both of them "int" you get better code on the VAX.
- * They do nothing if this is not Gosling redisplay, except
- * for change the size of a structure that isn't used.
- * A bit of a cheat.
- */
-#define	XCHAR	int
-#define	XSHORT	int
 
 /*
  * A video structure always holds
@@ -100,47 +27,26 @@
  */
 typedef struct
 {
-  short v_hash;			/* Hash code, for compares.     */
   short v_flag;			/* Flag word.                   */
   short v_color;		/* Color of the line.           */
-  XSHORT v_cost;		/* Cost of display.             */
   wchar_t v_text[NCOL];		/* The actual characters.       */
 }
 VIDEO;
 
-#define	VFCHG	0x0001		/* Changed.                     */
-#define	VFHBAD	0x0002		/* Hash and cost are bad.       */
-
-/*
- * SCORE structures hold the optimal
- * trace trajectory, and the cost of redisplay, when
- * the dynamic programming redisplay code is used.
- * If no fancy redisplay, this isn't used. The trace index
- * fields can be "char", and the score a "short", but
- * this makes the code worse on the VAX.
+/* Bits in VIDEO.v_flag.
  */
-typedef struct
-{
-  XCHAR s_itrace;		/* "i" index for track back.    */
-  XCHAR s_jtrace;		/* "j" index for trace back.    */
-  XSHORT s_cost;		/* Display cost.                */
-}
-SCORE;
+#define	VFCHG	0x0001		/* Changed.                     */
 
 int sgarbf = TRUE;		/* TRUE if screen is garbage.   */
 int vtrow = 0;			/* Virtual cursor row.          */
 int vtcol = 0;			/* Virtual cursor column.       */
 wchar_t *vttext;		/* &(vscreen[vtrow]->v_text[0]) */
-int tthue = CNONE;		/* Current color.               */
 int ttrow = HUGE;		/* Physical cursor row.         */
 int ttcol = HUGE;		/* Physical cursor column.      */
-int tttop = HUGE;		/* Top of scroll region.        */
-int ttbot = HUGE;		/* Bottom of scroll region.     */
-
 int leftcol = 0;		/* Left column of window        */
 
-/* Left column and number of columns for lines of text,
- * leaving room for an optional line number display
+/* Left column and number of columns for the line text portion
+ * of screen rows, leaving room for an optional line number display.
  */
 int tleftcol;
 int tncol;
@@ -528,7 +434,7 @@ update (void)
 		  lp = lforw (lp);
 		}
 	      vscreen[i]->v_color = CTEXT;
-	      vscreen[i]->v_flag |= (VFCHG | VFHBAD);
+	      vscreen[i]->v_flag |= VFCHG;
 	      vtputlineno (i, linenumber);
 	      leftcol = wp->w_leftcol;
 	      vtmove (i, tleftcol);
@@ -555,7 +461,7 @@ update (void)
 	      while (i < wp->w_toprow + wp->w_ntrows)
 		{
 		  vscreen[i]->v_color = CTEXT;
-		  vscreen[i]->v_flag |= (VFCHG | VFHBAD);
+		  vscreen[i]->v_flag |= VFCHG;
 		  vtmove (i, 0);
 		  if (lp != bp->b_linep)
 		    {
@@ -603,9 +509,6 @@ update (void)
        */
       sgarbf = FALSE;		/* Erase-page clears    */
       epresf = FALSE;		/* the message area.    */
-      tttop = HUGE;		/* Forget where you set */
-      ttbot = HUGE;		/* scroll region.       */
-      tthue = CNONE;		/* Color unknown.       */
       ttcolor (CTEXT);		/* Force color change   */
       ttmove (0, 0);
       tteeop ();
@@ -667,7 +570,7 @@ modeline (EWINDOW *wp)
 
   n = wp->w_toprow + wp->w_ntrows;	/* Location.            */
   vtmove (n, 0);		/* Seek to right line.  */
-  vscreen[n]->v_flag |= (VFCHG | VFHBAD);	/* Recompute, display.  */
+  vscreen[n]->v_flag |= VFCHG;	/* Recompute, display.  */
 
   vscreen[n]->v_color = CMODE;	/* Mode line color.     */
   bp = wp->w_bufp;
