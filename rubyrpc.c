@@ -299,6 +299,7 @@ read_rpc_message(void)
       dprintf("Unable to read line from %s\n", server.filename);
       return NULL;
     }
+  dprintf("====\nReceived size line:\n%s\n", response);
   if ((ret = sscanf(response, "%d", &nbytes)) == 1)
     {
       if (nbytes > 0)
@@ -316,7 +317,7 @@ read_rpc_message(void)
 	  else
 	    {
 	      json[nbytes] = '\0';
-	      dprintf("====\nReceived %s\n", json);
+	      dprintf("Received %d bytes of json:\n%s\n", nbytes, json);
 	    }
 	}
       else

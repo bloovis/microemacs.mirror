@@ -207,10 +207,10 @@ private
   def self.send_message(hash)
     hash["jsonrpc"] = "2.0"	# not actually needed, but insert it for completeness
     json = JSON.generate(hash);
-    puts "#{json.length}"
+    puts "#{json.bytesize}"
     print json
     STDOUT.flush
-    dprint "===\nSent #{json}"
+    dprint "===\nSent #{json.bytesize} bytes:\n#{json}"
   end
 
   # Read an RPC message, return it as a hash, or nil
@@ -224,7 +224,7 @@ private
     end
     nbytes = str.to_i
     if nbytes > 0
-      str = STDIN.read(nbytes)
+      str = STDIN.read(nbytes, str)
     else
       # Empty response.  Maybe the pipe has been closed?
       return nil
