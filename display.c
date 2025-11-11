@@ -40,7 +40,7 @@ VIDEO;
 int sgarbf = TRUE;		/* TRUE if screen is garbage.   */
 int vtrow = 0;			/* Virtual cursor row.          */
 int vtcol = 0;			/* Virtual cursor column.       */
-wchar_t *vttext;		/* &(vscreen[vtrow]->v_text[0]) */
+wchar_t *vttext;		/* &(video[vtrow].v_text[0]) */
 int ttrow = HUGE;		/* Physical cursor row.         */
 int ttcol = HUGE;		/* Physical cursor column.      */
 int leftcol = 0;		/* Left column of window        */
@@ -55,7 +55,6 @@ int tncol;
  * The virtual screen, representing what we want the real
  * screen to look like.
  */
-VIDEO *vscreen[NROW - 1];	/* Edge vector, virtual.        */
 VIDEO video[NROW - 1];		/* Actual screen data.          */
 static uchar spaces[NCOL];	/* ASCII spaces.		*/
 
@@ -108,18 +107,9 @@ setcolumns (void)
 void
 vtinit (void)
 {
-  VIDEO *vp;
-  int i;
-
   ttopen ();
   ttinit ();
   setcolumns ();
-  vp = &video[0];
-  for (i = 0; i < NROW - 1; ++i)
-    {
-      vscreen[i] = vp;
-      ++vp;
-    }
   memset (spaces, ' ', NCOL);
 }
 
@@ -154,7 +144,7 @@ vtmove (int row, int col)
 {
   vtrow = row;
   vtcol = col;
-  vttext = &(vscreen[vtrow]->v_text[0]);
+  vttext = &video[vtrow].v_text[0];
 }
 
 /*
@@ -289,8 +279,8 @@ vteeol (void)
 static void
 vtputline (LINE *lp, int row, int wleftcol, int linenumber)
 {
-  vscreen[row]->v_color = CTEXT;
-  vscreen[row]->v_flag |= VFCHG;
+  video[row].v_color = CTEXT;
+  video[row].v_flag |= VFCHG;
   leftcol = wleftcol;
   vtmove (row, 0);
   if (lp != NULL)
@@ -517,7 +507,7 @@ update (void)
       ttmove (0, 0);
       tteeop ();
       for (i = 0; i < nrow - 1; ++i)
-	uline (i, vscreen[i]);
+	uline (i, &video[i]);
     }
 
   else
@@ -527,7 +517,7 @@ update (void)
        */
       for (i = 0; i < nrow - 1; ++i)
 	{
-	  vp = vscreen[i];
+	  vp = &video[i];
 	  if ((vp->v_flag & VFCHG) != 0)
 	    uline (i, vp);
 	}
@@ -574,9 +564,9 @@ modeline (EWINDOW *wp)
 
   n = wp->w_toprow + wp->w_ntrows;	/* Location.            */
   vtmove (n, 0);		/* Seek to right line.  */
-  vscreen[n]->v_flag |= VFCHG;	/* Recompute, display.  */
+  video[n].v_flag |= VFCHG;	/* Recompute, display.  */
 
-  vscreen[n]->v_color = CMODE;	/* Mode line color.     */
+  video[n].v_color = CMODE;	/* Mode line color.     */
   bp = wp->w_bufp;
   if ((bp->b_flag & BFCHG) != 0)	/* "*" if changed.      */
     vtputc ('*');
