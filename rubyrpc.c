@@ -1084,6 +1084,11 @@ rubyloadscript (const char *path)
 {
   char buf[1024];
 
+  if (access (path, R_OK) != F_OK)
+    {
+      eprintf ("The file %s does not exist.", path);
+      return FALSE;
+    }
   snprintf (buf, sizeof(buf) - 1, "load '%s'", path);
   return runruby (buf);
 }
