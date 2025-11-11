@@ -503,6 +503,62 @@ LINE;
 #define wloffset(lp, n)  (uoffset((lp)->l_text,(n)))
 
 /*
+ * A video structure always holds an array of characters representing
+ * a single line, whose length is equal to the longest line possible.
+ * Only some of this is used if FRAME.ncol" isn't the same as NCOL.
+ */
+typedef struct
+{
+  short v_flag;			/* Flag word.                   */
+  short v_color;		/* Color of the line.           */
+  wchar_t v_text[NCOL];		/* The actual characters.       */
+}
+VIDEO;
+
+/* Bits in VIDEO.v_flag.
+ */
+#define	VFCHG	0x0001		/* Changed.                     */
+
+/*
+ * A frame is known as a "window" in the operating system, but we
+ * have to call it something else because we're already using "window".
+ * A frame is a simple text area containing monospaced characters.
+ * In a normal terminal window, there's only one visible frame, but in the
+ * the future, we may use GTK4 or Turbo Vision to create multiple
+ * visible frames, each with its own set of MicroEMACS windows.
+ *
+ * A frame contains all the variables we need to manage the view
+ * within that frame.  This includes the dimensions of that frame
+ * which can change), the list of windows, and the virtual screen
+ * that contains a copy of what we want the frame to look like.
+ */
+typedef struct
+{
+  EWINDOW *f_wheadp;		/* List of windows.		*/
+  int f_nrow;			/* Number of rows.		*/
+  int f_ncol;			/* Number of columns.		*/
+  int f_sgarbf;			/* TRUE if screen is garbage.   */
+  int f_vtrow;			/* Virtual cursor row.          */
+  int f_vtcol;			/* Virtual cursor column.       */
+  int f_ttrow;			/* Physical cursor row.         */
+  int f_ttcol;			/* Physical cursor column.      */
+
+  /* Left column and number of columns for the line text portion
+   * of screen rows, leaving room for an optional line number display.
+   */
+  int f_tleftcol;
+  int f_tncol;
+
+  VIDEO f_video[NROW - 1];	/* The virtual screen.		*/
+  wchar_t *f_vttext;		/* &(video[f_vtrow].v_text[0]) */
+
+  /* Use the extra field for implementation-specified data. */
+  void *f_extra;
+
+} FRAME;
+
+
+/*
  * Externals.
  */
 extern int thisflag;
@@ -510,10 +566,9 @@ extern int lastflag;
 extern int curgoal;
 extern int epresf;
 extern int enoecho;
-extern int sgarbf;
+extern FRAME *curfp;
 extern EWINDOW *curwp;
 extern BUFFER *curbp;
-extern EWINDOW *wheadp;
 extern BUFFER *bheadp;
 extern BUFFER *blistp;
 extern int kbdm[];
@@ -531,11 +586,7 @@ extern int mouse;
 extern int xflag;
 extern int zflag;
 
-extern int nrow;
-extern int ncol;
 extern const char *version[];
-extern int ttrow;
-extern int ttcol;
 extern int mouse_button;
 extern int mouse_row;
 extern int mouse_column;
@@ -560,7 +611,7 @@ extern int savetabs;
  * Useful macros for running down the buffer and window lists.
  */
 
-#define	ALLWIND(wp)	for (wp=wheadp;wp;wp=wp->w_wndp)
+#define	ALLWIND(wp)	for (wp=curfp->f_wheadp;wp;wp=wp->w_wndp)
 #define ALLBUF(bp)	for (bp=bheadp;bp;bp=bp->b_bufp)
 
 /*

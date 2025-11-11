@@ -69,25 +69,25 @@ erefresh (int f, int n, int k)
   int oldnrow;
   int oldncol;
 
-  oldnrow = nrow;
-  oldncol = ncol;
+  oldnrow = curfp->f_nrow;
+  oldncol = curfp->f_ncol;
   ttresize ();
-  sgarbf = TRUE;		/* screen is garbage    */
-  if (nrow != oldnrow || ncol != oldncol)
+  curfp->f_sgarbf = TRUE;		/* screen is garbage    */
+  if (curfp->f_nrow != oldnrow || curfp->f_ncol != oldncol)
     {
-      wp = wheadp;		/* Find last.           */
+      wp = curfp->f_wheadp;		/* Find last.           */
       while (wp->w_wndp != NULL)
 	wp = wp->w_wndp;
-      if (nrow < wp->w_toprow + 3)
+      if (curfp->f_nrow < wp->w_toprow + 3)
 	{			/* Check if too small.  */
 	  eprintf ("Display unusable");
 	  return (FALSE);
 	}
-      wp->w_ntrows = nrow - wp->w_toprow - 2;
+      wp->w_ntrows = curfp->f_nrow - wp->w_toprow - 2;
       ALLWIND (wp)		/* Redraw all.          */
 	wp->w_flag |= WFMODE | WFHARD;
       update ();
-      eprintf ("[New size %d by %d]", nrow, ncol);
+      eprintf ("[New size %d by %d]", curfp->f_nrow, curfp->f_ncol);
     }
   return (TRUE);
 }
@@ -106,7 +106,7 @@ nextwind (int f, int n, int k)
   EWINDOW *wp;
 
   if ((wp = curwp->w_wndp) == NULL)
-    wp = wheadp;
+    wp = curfp->f_wheadp;
   curwp = wp;
   curbp = wp->w_bufp;
   return (TRUE);
@@ -125,7 +125,7 @@ prevwind (int f, int n, int k)
   EWINDOW *wp1;
   EWINDOW *wp2;
 
-  wp1 = wheadp;
+  wp1 = curfp->f_wheadp;
   wp2 = curwp;
   if (wp1 == wp2)
     wp2 = NULL;
@@ -214,10 +214,10 @@ onlywind (int f, int n, int k)
   LINE *lp;
   int i;
 
-  while (wheadp != curwp)
+  while (curfp->f_wheadp != curwp)
     {
-      wp = wheadp;
-      wheadp = wp->w_wndp;
+      wp = curfp->f_wheadp;
+      curfp->f_wheadp = wp->w_wndp;
       addwind (wp, -1);
       free ((char *) wp);
     }
@@ -236,7 +236,7 @@ onlywind (int f, int n, int k)
       lp = lback (lp);
     }
   curwp->w_toprow = 0;
-  curwp->w_ntrows = nrow - 2;	/* 2 = mode, echo.      */
+  curwp->w_ntrows = curfp->f_nrow - 2;	/* 2 = mode, echo.      */
   curwp->w_linep = lp;
   curwp->w_flag |= WFMODE | WFHARD;
   return (TRUE);
@@ -301,14 +301,14 @@ splitwind (int f, int n, int k)
   else
     {				/* Old is lower window  */
       wp1 = NULL;
-      wp2 = wheadp;
+      wp2 = curfp->f_wheadp;
       while (wp2 != curwp)
 	{
 	  wp1 = wp2;
 	  wp2 = wp2->w_wndp;
 	}
       if (wp1 == NULL)
-	wheadp = wp;
+	curfp->f_wheadp = wp;
       else
 	wp1->w_wndp = wp;
       wp->w_wndp = curwp;
@@ -345,14 +345,14 @@ enlargewind (int f, int n, int k)
 
   if (n < 0)
     return (shrinkwind (f, -n, KRANDOM));
-  if (wheadp->w_wndp == NULL)
+  if (curfp->f_wheadp->w_wndp == NULL)
     {
       eprintf ("Only one window");
       return (FALSE);
     }
   if ((adjwp = curwp->w_wndp) == NULL)
     {
-      adjwp = wheadp;
+      adjwp = curfp->f_wheadp;
       while (adjwp->w_wndp != curwp)
 	adjwp = adjwp->w_wndp;
     }
@@ -399,14 +399,14 @@ shrinkwind (int f, int n, int k)
 
   if (n < 0)
     return (enlargewind (f, -n, KRANDOM));
-  if (wheadp->w_wndp == NULL)
+  if (curfp->f_wheadp->w_wndp == NULL)
     {
       eprintf ("Only one window");
       return (FALSE);
     }
   if ((adjwp = curwp->w_wndp) == NULL)
     {
-      adjwp = wheadp;
+      adjwp = curfp->f_wheadp;
       while (adjwp->w_wndp != curwp)
 	adjwp = adjwp->w_wndp;
     }
@@ -449,7 +449,7 @@ balancewindows (int f, int n, int k)
   LINE *lp;
   int toprow, size, nwind, i;
 
-  if (wheadp->w_wndp == NULL)
+  if (curfp->f_wheadp->w_wndp == NULL)
     {
       eprintf ("Only one window");
       return (FALSE);
@@ -460,11 +460,11 @@ balancewindows (int f, int n, int k)
       nwind++;
     }
   toprow = 0;
-  size = ((nrow - 1) / nwind) - 1;
+  size = ((curfp->f_nrow - 1) / nwind) - 1;
   ALLWIND(wp)
     {
       if (wp->w_wndp == NULL)
-	size = nrow - toprow - 2;
+	size = curfp->f_nrow - toprow - 2;
       if (size < wp->w_ntrows)
 	{
 	  /* Shrink this window. */
@@ -495,9 +495,9 @@ wpopup (void)
 {
   EWINDOW *wp;
 
-  if (wheadp->w_wndp == NULL && splitwind (FALSE, 0, KRANDOM) == FALSE)
+  if (curfp->f_wheadp->w_wndp == NULL && splitwind (FALSE, 0, KRANDOM) == FALSE)
     return (NULL);
-  wp = wheadp;			/* Find window to use   */
+  wp = curfp->f_wheadp;			/* Find window to use   */
   while (wp != NULL && wp == curwp)
     wp = wp->w_wndp;
   return (wp);

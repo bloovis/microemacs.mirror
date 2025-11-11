@@ -19,43 +19,9 @@
 
 #include	"def.h"
 
-/*
- * A video structure always holds
- * an array of characters whose length is equal to
- * the longest line possible. Only some of this is
- * used if "ncol" isn't the same as "NCOL".
- */
-typedef struct
-{
-  short v_flag;			/* Flag word.                   */
-  short v_color;		/* Color of the line.           */
-  wchar_t v_text[NCOL];		/* The actual characters.       */
-}
-VIDEO;
-
-/* Bits in VIDEO.v_flag.
- */
-#define	VFCHG	0x0001		/* Changed.                     */
-
-int sgarbf = TRUE;		/* TRUE if screen is garbage.   */
-int vtrow = 0;			/* Virtual cursor row.          */
-int vtcol = 0;			/* Virtual cursor column.       */
-wchar_t *vttext;		/* &(video[vtrow].v_text[0]) */
-int ttrow = HUGE;		/* Physical cursor row.         */
-int ttcol = HUGE;		/* Physical cursor column.      */
+FRAME *curfp;			/* Current FRAME pointer.	*/
 int leftcol = 0;		/* Left column of window        */
 
-/* Left column and number of columns for the line text portion
- * of screen rows, leaving room for an optional line number display.
- */
-int tleftcol;
-int tncol;
-
-/*
- * The virtual screen, representing what we want the real
- * screen to look like.
- */
-VIDEO video[NROW - 1];		/* Actual screen data.          */
 static uchar spaces[NCOL];	/* ASCII spaces.		*/
 
 /*
@@ -83,13 +49,13 @@ setcolumns (void)
 {
   if (showlinenumbers)
     {
-      tleftcol = 6;
-      tncol = ncol - 6;
+      curfp->f_tleftcol = 6;
+      curfp->f_tncol = curfp->f_ncol - 6;
     }
   else
     {
-      tleftcol = 0;
-      tncol = ncol;
+      curfp->f_tleftcol = 0;
+      curfp->f_tncol = curfp->f_ncol;
     }
 }
 
@@ -107,6 +73,13 @@ setcolumns (void)
 void
 vtinit (void)
 {
+  curfp = (FRAME *)calloc(1, sizeof(FRAME));
+  if (curfp == NULL)
+    abort ();
+  curfp->f_sgarbf = TRUE;
+  curfp->f_ttrow = HUGE;
+  curfp->f_ttcol = HUGE;
+
   ttopen ();
   ttinit ();
   setcolumns ();
@@ -124,8 +97,8 @@ void
 vttidy (void)
 {
   ttcolor (CTEXT);
-  ttnowindow ();		/* No scroll window.    */
-  ttmove (nrow - 1, 0);		/* Echo line.           */
+  ttnowindow ();			/* No scroll window.    */
+  ttmove (curfp->f_nrow - 1, 0);	/* Echo line.           */
   tteeol ();
   tttidy ();
   ttflush ();
@@ -142,9 +115,9 @@ vttidy (void)
 static void
 vtmove (int row, int col)
 {
-  vtrow = row;
-  vtcol = col;
-  vttext = &video[vtrow].v_text[0];
+  curfp->f_vtrow = row;
+  curfp->f_vtcol = col;
+  curfp->f_vttext = &curfp->f_video[curfp->f_vtrow].v_text[0];
 }
 
 /*
@@ -164,10 +137,10 @@ vtmove (int row, int col)
 static void
 vtputc (int c)
 {
-  if (vtcol >= leftcol + ncol)
-    vttext[ncol - 1] = '$';
+  if (curfp->f_vtcol >= leftcol + curfp->f_ncol)
+    curfp->f_vttext[curfp->f_ncol - 1] = '$';
   else if (c == '\t')
-    vtputs (spaces, tabsize - ((vtcol - tleftcol) % tabsize));
+    vtputs (spaces, tabsize - ((curfp->f_vtcol - curfp->f_tleftcol) % tabsize));
   else if (CISCTRL (c) != FALSE)
     {
       vtputc ('^');
@@ -175,9 +148,9 @@ vtputc (int c)
     }
   else
     {
-      if (vtcol >= leftcol)
-	vttext[vtcol - leftcol] = c;
-      vtcol++;
+      if (curfp->f_vtcol >= leftcol)
+	curfp->f_vttext[curfp->f_vtcol - leftcol] = c;
+      curfp->f_vtcol++;
     }
 }
 
@@ -200,13 +173,13 @@ vtputs (const uchar *s, int n)
     {
       c = ugetc (s, 0, &ulen);		/* Get next Unicode character */
       s += ulen;
-      if (vtcol >= leftcol + ncol)
+      if (curfp->f_vtcol >= leftcol + curfp->f_ncol)
 	{
-	  vttext[ncol - 1] = '$';
+	  curfp->f_vttext[curfp->f_ncol - 1] = '$';
 	  return;
 	}
       else if (c == '\t')
-	vtputs (spaces, tabsize - ((vtcol - tleftcol) % tabsize));
+	vtputs (spaces, tabsize - ((curfp->f_vtcol - curfp->f_tleftcol) % tabsize));
       else if (c < 0x80 && CISCTRL (c) != FALSE)
 	{
 	  vtputc ('^');
@@ -214,9 +187,9 @@ vtputs (const uchar *s, int n)
 	}
       else
 	{
-	  if (vtcol >= leftcol)
-	    vttext[vtcol - leftcol] = c;
-	  vtcol++;
+	  if (curfp->f_vtcol >= leftcol)
+	    curfp->f_vttext[curfp->f_vtcol - leftcol] = c;
+	  curfp->f_vtcol++;
 	}
     }
 }
@@ -261,12 +234,12 @@ vteeol (void)
 {
   int count;
 
-  if (vtcol < leftcol)
-    vtcol = leftcol;
-  if ((count = ncol + leftcol - vtcol) <= 0)
+  if (curfp->f_vtcol < leftcol)
+    curfp->f_vtcol = leftcol;
+  if ((count = curfp->f_ncol + leftcol - curfp->f_vtcol) <= 0)
     return;
-  wmemset (&vttext[vtcol - leftcol], ' ', count);
-  vtcol += count;
+  wmemset (&curfp->f_vttext[curfp->f_vtcol - leftcol], ' ', count);
+  curfp->f_vtcol += count;
 }
 
 /*
@@ -279,14 +252,14 @@ vteeol (void)
 static void
 vtputline (LINE *lp, int row, int wleftcol, int linenumber)
 {
-  video[row].v_color = CTEXT;
-  video[row].v_flag |= VFCHG;
+  curfp->f_video[row].v_color = CTEXT;
+  curfp->f_video[row].v_flag |= VFCHG;
   leftcol = wleftcol;
   vtmove (row, 0);
   if (lp != NULL)
     {
       vtputlineno (row, linenumber);
-      vtmove (row, tleftcol);
+      vtmove (row, curfp->f_tleftcol);
       vtputs (lgets (lp), llength (lp));
     }
   vteeol ();
@@ -347,18 +320,18 @@ update (void)
    * to make it visible.  This will effectively produce a left
    * or right scroll.
    */
-  if (curcol >= tncol + curwp->w_leftcol)
-    {				/* need scroll right?   */
-      curwp->w_leftcol = curcol - tncol / 2;
-      curwp->w_flag |= WFHARD;	/* force redraw         */
+  if (curcol >= curfp->f_tncol + curwp->w_leftcol)
+    {					/* need scroll right?   */
+      curwp->w_leftcol = curcol - curfp->f_tncol / 2;
+      curwp->w_flag |= WFHARD;		/* force redraw         */
     }
   else if (curcol < curwp->w_leftcol)
-    {				/* need scroll left?    */
-      if (curcol < tncol / 2)	/* near left end?       */
-	curwp->w_leftcol = 0;	/* put left edge at 0   */
+    {					/* need scroll left?    */
+      if (curcol < curfp->f_tncol / 2)	/* near left end?       */
+	curwp->w_leftcol = 0;		/* put left edge at 0   */
       else
-	curwp->w_leftcol = curcol - tncol / 2;
-      curwp->w_flag |= WFHARD;	/* force redraw         */
+	curwp->w_leftcol = curcol - curfp->f_tncol / 2;
+      curwp->w_flag |= WFHARD;		/* force redraw         */
     }
   curcol -= curwp->w_leftcol;	/* adjust column        */
 
@@ -496,18 +469,18 @@ update (void)
       lp = lforw (lp);
     }
 
-  if (sgarbf != FALSE)
+  if (curfp->f_sgarbf != FALSE)
     {
       /* The "screen is garbage" flag is set, so write out every
        * line in the virtual screen to the physical screen.
        */
-      sgarbf = FALSE;		/* Erase-page clears    */
+      curfp->f_sgarbf = FALSE;	/* Erase-page clears    */
       epresf = FALSE;		/* the message area.    */
       ttcolor (CTEXT);		/* Force color change   */
       ttmove (0, 0);
       tteeop ();
-      for (i = 0; i < nrow - 1; ++i)
-	uline (i, &video[i]);
+      for (i = 0; i < curfp->f_nrow - 1; ++i)
+	uline (i, &curfp->f_video[i]);
     }
 
   else
@@ -515,9 +488,9 @@ update (void)
       /* The screen is not all garbage.  Write out only
        * the changed lines to the physical screen.
        */
-      for (i = 0; i < nrow - 1; ++i)
+      for (i = 0; i < curfp->f_nrow - 1; ++i)
 	{
-	  vp = &video[i];
+	  vp = &curfp->f_video[i];
 	  if ((vp->v_flag & VFCHG) != 0)
 	    uline (i, vp);
 	}
@@ -526,7 +499,7 @@ update (void)
   /* Finally move the cursor to its correct location,
    * and flush any pending output to the terminal.
    */
-  ttmove (currow, curcol + tleftcol);
+  ttmove (currow, curcol + curfp->f_tleftcol);
   ttflush ();
 }
 
@@ -564,9 +537,9 @@ modeline (EWINDOW *wp)
 
   n = wp->w_toprow + wp->w_ntrows;	/* Location.            */
   vtmove (n, 0);		/* Seek to right line.  */
-  video[n].v_flag |= VFCHG;	/* Recompute, display.  */
+  curfp->f_video[n].v_flag |= VFCHG;	/* Recompute, display.  */
 
-  video[n].v_color = CMODE;	/* Mode line color.     */
+  curfp->f_video[n].v_color = CMODE;	/* Mode line color.     */
   bp = wp->w_bufp;
   if ((bp->b_flag & BFCHG) != 0)	/* "*" if changed.      */
     vtputc ('*');
@@ -594,7 +567,7 @@ modeline (EWINDOW *wp)
   if (curmsgf != FALSE		/* Message alert.       */
       && wp->w_wndp == NULL)
     {
-      while (vtcol < ncol - 6)
+      while (curfp->f_vtcol < curfp->f_ncol - 6)
 	vtputc (' ');
       vtstring ("[Msg]");
     }
@@ -625,7 +598,7 @@ displines (int f, int n, int k)
 
   showlinenumbers = (n != 0);
   setcolumns();
-  sgarbf = TRUE;
+  curfp->f_sgarbf = TRUE;
   ALLWIND (wp)		/* Redraw all.          */
     wp->w_flag |= WFMODE | WFHARD;
   update ();

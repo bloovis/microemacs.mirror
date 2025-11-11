@@ -76,7 +76,6 @@ int curgoal;			/* Goal column                  */
 BUFFER *curbp = 0;		/* Current buffer               */
 EWINDOW *curwp = 0;		/* Current window               */
 BUFFER *bheadp;			/* BUFFER listhead              */
-EWINDOW *wheadp;		/* EWINDOW listhead             */
 BUFFER *blistp;			/* Buffer list BUFFER           */
 int kbdm[NKBDM] = { KCTLX | ')' }; /* Macro                     */
 int *kbdmip;			/* Input  for above             */
@@ -233,7 +232,7 @@ main (int argc, char *argv[])
     }
   else
     {
-      curwp = wheadp;		/* reset current window */
+      curwp = curfp->f_wheadp;	/* reset current window */
       curbp = curwp->w_bufp;	/* reset current buffer */
     }
 
@@ -383,16 +382,16 @@ bufinit (const char *fname)
       curwp = wp;		/* Current window       */
       if (nbuf == 1)		/* First window?        */
 	{
-	  wheadp = wp;
+	  curfp->f_wheadp = wp;
 	  wp->w_toprow = 0;
 	}
       else			/* Second window.   */
 	{
-	  wheadp->w_wndp = wp;
-	  wp->w_toprow = nrow / 2;	/* 2nd half of screen   */
-	  wheadp->w_ntrows = wp->w_toprow - 1;	/* shrink  */
+	  curfp->f_wheadp->w_wndp = wp;
+	  wp->w_toprow = curfp->f_nrow / 2;	/* 2nd half of screen   */
+	  curfp->f_wheadp->w_ntrows = wp->w_toprow - 1;	/* shrink  */
 	}			/* 1 = mode line        */
-      wp->w_ntrows = nrow - wp->w_toprow - 2;	/* 2 = mode,echo */
+      wp->w_ntrows = curfp->f_nrow - wp->w_toprow - 2;	/* 2 = mode,echo */
       wp->w_wndp = NULL;	/* Initialize window.   */
       wp->w_bufp = bp;
       bp->b_nwnd = 1;		/* Displayed.           */

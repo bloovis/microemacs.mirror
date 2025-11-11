@@ -167,15 +167,15 @@ spawn (char *program, const char *args[])
     {
       if (epresf != FALSE)
 	{
-	  ttmove (nrow - 1, 0);
+	  ttmove (curfp->f_nrow - 1, 0);
 	  tteeol ();
 	  epresf = FALSE;
 	}			/* Csh types a "\n"     */
-      ttmove (nrow - 2, 0);	/* before "Stopped".    */
+      ttmove (curfp->f_nrow - 2, 0);	/* before "Stopped".    */
     }
   else
     {
-      ttmove (nrow - 1, 0);
+      ttmove (curfp->f_nrow - 1, 0);
       if (epresf != FALSE)
 	{
 	  tteeol ();

@@ -70,11 +70,11 @@ int interrupted;
 void
 setttysize (void)
 {
-  getmaxyx (stdscr, nrow, ncol);
-  if (nrow > NROW)		/* Don't crash if the   */
-    nrow = NROW;		/* actual window size   */
-  if (ncol > NCOL)		/* is too big.          */
-    ncol = NCOL;
+  getmaxyx (stdscr, curfp->f_nrow, curfp->f_ncol);
+  if (curfp->f_nrow > NROW)	/* Don't crash if the   */
+    curfp->f_nrow = NROW;	/* actual window size   */
+  if (curfp->f_ncol > NCOL)	/* is too big.          */
+    curfp->f_ncol = NCOL;
 }
 
 /*

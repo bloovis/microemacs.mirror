@@ -78,8 +78,8 @@ void
 ttmove (int row, int col)
 {
   move (row, col);
-  ttrow = row;
-  ttcol = col;
+  curfp->f_ttrow = row;
+  curfp->f_ttcol = col;
 }
 
 /*
@@ -163,5 +163,5 @@ ttputline (int row, int col, const wchar_t *buf)
   /* Write line text to screen.
    */
   move (row, col);
-  ttputs (buf, ncol - col);
+  ttputs (buf, curfp->f_ncol - col);
 }

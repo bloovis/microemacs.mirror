@@ -645,9 +645,9 @@ gccerror (int f, int n, int k)
 	   */
 	  len = len - chars;
 	  str = copy + chars;
-	  if (unslen (str, len) > ncol)
+	  if (unslen (str, len) > curfp->f_ncol)
 	    {
-	      len = uoffset (str, ncol);
+	      len = uoffset (str, curfp->f_ncol);
 	      str[len] = '\0';
 	    }
 	  eprintf ("%s", str);

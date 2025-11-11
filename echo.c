@@ -216,11 +216,11 @@ readmsg (void)
   i = 0;
   while (i < nmsg)
     {
-      ettmove (nrow - 1, 0);	/* Display 1 line.      */
+      ettmove (curfp->f_nrow - 1, 0);	/* Display 1 line.      */
       while (i < nmsg && (c = msg[i++]) != '\n')
 	eputc (c);
       etteeol ();
-      ettmove (nrow - 1, 0);	/* Looks nice.          */
+      ettmove (curfp->f_nrow - 1, 0);	/* Looks nice.          */
       ettflush ();
       for (;;)
 	{			/* Editing loop.        */
@@ -290,7 +290,7 @@ eecho (int f, int n, int c)
   oldecho = enoecho;		/* save noecho flag     */
   enoecho = FALSE;		/* enable echoing       */
   ettcolor (CTEXT);
-  ettmove (nrow - 1, 0);
+  ettmove (curfp->f_nrow - 1, 0);
   eputs (echoline);
   etteeol ();
   ettflush ();
@@ -308,7 +308,7 @@ eerase (void)
   if (enoecho == FALSE)
     {
       ettcolor (CTEXT);
-      ettmove (nrow - 1, 0);
+      ettmove (curfp->f_nrow - 1, 0);
       etteeol ();
       ettflush ();
       epresf = FALSE;
@@ -451,7 +451,7 @@ addchoice (const
     pad = 1;			/* Pad only one space   */
   else
     pad = 16 - ((len1 + len2) & 15);	/* Pad up to 16 spaces  */
-  if (len1 + len2 + pad > ncol)
+  if (len1 + len2 + pad > curfp->f_ncol)
     {				/* Line too long?       */
       addline (choicebuf);	/* Add it to buffer     */
       choicebuf[0] = '\0';	/* Clear the buffer     */
@@ -480,8 +480,8 @@ showchoices ()
   if (addline (choicebuf) == FALSE)
     return;
   popblist ();			/* pop up the buffer    */
-  row = ttrow;			/* save cursor position */
-  col = ttcol;
+  row = curfp->f_ttrow;			/* save cursor position */
+  col = curfp->f_ttcol;
   update ();			/* update the screen    */
   ettmove (row, col);		/* restore cursor       */
   ettcolor (CTEXT);
@@ -612,7 +612,7 @@ setcolumn (const char *buf, int oldcpos, int newcpos)
 	++col;
       ++i;
     }
-  ttmove (ttrow, ttcol + newcol - oldcol);
+  ttmove (curfp->f_ttrow, curfp->f_ttcol + newcol - oldcol);
 }
 
 /*
@@ -651,10 +651,10 @@ eread (const char *fp, char *buf, int nbuf, int flag, va_list ap)
       buf[cpos] = '\0';
       goto done;
     }
-  if ((flag & EFNEW) != 0 || ttrow != nrow - 1)
+  if ((flag & EFNEW) != 0 || curfp->f_ttrow != curfp->f_nrow - 1)
     {
       ettcolor (CTEXT);		/* Normal video         */
-      ettmove (nrow - 1, 0);	/* move to echo line    */
+      ettmove (curfp->f_nrow - 1, 0);	/* move to echo line    */
       epresf = TRUE;
     }
   else
@@ -923,7 +923,7 @@ eprintf (const char *fp, ...)
   oldecho = enoecho;		/* save noecho flag     */
   enoecho = FALSE;		/* enable echoing       */
   ettcolor (CTEXT);
-  ettmove (nrow - 1, 0);
+  ettmove (curfp->f_nrow - 1, 0);
   eformat (fp, ap);
   va_end (ap);
   etteeol ();
@@ -1058,7 +1058,7 @@ eputs (const char *s)
 void
 eputc (int c)
 {
-  if (ttcol < ncol)
+  if (curfp->f_ttcol < curfp->f_ncol)
     {
       if (CISCTRL (c) != FALSE)
 	{
@@ -1066,7 +1066,7 @@ eputc (int c)
 	  c ^= 0x40;
 	}
       ettputc (c);
-      ++ttcol;
+      curfp->f_ttcol++;
     }
 }
 
@@ -1077,7 +1077,7 @@ eputc (int c)
 void
 einsertc (int c)
 {
-  if (ttcol < ncol)
+  if (curfp->f_ttcol < curfp->f_ncol)
     {
       if (CISCTRL (c) != FALSE)
 	{
@@ -1085,7 +1085,7 @@ einsertc (int c)
 	  c ^= 0x40;
 	}
       ettinsertc (c);
-      ++ttcol;
+      curfp->f_ttcol++;
     }
-  ettmove (ttrow, ttcol);
+  ettmove (curfp->f_ttrow, curfp->f_ttcol);
 }
