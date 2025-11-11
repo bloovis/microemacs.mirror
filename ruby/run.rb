@@ -84,7 +84,6 @@ def xec(n)
   E.split_window
   E.forw_window
   E.use_buffer '*output*'
-  E.bflag = 0
   E.goto_bob
   E.set_mark
   E.goto_eob
@@ -98,6 +97,7 @@ def xec(n)
   E.insert("-------\n");
   E.insert(stderr_str);
   E.goto_bob
+  E.bflag = 0
 
   # Switch back to our original window.
   E.forw_window
