@@ -913,9 +913,18 @@ rubyinit (int quiet)
 	}
     }
 
-  /* Do the basic initialization.
+  /* Do the basic initialization.  The very first thing is to set up
+   * the Ruby stack, which depends on main() having stored a pointer
+   * to its local variable ruby_stack in ruby_stack_ptr.
    */
-  RUBY_INIT_STACK;
+  if (sizeof (*ruby_stack_ptr) != sizeof (VALUE))
+    {
+      ruby_handle = NULL;
+      return rubyinit_set_error ("Size of ruby_stack was %d, should be %d",
+	sizeof(*ruby_stack_ptr), sizeof(VALUE));
+    }
+  ruby_init_stack (ruby_stack_ptr);
+
   ruby_init();
   if ((status = ruby_setup ()) != 0)
     {

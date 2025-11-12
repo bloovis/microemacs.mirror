@@ -605,7 +605,9 @@ extern int casefold;
 extern int fillcol;
 extern int tabsize;
 extern int savetabs;
-
+#if USE_RUBY
+extern unsigned long *ruby_stack_ptr;
+#endif
 
 /*
  * Useful macros for running down the buffer and window lists.

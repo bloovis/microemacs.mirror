@@ -95,6 +95,21 @@ int casefold = TRUE;		/* True if searches fold case   */
 int fillcol = 70;		/* Fill column for paragraphs.  */
 int tabsize = 8;		/* No. of columns for a tab     */
 
+#if USE_RUBY
+/*
+ * Pointer to ruby_stack variable in main.  This variable
+ * will be used by rubyinit when it calls ruby_init_stack.
+ * It needs the address of a stack variable that will NOT
+ * go out of scope at any time, so it needs the address
+ * of a variable in main.  This hack depends on unsigned long
+ * being the same as a VALUE in ruby.h, but we can't
+ * include ruby.h here due to numerous errors.  There is
+ * some code in rubyinit that will check to make sure
+ * that ruby_stack is the same size as VALUE.
+ */
+unsigned long *ruby_stack_ptr;
+#endif
+
 static int nbuf;		/* number of buffers    */
 
 /*
@@ -118,6 +133,8 @@ main (int argc, char *argv[])
   int line = 0;
 #if USE_RUBY
   int ruby_status;
+  unsigned long ruby_stack;
+  ruby_stack_ptr = &ruby_stack;
 #endif
 
   proptr = NULLPTR;		/* profile name         */
