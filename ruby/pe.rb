@@ -416,23 +416,3 @@ end
 
 # Set the default encoding for strings.
 Encoding.default_internal = 'UTF-8'
-
-# On Ruby systems that don't have Time.now available in the C API,
-# define it using our own timenow function (defined in ruby.c).
-class Time
-  unless Time.respond_to?(:now)
-    class << self
-      define_method(:now) { E.timenow }
-    end
-  end
-end
-
-# On Ruby systems that don't have the Symbol#name method available in the C API,
-# Symbol appears to be incomplete, and to_s doesn't actually return the same thing as name,
-# but returns the same thing as inspect for this incomplete class.  So redefine to_s to be
-# the same as name, using our own sym2str function (defined in ruby.c).
-class Symbol
-  unless :name.respond_to?(:name)
-    define_method(:to_s) { E.sym2str(self) }
-  end
-end

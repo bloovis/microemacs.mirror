@@ -50,6 +50,10 @@ struct callargs
  */
 const char *fnames[] =		/* Do not change this line */
 {
+  "ruby_init",
+  "ruby_init_stack",
+  "ruby_options",
+  "ruby_executable_node",
   "ruby_setup",
   "ruby_cleanup",
   "rb_eval_string_protect",
@@ -867,6 +871,8 @@ rubyinit (int quiet)
   VALUE dir;
   static const char *libruby = STRINGIFY(LIBRUBY);
   static const char *global_pe_rb = STRINGIFY(PREFIX) "/share/pe/pe.rb";
+  const char *dummy_args[] = {"ruby", "-e0"};
+  void *iseq;
 
   /* If we've been called before, return the status from that call.
    */
@@ -906,15 +912,34 @@ rubyinit (int quiet)
 	  /* printf("Address of %s is %p\n", fnames[i], ruby_fptrs[i]); */
 	}
     }
+
+  /* Do the basic initialization.
+   */
+  RUBY_INIT_STACK;
+  ruby_init();
   if ((status = ruby_setup ()) != 0)
     {
       ruby_handle = NULL;
       return rubyinit_set_error ("ruby_setup returned %d", status);
     }
 
-  /* Initialize the load path for gems.
+  /* Initialize the load path for gems.  This is commented out now,
+   * because if we leave it in, the later call to ruby_options produces
+   * the error: ruby: warning: already initialized constant TMP_RUBY_PREFIX
    */
+#if 0
   ruby_init_loadpath();
+#endif
+
+  /* Calling ruby_options forces the builtin methods to be loaded. See:
+   *   https://stackoverflow.com/questions/79816264/
+   */
+  iseq = ruby_options(2, (char **)dummy_args);
+  if (!ruby_executable_node(iseq, &status))
+    {
+      ruby_handle = NULL;
+      return rubyinit_set_error ("ruby_options failed, status %d", status);
+  }
 
   /* Define global functions that can be called from Ruby.
    */
