@@ -148,7 +148,7 @@ ttykeymapinit (void)
   keydup (KF7,		"redo");
   keydup (KF8,		"forw-buffer");
   keydup (KF9,		"search-again");
-  keydup (KF10,		"only-window");
+  keydup (KF10,		"forw-frame");
   keydup (KF11,		"find-cscope");
   keydup (KF12,		"next-cscope");
 }
