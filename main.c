@@ -17,57 +17,6 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-/* $Header: /home/bloovis/cvsroot/pe/main.c,v 1.3 2005-10-18 02:18:05 bloovis Exp $
- *
- * Name:	MicroEMACS
- *		Mainline, macro commands.
- * Version:	29
- * By:		rex::conroy
- *		decvax!decwrl!dec-rhea!dec-rex!conroy
- *
- * $Log: main.c,v $
- * Revision 1.3  2005-10-18 02:18:05  bloovis
- * Rename some things to avoid conflict with ncurses.
- *
- * Revision 1.2  2005/05/31 18:18:22  bloovis
- * (bufinit): w_savep was uninitialized; clear it.
- *
- * Revision 1.1.1.1  2003/11/06 02:51:52  bloovis
- * Imported sources
- *
- * Revision 1.7  2002/01/23 22:36:02  malexander
- * (mouse): New variable for mouse support, set by -m option.
- *
- * Revision 1.6  2001/03/05 16:04:06  malexander
- * (bufinit): Clear mark ring of new window.
- *
- * Revision 1.5  2001/02/28 21:07:40  malexander
- * * def.h (POS): New structure for holding line position, which replaces
- * dot and mark variable pairs everywhere.
- *
- * Revision 1.4  2000/11/01 22:00:43  malexander
- * (main): Don't make buffer read-only; bcreate does that now.
- *
- * Revision 1.3  2000/09/29 00:19:38  malexander
- * Numerous changes to eliminate warnings and add prototypes.
- *
- * Revision 1.2  2000/07/21 16:20:32  malexander
- * Reformatted with GNU indent.
- *
- * Revision 1.1.1.1  2000/07/14 19:23:10  malexander
- * Imported sources
- *
- * Revision 1.4  1996/10/22 15:58:57  marka
- * Allow "C-U -" to be treated as a shortcut for -1.
- *
- * Revision 1.3  91/01/07  10:26:04  alexande
- * Remove C++ warnings.  Add tab size variable.
- * 
- * Revision 1.2  90/07/03  13:21:05  alexande
- * Changed pat[] to uchar to be consistent with new declaration in def.h.
- * 
- *
- */
 #include	"def.h"
 
 int thisflag;			/* Flags, this command          */
@@ -110,12 +59,9 @@ int tabsize = 8;		/* No. of columns for a tab     */
 unsigned long *ruby_stack_ptr;
 #endif
 
-static int nbuf;		/* number of buffers    */
-
 /*
  * Forward declarations.
  */
-static void bufinit (const char *fname);
 static int execute (int c, int f, int n);
 
 /*
@@ -136,6 +82,7 @@ main (int argc, char *argv[])
   unsigned long ruby_stack;
   ruby_stack_ptr = &ruby_stack;
 #endif
+  int nbuf = 0;			/* number of buffers    */
 
   proptr = NULLPTR;		/* profile name         */
   for (n = 1; n < argc; n++)
@@ -229,7 +176,8 @@ main (int argc, char *argv[])
 		}
 	      line = atoi (lp);
 	    }
-	  bufinit (arg);	/* make buffer & window */
+	  ++nbuf;
+	  bufinit (arg, nbuf);	/* make buffer & window */
 //	  update ();
 	  readin (arg);		/* read in the file     */
 	  if (line != 0)	/* goto line specified  */
@@ -243,8 +191,9 @@ main (int argc, char *argv[])
     }
 
   if (nbuf == 0)
-    {				/* no files read in?    */
-      bufinit ("main");		/* make an empty buffer */
+    {
+      ++nbuf;			/* no files read in?    */
+      bufinit ("main", nbuf);	/* make an empty buffer */
 //      update ();
     }
   else
@@ -372,8 +321,8 @@ execute (int c, int f, int n)
  * conflict goes away.  This function also creates up to two initial
  * windows for the first one or two files being edited.
  */
-static void
-bufinit (const char *fname)
+void
+bufinit (const char *fname, int nbuf)
 {
   char bname[NBUFN];		/* Buffer name          */
   char *mod;			/* Ptr to name modifier */
@@ -392,7 +341,7 @@ bufinit (const char *fname)
   if ((bp = bfind (bname, TRUE)) == NULL)	/* Create text buffer.  */
     abort ();
   curbp = bp;			/* Current buffer       */
-  if (++nbuf <= 2)		/* If 2 or less buffers */
+  if (nbuf <= 2)		/* If 2 or less buffers */
     {				/* Get a new window     */
       if ((wp = (EWINDOW *) malloc (sizeof (EWINDOW))) == NULL)
 	abort ();		/* Out of memory        */

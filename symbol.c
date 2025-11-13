@@ -17,80 +17,6 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-/* $Header: /exit14/home/marka/tools/pe/RCS/symbol.c,v 1.1 2006/09/15 16:29:46 marka Exp marka $
- *
- * Name:	MicroEMACS
- *		Symbol table stuff.
- * Version:	29
- * Modified by:	Mark Alexander (amdahl!drivax!alexande)
- *
- * Symbol tables, and keymap setup.
- * The terminal specific parts of building the
- * keymap has been moved to a better place.
- *
- * $Log: symbol.c,v $
- * Revision 1.4  2005-10-18 02:18:10  bloovis
- * Rename some things to avoid conflict with ncurses.
- *
- * Revision 1.3  2004/04/20 15:18:18  bloovis
- * (namemacro):  Use ereadv instead of passing NULL arg list
- * pointer to eread.
- *
- * Revision 1.2  2003/12/03 22:14:35  bloovis
- * (USE_VMWAREINDENT): New macro to control whether to use
- * VMware-style indenting by default, initially enabled.
- * (USE_GNUINDENT): Disable.
- * (key): If USE_VMWAREINDENT enabled, bind C-J to vmwareindent.
- *
- * Revision 1.1.1.1  2003/11/06 02:51:52  bloovis
- * Imported sources
- *
- * Revision 1.8  2003/05/14 23:09:19  malexander
- * (mouse_event): Rename to mouseevent to avoid conflict with
- * Win32 header files.
- * (findcscope, findgrep, nextcscope): Disable on non-Linux host.
- *
- * Revision 1.7  2002/01/23 22:36:06  malexander
- * (key): Add mouse_event.
- *
- * Revision 1.6  2001/01/09 01:26:14  malexander
- * (key): Add entry for nextcscope.
- *
- * Revision 1.5  2000/09/29 00:19:38  malexander
- * Numerous changes to eliminate warnings and add prototypes.
- *
- * Revision 1.4  2000/07/27 15:17:39  malexander
- * (key): Bind prepgrep to M-G.
- *
- * Revision 1.3  2000/07/25 20:02:24  malexander
- * Add support for new commands: borlandindent, freetags,
- * and findcscope.  Eliminate some compiler warnings.
- *
- * Revision 1.2  2000/07/21 16:20:32  malexander
- * Reformatted with GNU indent.
- *
- * Revision 1.1.1.1  2000/07/14 19:23:11  malexander
- * Imported sources
- *
- * Revision 1.5  1996/10/22 16:08:14  marka
- * Fix bug in command name autocompletion.
- *
- * Revision 1.4  91/04/19  23:27:10  alexande
- * Added set-overstrike command.  Bind set-save-tabs to M-I.
- * Move support for autocompletion of symbol names from echo.c
- * to new routine symsearch() in this module.
- * 
- * Revision 1.3  91/01/07  10:29:21  alexande
- * Remove C++ warnings.  Add set-tab-size command.
- * 
- * Revision 1.2  89/01/13  13:01:33  MGA
- * Added getbinding() routine to look up a key binding.  Used by
- * incremental search.
- * 
- * Revision 1.1  89/01/13  11:07:38  MGA
- * Initial revision
- *
- */
 #include	"def.h"
 
 /* #define USE_VMWAREINDENT */	/* Define to use VMware indent	*/
@@ -289,7 +215,11 @@ KEY key[] = {
   {-1,			jeffexit,	"jeff-exit"},
   {-1,			displaymessage,	"display-message"},
   {-1,			redo,		"redo"},
-  {-1,			displines,	"display-line-numbers"}
+  {-1,			displines,	"display-line-numbers"},
+  {-1,			createframe,	"create-frame"},
+  {-1,			nextframe,	"forw-frame"},
+  {-1,			prevframe,	"back-frame"},
+  {-1,			listframes,	"display-frames"}
 };
 
 #define	NKEY	(sizeof(key) / sizeof(key[0]))

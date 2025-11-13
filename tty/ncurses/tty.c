@@ -51,12 +51,15 @@ extern  int     tthue;
  */
 
 /*
- * Initialize the terminal.  Get the handles for console input and output.
- * Take a peek at the video buffer to see what video attributes are being used.
+ * Initialize the terminal.  On other terminal types, we would
+ * get the handles for console input and output, and peek at the video
+ * buffer to see what video attributes were being used.  With Curses,
+ * we only need to get the current terminal size.
  */
 void
 ttinit (void)
 {
+  ttgetsize ();
 }
 
 /*
@@ -149,7 +152,7 @@ ttcolor (int color)
 void
 ttresize (void)
 {
-  setttysize ();		/* found in "ttyio.c",  */
+  ttgetsize ();		/* found in "ttyio.c",  */
   ttinit ();
   wrefresh (curscr);
 }

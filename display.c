@@ -19,6 +19,7 @@
 
 #include	"def.h"
 
+FRAME *fheadp;			/* Head of FRAME list.		*/
 FRAME *curfp;			/* Current FRAME pointer.	*/
 int leftcol = 0;		/* Left column of window        */
 
@@ -59,6 +60,49 @@ setcolumns (void)
     }
 }
 
+
+/*
+ * Allocate a new frame and insert it at the end of the frame list.
+ * Later you should call ttinit to fill in the correct values
+ * for f_ttrow and f_ttcol.
+ */
+static FRAME *
+newframe (void)
+{
+  FRAME *last, *fp;
+
+  /* Allocate the FRAME structure. */
+  fp = (FRAME *) calloc (1, sizeof(FRAME));
+  if (fp == NULL)
+    abort ();
+
+  /* Allocate the VIDEO array. */
+  fp->f_video = (VIDEO *) calloc (NROW, sizeof(VIDEO));
+  if (fp->f_video == NULL)
+    abort ();
+
+  /* Insert the new frame at the end of the list. */
+  if (fheadp == NULL)
+    fheadp = fp;
+  else
+    {
+      last = fheadp;
+      while (last->f_next != NULL)
+	last = last->f_next;
+      last->f_next = fp;
+    }
+
+  /* Set some default values. The correct row and column will
+   * be set later by ttinit or ttgetsize.
+   */
+  fp->f_sgarbf = TRUE;	/* force a complete redraw */
+  fp->f_ttrow = HUGE;
+  fp->f_ttcol = HUGE;
+
+  return fp;
+}
+
+
 /*
  * Initialize the data structures used
  * by the display code. The edge vectors used
@@ -73,13 +117,7 @@ setcolumns (void)
 void
 vtinit (void)
 {
-  curfp = (FRAME *)calloc(1, sizeof(FRAME));
-  if (curfp == NULL)
-    abort ();
-  curfp->f_sgarbf = TRUE;
-  curfp->f_ttrow = HUGE;
-  curfp->f_ttcol = HUGE;
-
+  curfp = newframe ();
   ttopen ();
   ttinit ();
   setcolumns ();
@@ -603,4 +641,94 @@ displines (int f, int n, int k)
     wp->w_flag |= WFMODE | WFHARD;
   update ();
   return TRUE;
+}
+
+/*
+ * Create a new frame.
+ */
+int
+createframe (int f, int n, int k)
+{
+  FRAME *fp;
+
+  fp = newframe ();
+  if (fp == NULL)
+    return FALSE;
+  curfp = fp;
+  curfp->f_sgarbf = TRUE;	/* force a complete redraw */
+  ttinit ();
+  setcolumns ();
+  bufinit ("main", 1);		/* Create empty buffer and window. */
+  return TRUE;
+}
+
+/*
+ * Move to next frame.
+ */
+int
+nextframe (int f, int n, int k)
+{
+  if (curfp->f_next == NULL)
+    curfp = fheadp;
+  else
+    curfp = curfp->f_next;
+  curwp = curfp->f_wheadp;
+  curbp = curwp->w_bufp;
+  curfp->f_sgarbf = TRUE;	/* force a complete redraw */
+  return TRUE;
+}
+
+/*
+ * Move to previous frame.
+ */
+int
+prevframe (int f, int n, int k)
+{
+  FRAME *fp = fheadp;
+
+  while (fp->f_next != NULL && fp->f_next != curfp)
+    fp = fp->f_next;
+  curfp = fp;
+  curfp->f_sgarbf = TRUE;	/* force a complete redraw */
+  return TRUE;
+}
+
+
+/*
+ * Pop up a window showing a list of frames.
+ * 
+ */
+int
+listframes (int f, int n, int k)
+{
+  FRAME *fp;
+  EWINDOW *wp;
+  BUFFER *bp;
+  int s, fno, wno;
+  static char line[512]; /* Large size avoids gcc warning about snprintf */
+
+  blistp->b_flag &= ~BFCHG;	/* Blow away old.       */
+  if ((s = bclear (blistp)) != TRUE)
+    return (s);
+  strcpy (blistp->b_fname, "");
+  if (addline ("  F  W  C Buffer                           File") == FALSE)
+    return FALSE;
+  if (addline ("  -  -  - ------                           ----") == FALSE)
+    return FALSE;
+  for (fp = fheadp, fno = 1; fp != NULL; fp = fp->f_next, fno++)
+    {
+      for (wp = fp->f_wheadp, wno = 1; wp != NULL; wp = wp->w_wndp, wno++)
+	{
+	  bp = wp->w_bufp;
+	  if (bp == blistp)
+	    continue;
+	  snprintf (line, sizeof(line), "%s %-2d %-2d %s %-32s %s",
+		    fp == curfp ? ">" : " ",
+		    fno, wno, bp->b_flag & BFCHG ? "*" : " ",
+		    bp->b_bname, bp->b_fname);
+	  if (addline (line) == FALSE)
+	    return FALSE;
+	}
+    }
+  return (popblist ());
 }

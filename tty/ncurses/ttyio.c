@@ -65,10 +65,10 @@ int waiting;
 int interrupted;
 
 /*
- * set the tty size. Functionized for 43BSD.
+ * Get the tty size and save it in the current frame.
  */
 void
-setttysize (void)
+ttgetsize (void)
 {
   getmaxyx (stdscr, curfp->f_nrow, curfp->f_ncol);
   if (curfp->f_nrow > NROW)	/* Don't crash if the   */
@@ -98,7 +98,6 @@ ttopen (void)
   cbreak ();			/* take input chars one at a time, no wait for \n */
   noecho ();
   raw ();
-  setttysize ();
   tcgetattr (0, &newtty);
 
   /* Initialize the shelltty structure.  These values were
