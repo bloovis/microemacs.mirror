@@ -19,6 +19,7 @@
 
 #include	"def.h"
 #include	<unistd.h>
+#include	<sys/ioctl.h>
 
 static char rubyinit_error[100];	/* Buffer containing error message from rubyinit */
 
@@ -67,6 +68,8 @@ const char *fnames[] =		/* Do not change this line */
   "rb_str_new",
   "rb_str_new_static",
   "rb_str_new_cstr",
+  "rb_str_plus",
+  "rb_str_cat",
   "rb_define_virtual_variable",
   "rb_string_value_ptr",
   "rb_load_protect",
@@ -91,7 +94,11 @@ const char *fnames[] =		/* Do not change this line */
 #endif
 };		/* Do not change this line */
 
-/* C functions callable from Ruby. */
+/*
+ ***
+ *** C functions callable from Ruby.
+ ***
+ */
 
 /*
  * Look up an underscore-ized symbol in the symbol table.
@@ -632,27 +639,6 @@ my_insert (VALUE self, VALUE s)
 }
 
 /*
- * Helper function for my_popup and check_exception that adds
- * an array of lines to the popup buffer.
- */
-static int
-add_lines (VALUE ary)
-{
-  int ci;
-  VALUE len = rb_funcall (ary, rb_intern("length"), 0);
-  int clen = FIX2INT (len);
-
-  for (ci = 0; ci < clen; ci++)
-    {
-      VALUE i = LONG2FIX (ci);
-      VALUE str = rb_funcall (ary, rb_intern ("slice"), 1, i);
-      if (addline (StringValueCStr (str)) == FALSE)
-	return FALSE;
-    }
-  return TRUE;
-}
-
-/*
  * Show the popup buffer with the specified string as the contents.
  */
 static VALUE
@@ -668,24 +654,8 @@ my_popup (VALUE self, VALUE s)
     }
   else
     {
-      VALUE lines;
-
-      /* Clear the popup buffer.
-       */
-      blistp->b_flag &= ~BFCHG;
-      if (bclear (blistp) != TRUE)
-	return FALSE;
-      strcpy (blistp->b_fname, "");
-
-      /* Split the string into lines and write each one to the popup buffer.
-       */
-      lines = rb_funcall (s, rb_intern("split"), 1, rb_str_new_cstr ("\n"));
-      if (add_lines (lines) == FALSE)
-	return FALSE;
-
-      /* Display the popup buffer.
-       */
-      cret = popblist ();
+      const char *str = StringValueCStr(s);
+      cret = ruby_popup (str);
     }
   ret = INT2NUM (cret);
   return ret;
@@ -760,6 +730,52 @@ my_setmode (VALUE self, VALUE s)
 }
 
 /*
+ * Redirect stderr to a pipe that we can read read later
+ * at our convenience, without blocking.  Use read_stderr
+ * to read the pipe.  Return TRUE if successful, FALSE otherwise.
+ */
+static int pipefd[2];
+static int ignore_stderr;
+
+static int
+capture_stderr (void)
+{
+  int status;
+
+  if (pipe (pipefd) != 0)
+    return FALSE;
+  if ((status = dup2 (pipefd[1], 2)) == -1)
+    return FALSE;
+  return TRUE;
+}
+  
+/*
+ * If any data is available in the stderr pipe, return it as
+ * a string.  If there's no data, return the empty string.
+ */
+static const char *
+read_stderr (void)
+{
+  static char *buf = NULL;
+  int nbytes, nread;
+
+  if (ioctl (pipefd[0], FIONREAD, &nbytes) != 0)
+    return "";
+  if (nbytes == 0)
+    return "";
+  buf = (char *) realloc (buf, nbytes + 1);
+  if (buf == NULL)
+    return "";
+  nread = read (pipefd[0], buf, nbytes);
+  buf[nread] = '\0';
+  if (ignore_stderr)
+    return "";
+  else
+    return buf;
+}
+
+
+/*
  * Check if the last call to Ruby returned an exception.
  * If so, display the exception string on the echo line
  * and return FALSE.  Otherwise return TRUE.
@@ -767,6 +783,8 @@ my_setmode (VALUE self, VALUE s)
 static int
 check_exception (int state)
 {
+  const char *err;
+
   if (state)
     {
       /* Get the exception string and display it in the popup buffer.
@@ -774,38 +792,44 @@ check_exception (int state)
       VALUE exception = rb_errinfo ();
       if (RTEST(exception))
 	{
+	  VALUE exc;
 	  VALUE msg;
-	  VALUE msglines;
-	  VALUE bt;
+	  VALUE bt, btarray;
+	  char *msgc;
 
-	  /* Clear the popup buffer.
+	  /* Get the exception string and append a newline.
 	   */
-	  blistp->b_flag &= ~BFCHG;
-	  if (bclear (blistp) != TRUE)
-	    return FALSE;
-	  strcpy (blistp->b_fname, "");
+	  exc = rb_funcall (exception, rb_intern("to_s"), 0);
+	  rb_str_cat2 (exc, "\n");
 
-	  /* Write the exception string to the popup buffer.
+	  /* Join the backtrace string array into a single string.
 	   */
-	  msg = rb_funcall (exception, rb_intern("to_s"), 0);
-	  msglines = rb_funcall (msg, rb_intern("split"), 1, rb_str_new_cstr ("\n"));
-	  if (add_lines (msglines) == FALSE)
-	    return FALSE;
+	  btarray = rb_funcall (exception, rb_intern("backtrace"), 0);
+	  bt = rb_funcall (btarray, rb_intern("join"), 1, rb_str_new_cstr ("\n"));
 
-	  /* Write the backtrace strings to the popup buffer.
+	  /* Combine the exception string and the backtrace string.
 	   */
-	  bt = rb_funcall (exception, rb_intern("backtrace"), 0);
-	  if (add_lines (bt) == FALSE)
-	    return FALSE;
+	  msg = rb_str_plus (exc, bt);
 
-	  /* Clear the exception and display the popup buffer.
+	  /* Clear the exception.
 	   */
 	  rb_set_errinfo (Qnil);
-	  return popblist ();
+
+	  /* Convert the combined string into a C string and display it
+	   * in the popup window.
+	   */
+	  msgc = StringValueCStr (msg);
+	  return ruby_popup (msgc);
 	}
       rb_set_errinfo (Qnil);		/* clear last exception */
       return FALSE;
     }
+
+  /* If anything was written to stderr, display it in the popup buffer.
+   */
+  err = read_stderr ();
+  if (strlen (err) > 0)
+    return ruby_popup (err);
   return TRUE;
 }
 
@@ -855,6 +879,7 @@ rubyloadscript (const char *path)
   rb_protect(loadhelper, script, &state);
   return check_exception (state);
 }
+
 
 /*
  * Load the Ruby library, initialize the pointers to the APIs,
@@ -913,6 +938,12 @@ rubyinit (int quiet)
 	}
     }
 
+  /* Capture standard error to a pipe, but discard it until
+   * we're done with the initialization.
+   */
+  capture_stderr ();
+  ignore_stderr = TRUE;
+
   /* Do the basic initialization.  The very first thing is to set up
    * the Ruby stack, which depends on main() having stored a pointer
    * to its local variable ruby_stack in ruby_stack_ptr.
@@ -924,21 +955,13 @@ rubyinit (int quiet)
 	sizeof(*ruby_stack_ptr), sizeof(VALUE));
     }
   ruby_init_stack (ruby_stack_ptr);
-
   ruby_init();
-  if ((status = ruby_setup ()) != 0)
-    {
-      ruby_handle = NULL;
-      return rubyinit_set_error ("ruby_setup returned %d", status);
-    }
 
   /* Initialize the load path for gems.  This is commented out now,
    * because if we leave it in, the later call to ruby_options produces
    * the error: ruby: warning: already initialized constant TMP_RUBY_PREFIX
    */
-#if 0
   ruby_init_loadpath();
-#endif
 
   /* Calling ruby_options forces the builtin methods to be loaded. See:
    *   https://stackoverflow.com/questions/79816264/
@@ -948,7 +971,7 @@ rubyinit (int quiet)
     {
       ruby_handle = NULL;
       return rubyinit_set_error ("ruby_options failed, status %d", status);
-  }
+    }
 
   /* Define global functions that can be called from Ruby.
    */
@@ -1006,7 +1029,13 @@ rubyinit (int quiet)
   /* Load the global helper file, pe.rb, and the optional
    * local helper file, .pe.rb
    */
-  return ruby_loadhelpers ();
+  status = ruby_loadhelpers ();
+
+  /* We can stop ignoring standard error, now that initialization is done.
+   */
+  ignore_stderr = FALSE;
+
+  return status;
 }
 
 #if 0
@@ -1081,6 +1110,8 @@ rubycall (const char *name, int f, int n)
       else
 	return FALSE;
     }
+
+  return TRUE;
 }
 
 #endif /* !RUBY_RPC */
@@ -1290,4 +1321,50 @@ ruby_loadhelpers (void)
     return rubyloadscript (local_pe_rb);
   else
     return TRUE;
+}
+
+/*
+ * ruby_popup - pop up a temporary MicroEMACS window
+ *
+ * Pop up the temporary window (the so-called "blist" or buffer list), and
+ * write the message to it.  The message may contain multiple lines,
+ * separate by newline characters (\n).
+ */
+int
+ruby_popup (const char *message)
+{
+  char *copy;
+  char *start, *end;
+
+  /* Clear the popup buffer.
+   */
+  blistp->b_flag &= ~BFCHG;
+  if (bclear (blistp) != TRUE)
+    return FALSE;
+  strcpy (blistp->b_fname, "");
+
+  /* Split the string into lines and write each one to the popup buffer.
+   * In Ruby this would be: message.split("\n").each {|l| addline(l)}
+   * Instead, we use a horrible kludge where we copy the string,
+   * and work through it, changing each \n to a zero.
+   */
+  copy = strdup(message);
+  if (copy == NULL)
+    return FALSE;
+  start = copy;
+  end = start + strlen(copy);
+  while (start < end)
+    {
+      char *newline = strchr (start, '\n');
+      if (newline == NULL)
+	newline = end;
+      *newline = '\0';
+      addline (start);
+      start = newline + 1;
+    }
+  free (copy);
+
+  /* Display the popup buffer.
+   */
+  return popblist ();
 }

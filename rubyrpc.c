@@ -516,52 +516,6 @@ handle_cmd( int id, json_object *params)
 }
 
 /*
- * popup - pop up a temporary MicroEMACS window
- *
- * Pop up the temporary window (the so-called "blist" or buffer list), and
- * write the message to it.  The message may contain multiple lines,
- * separate by newline characters (\n).
- */
-static int
-popup (const char *message)
-{
-  char *copy;
-  char *start, *end;
-
-  /* Clear the popup buffer.
-   */
-  blistp->b_flag &= ~BFCHG;
-  if (bclear (blistp) != TRUE)
-    return FALSE;
-  strcpy (blistp->b_fname, "");
-
-  /* Split the string into lines and write each one to the popup buffer.
-   * In Ruby this would be: message.split("\n").each {|l| addline(l)}
-   * Instead, we use a horrible kludge where we copy the string,
-   * and work through it, changing each \n to a zero.
-   */
-  copy = strdup(message);
-  if (copy == NULL)
-    return FALSE;
-  start = copy;
-  end = start + strlen(copy);
-  while (start < end)
-    {
-      char *newline = strchr (start, '\n');
-      if (newline == NULL)
-	newline = end;
-      *newline = '\0';
-      addline (start);
-      start = newline + 1;
-    }
-  free (copy);
-
-  /* Display the popup buffer.
-   */
-  return popblist ();
-}
-  
-/*
  * set_* - set MicroEMACS variables
  *
  * These functions implement requests from the Ruby server to perform
@@ -678,7 +632,7 @@ json_object *
 set_popup (int id, json_object *params)
 {
   const char *str = get_string(params, "string");
-  popup (str);
+  ruby_popup (str);
   return make_normal_response(0, "", id);
 }
 
@@ -966,7 +920,7 @@ handle_error(json_object *root)
   message = get_string(error, "message");
   dprintf("message: %s\n", message);
   if (code == ERROR_EXCEPTION)
-    popup (message);
+    ruby_popup (message);
   return FALSE;
 }
 
