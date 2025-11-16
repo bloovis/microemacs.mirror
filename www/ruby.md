@@ -1,7 +1,8 @@
 # Ruby Extensions
 
 It is possible to extend MicroEMACS by writing commands in Ruby.
-To add Ruby support, you must specify the `--with-ruby` flag to `configure` when you
+First, install the Ruby development packages (ruby-dev or ruby-devel).
+Then specify the `--with-ruby` flag to `configure` when you
 build MicroEMACS.  For example:
 
     mkdir objruby
@@ -19,8 +20,6 @@ A Ruby-enabled MicroEMACS will work only on a system that has the same
 version of Ruby as the build system.  You will need to rebuild it for
 each system that has a different version of Ruby.
 
-See the [RPC section](#rpc) for information about an alternative implementation
-of Ruby extensions that may work better on newer systems.
 
 ## Initialization
 
@@ -149,9 +148,9 @@ effect as using **ruby-string** and a `load` Ruby statement.
 Ruby code can call built-in MicroEMACS commands (written in C) by
 invoking them as normal functions, but with the '-' characters
 in the names replaced by '_', and with an "E." prefix.  For example, invoke the **forw-char**
-function by calling `E.forw_char`.
+command by calling `E.forw_char`.
 
-You can pass an optional numeric parameter to a built-function.
+You can pass an optional numeric parameter to a built-in command.
 For example, to move the dot forward by 8 characters, use this code:
 
 ```
@@ -205,18 +204,20 @@ user didn't specify a numeric argument, the parameter will be `nil`.
 The function must return an EFALSE or ETRUE value to indicate
 failure or success, respectively.
 
-Then use the **E.ruby-command** built-in command to inform
+Then use **E.ruby_command** to inform
 MicroEMACS of the new command.
 
 Referring to the `gccerr.rb` example above, we can see that
 the code first defines a new command function:
 
+```
 def gccerr(n)
   .. ruby code ...
   return ETRUE
   ...
   return EFALSE
 end
+```
 
 Then it tells MicroEMACS about the new command:
 
@@ -452,62 +453,12 @@ aborts the errant Ruby code and return control to MicroEMACS.
 ## Using rbenv
 </span>
 
-Some recent Linux distros, such as Ubuntu 24.04 and Fedora 42,
-have versions of the Ruby C API that cause failures in
-MicroEMACS Ruby extensions.  Apparently when Ruby is used
-via the API, some classes are missing essential methods.
-Some of the missing methods I've encountered are:
-
-* Time.now
-* Array.last
-* Symbol.to_s
-
-Another problem I encountered was `Open3.capture2` hanging
-in `ruby/dired.rb`.
-
-In my experimentation, the last version of Ruby that works
-correctly with MicroEMACS is 3.1.2, the version used in Debian 12.
-If your distro has Ruby version 3.2 or later, it will likely
-not work correctly.  One solution to the problem is to use
-[rbenv](https://github.com/rbenv/) to install a different
-(older) version of Ruby.
-
-Here's what I did on Fedora 42 to make this work:
-
-Install rbenv:
-
-```
-sudo dnf install rbenv
-```
-
-Use rbenv to install Ruby 3.1.2:
-
-```
-rbenv install 3.1.2
-```
-
-Set 3.1.2 as the global version:
-
-```
-rbenv global 3.1.2
-```
-
-Patch `~/.bashrc` by adding the following line to it:
-
-```
-eval "$(rbenv init - --no-rehash bash)"
-```
-
-Start a new terminal session.  Check that you now have
-the correct version of Ruby (3.1.2 in this example):
-
-```
-rbenv global
-ruby --version
-```
-
-Now you can configure MicroEMACS to use the correct Ruby.
-Create an `obj` directory, move into it, and do this:
+If you are using a version of Ruby that you installed with
+[rbenv](https://github.com/rbenv/rbenv#readme),
+you can configure MicroEMACS to use that version
+of Ruby.  As example, let's assume that you used rbenv to install Ruby 3.1.2.
+To configure MicroEMACS to use this version of Ruby,
+create an `obj` directory, move into it, and do this:
 
 ```
 ../configure --with-ruby=3.1.2
@@ -517,32 +468,18 @@ make
 Replace 3.1.2 with the actual version of Ruby that
 you installed with `rbenv`.
 
-Examine the output of `make` to be sure that the correct
-version of the Ruby is used in compilation and linking.
+Examine the resulting `Makefile` to be sure that the correct
+version of Ruby is used in compilation and linking.
 
 <span id="rpc">
 ## Ruby RPC Implementation
 </span>
 
-The original implementation of Ruby extensions worked well in Ruby 3.0,
-as installed on Linux Mint 21 and Ubuntu 22.04.  But more recent
-versions of Ruby, from 3.1 upward, introduced problems that
-are becoming more and more difficult to solve.  See the [Using rbenv](#rbenv)
-section above for details about the problems.
-
-I have seen some hints in the Ruby source code that these problems are caused
-by moving certain commonly class methods to internal C methods, probably for
-performance.  The Ruby interpreter, when invoked normally, is able to
-provide these methods, but I don't know how to make them visible in the
-C API.
-
-It seems likely that this problem is only going to get worse over
-time.  For example, in testing on OpenBSD, I discovered that the rbenv solution can't be used
-there, because OpenBSD uses openssl 3.6, and Ruby 3.1.2 fails
-to compile with that version of openssl.
-To avoid the problems described above, I have written an entirely new
-implementation of Ruby extensions.  This one works by invoking Ruby as
-a separate process and communicating with it via pipes, using the
+There may be situations where you are unable to use the standard Ruby
+extension implementation, either because the Ruby development packages
+(ruby-dev or ruby-devel) are not available, or you choose not to use them.
+In those cases, you can use the RPC implementation of Ruby extensions.  This
+works by invoking Ruby as a separate process and communicating with it via pipes, using the
 [JSON-RPC protocol](https://www.jsonrpc.org/specification) as the message format.  Although this RPC
 implementation makes some extensions work much slower than in the C
 API implementation, it's not so terrible as to be unuable, at least in
