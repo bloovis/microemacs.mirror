@@ -991,7 +991,9 @@ call_server(const char *method, int flag, int prefix, int key, int nstrings,
 int
 rubyinit (int quiet)
 {
-  static const char *filename = STRINGIFY(PREFIX) "/share/pe/server.rb";
+  static const char *filename1 = STRINGIFY(PREFIX) "/share/pe/server.rb";
+  static const char *filename2 = STRINGIFY(RUBYDIR) "/server.rb";
+  const char *filename;
 
   /* If we've been called before, return the status from that call.
    */
@@ -1001,17 +1003,17 @@ rubyinit (int quiet)
 
   /* Load the server script.
    */
-  if (access (filename, R_OK) != F_OK)
+  if (access (filename1, R_OK) == F_OK)
+    filename = filename1;
+  else
     {
-      return rubyinit_set_error ("The file %s does not exist; cannot initialize Ruby",
-				 filename);
-      return FALSE;
+      if (access (filename2, R_OK) == F_OK)
+	filename = filename2;
+      else
+	return rubyinit_set_error ("Can't find %s or %s", filename1, filename2);
     }
   if (init_server(filename) == FALSE)
-    {
-      rubyinit_set_error ("rubyinit unable to connect to server %s", filename);
-      return FALSE;
-    }
+    return rubyinit_set_error ("Unable to connect to server %s", filename);
 
   /* Load ~/.pe.rb or ./pe.rb
    */

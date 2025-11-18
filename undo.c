@@ -66,7 +66,7 @@ LINKS;
 /* Group of UNDO steps, treated as one undo operation. */
 typedef struct UNDOGROUP
 {
-  LINKS links;		/* head = prev group, tail = next group */
+  LINKS links;		/* links.next = head group, links.prev = tail group  */
   UNDO *undos;		/* array of undo steps */
   int next;		/* next free entry in group */
   int avail;		/* size of group array */

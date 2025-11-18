@@ -46,7 +46,7 @@ struct callargs
 
 /*
  * Do not change the first and last lines in the following table.  They
- * are used by makeapi.rb script to generate the trampoline code
+ * are used by the makeapi.rb script to generate the jump table
  * for the Ruby APIs.
  */
 const char *fnames[] =		/* Do not change this line */
@@ -957,9 +957,11 @@ rubyinit (int quiet)
   ruby_init_stack (ruby_stack_ptr);
   ruby_init();
 
-  /* Initialize the load path for gems.  This is commented out now,
-   * because if we leave it in, the later call to ruby_options produces
-   * the error: ruby: warning: already initialized constant TMP_RUBY_PREFIX
+  /* Initialize the load path for gems.  This causes the later call to
+   * ruby_options to write this message to stderr:
+   *   ruby: warning: already initialized constant TMP_RUBY_PREFIX
+   * To keep this message from messing up the screen, we use
+   * capture_stderr and read_stderr to read and discard the message.
    */
   ruby_init_loadpath();
 
