@@ -17,33 +17,22 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+/* Compile this program using: gcc -o tcap tcap.c -lncursesw */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#if 0
-#include	<sys/ioctl.h>
-/* #include	<sys/filio.h> */
-/* #include	<termios.h> */
-#include <sgtty.h>
-#else
 #include <curses.h>
 #include <term.h>
-#endif
-
-#ifdef  TIOCGWINSZ
-/* #error    blorch; */
-#endif
 
 #define TCAPSLEN 1024
 
 char tcapbuf[TCAPSLEN];
 static char tcbuf[1024];
-char *tgetstr ();
 
 void
-printesc (p)
-     char *p;
+printesc (char *p)
 {
   char c;
   while ((c = *p++) != '\0')
@@ -54,39 +43,53 @@ printesc (p)
 }
 
 int
-main (argc, argv)
-     int argc;
-     char *argv[];
+main (int argc, char *argv[])
 {
   char *tv_stype, *p, *t;
-  int i;
+  int i, n;
 
-/*	ttopen(); */
   if ((tv_stype = getenv ("TERM")) == NULL)	/* Don't want VAX C getenv() */
     {
       printf ("Environment variable TERM not defined!");
-      return;
+      return 1;
     }
 
   if ((tgetent (tcbuf, tv_stype)) != 1)
     {
       printf ("Unknown terminal type %s\n", tv_stype);
-      return;
+      return 1;
     }
 
   p = tcapbuf;
   for (i = 1; i < argc; i++)
     {
-      t = tgetstr (argv[i], &p);
+      const char *arg = argv[i];
+
+      /* Try string capability. */
+      t = tgetstr (arg, &p);
       if (t == NULL)
-	printf ("%s not defined for this terminal\n", argv[i]);
+	printf ("%s (string) not defined\n", arg);
       else
 	{
-	  printf ("%s: ", argv[i]);
+	  printf ("%s (string): ", arg);
 	  printesc (t);
 	  printf ("\n");
 	}
-      printf ("%s (numeric): %d\n", argv[i], tgetnum (argv[i]));
+
+      /* Try numeric capability. */
+      n = tgetnum (arg);
+      if (n == -1)
+	printf ("%s (numeric) not defined\n", arg);
+      else
+	printf ("%s (numeric): %d\n", arg, n);
+
+      /* Try boolean capability. */
+      n = tgetflag (arg);
+      if (n == 0)
+	printf ("%s (boolean) not defined\n", arg);
+      else
+	printf ("%s (boolean): %d\n", arg, n);
+      
     }
-  return;
+  return 0;
 }
