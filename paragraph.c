@@ -281,6 +281,16 @@ fillpara (int f, int n, int k)
    * begining of the blank line.
    */
   backchar (FALSE, 1, KRANDOM);
+
+  /* If the last character in the line is a space, delete it.
+   */
+  if (curwp->w_dot.o != 0)
+    {
+      c = wlgetc (curwp->w_dot.p, curwp->w_dot.o - 1);
+      if (c == ' ')
+	backdel (FALSE, 1, KRANDOM);
+    }
+ 
   return (TRUE);
 }
 
