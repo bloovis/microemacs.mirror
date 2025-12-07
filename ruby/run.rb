@@ -67,7 +67,10 @@ $old_cmd = ""
 
 def xec(n)
   # Prompt for a command and run it.
-  cmd = E.reply "Enter a command: "
+  cmd = E.reply "Enter a command [#{$old_cmd}]: "
+  unless cmd
+    return EFALSE
+  end
   if cmd == ""
     cmd = $old_cmd
   else
@@ -103,10 +106,10 @@ def xec(n)
   E.forw_window
 
   if status.to_i != 0
-    E.echo "error #{status}"
+    E.echo "Error: #{status}"
     return EFALSE
   else
-    E.echo "success"
+    E.echo "Success!"
     return ETRUE
   end
 end
