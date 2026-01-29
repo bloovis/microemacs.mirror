@@ -1256,30 +1256,30 @@ struct statetrans
 static struct statetrans forward_trans[] =
 	/* forward state diagram */
 {
-  /* bsl fsl quo dqu sta  nl oth ign */
-  /* 0 normal         */ {0, 1, 4, 6, 0, 0, 0, 0},
-  /* 1 normal seen /  */ {0, 8, 4, 6, 2, 0, 0, 0},
-  /* 2 comment        */ {2, 2, 2, 2, 3, 2, 2, 1},
-  /* 3 comment seen * */ {2, 0, 2, 2, 3, 2, 2, 1},
-  /* 4 quote          */ {5, 4, 0, 4, 4, 0, 4, 1},
-  /* 5 quote seen \   */ {4, 4, 4, 4, 4, 4, 4, 1},
-  /* 6 string         */ {7, 6, 6, 0, 6, 0, 6, 1},
-  /* 7 string seen \  */ {6, 6, 6, 6, 6, 6, 6, 1},
-  /* 8 C++ comment    */ {8, 8, 8, 8, 8, 0, 8, 1}
+  /*                      bsl fsl quo dqu sta nl  oth ign */
+  /* 0 normal         */ {0,  1,  4,  6,  0,  0,  0,  0},
+  /* 1 normal seen /  */ {0,  8,  4,  6,  2,  0,  0,  0},
+  /* 2 comment        */ {2,  2,  2,  2,  3,  2,  2,  1},
+  /* 3 comment seen * */ {2,  0,  2,  2,  3,  2,  2,  1},
+  /* 4 quote          */ {5,  4,  0,  4,  4,  0,  4,  1},
+  /* 5 quote seen \   */ {4,  4,  4,  4,  4,  4,  4,  1},
+  /* 6 string         */ {7,  6,  6,  0,  6,  0,  6,  1},
+  /* 7 string seen \  */ {6,  6,  6,  6,  6,  6,  6,  1},
+  /* 8 C++ comment    */ {8,  8,  8,  8,  8,  0,  8,  1}
 };
 
 static struct statetrans backwards_trans[] =
 	/* backwards state diagram */
 {
-  /* bsl fsl quo dqu sta  nl oth ign */
-  /* 0 normal         */ {0, 1, 4, 6, 0, 0, 0, 0},
-  /* 1 normal seen /  */ {0, 1, 4, 6, 2, 0, 0, 0},
-  /* 2 comment        */ {2, 2, 2, 2, 3, 2, 2, 1},
-  /* 3 comment seen * */ {2, 0, 2, 2, 3, 2, 2, 1},
-  /* 4 quote          */ {4, 4, 5, 4, 4, 5, 4, 1},
-  /* 5 quote seen end */ {4, 0, 0, 0, 0, 0, 0, 0},
-  /* 6 string         */ {6, 6, 6, 7, 6, 7, 6, 1},
-  /* 7 string seen end */ {6, 0, 0, 0, 0, 0, 0, 0}
+  /*                       bsl fsl quo dqu sta nl  oth ign */
+  /* 0 normal         */  {0,  1,  4,  6,  0,  0,  0,  0},
+  /* 1 normal seen /  */  {0,  1,  4,  6,  2,  0,  0,  0},
+  /* 2 comment        */  {2,  2,  2,  2,  3,  2,  2,  1},
+  /* 3 comment seen * */  {2,  0,  2,  2,  3,  2,  2,  1},
+  /* 4 quote          */  {4,  4,  5,  4,  4,  5,  4,  1},
+  /* 5 quote seen end */  {4,  0,  0,  0,  0,  0,  0,  0},
+  /* 6 string         */  {6,  6,  6,  7,  6,  7,  6,  1},
+  /* 7 string seen end */ {6,  0,  0,  0,  0,  0,  0,  0}
 };
 
 static int

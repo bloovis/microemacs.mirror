@@ -89,8 +89,8 @@ UNDOSTACK;
 
 #define NOLINE  -1		/* UNDO.{l,o} value meaning "not used"	*/
 
-static int startl = NOLINE;	/* lineno saved by startundo		*/
-static int starto;		/* offset saved by startundo		*/
+static int startl = NOLINE;	/* lineno saved by startsaveundo	*/
+static int starto;		/* offset saved by startsaveundo	*/
 static int undoing = FALSE;	/* currently undoing an operation? 	*/
 static int b_flag;		/* copy of curbp->b_flag		*/
 
@@ -331,7 +331,7 @@ newundo (UNDOSTACK *st, UKIND kind, int line, int offset)
   UNDO *up;
   UNDOGROUP *g;
 
-  /* If startl has been set by startundo, this is the first
+  /* If startl has been set by startsaveundo, this is the first
    * undo record for the current command, so allocate a new
    * undo group.
    */
@@ -445,8 +445,8 @@ saveundo (UKIND kind, POS *pos, ...)
 
   /* Figure out what line number and offset to use for this undo record.
    * If POS was passed in, calculate the corresponding line number and offset.
-   * Otherwise, if this is the first record after a startundo, use the line
-   * number and offset saved by startundo.  Otherwise don't use any line
+   * Otherwise, if this is the first record after a startsaveundo, use the line
+   * number and offset saved by startsaveundo.  Otherwise don't use any line
    * number or offset.
    */
   if (pos != NULL)
