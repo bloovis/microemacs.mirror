@@ -32,9 +32,12 @@ files, and the header file `sysdef.h`.
 
 ## Terminal Support
 
-MicroEMACS supports several kinds of terminals: those
-supporting ncurses or termcap, and the native Windows text console
-(the code for real-mode PC displays and OS/2 terminal windows has been lost).
+On Unix-like operating systems, MicroEMACS uses ncurses for terminal support.
+On Windows, it uses the native Windows text console API.  In the past, it also
+supported the OS/2 text console API, and writing directly to the screen on MS-DOS.
+In all cases, MicroEMACS treats the terminal as a memory-mapped character display.
+It no longer supports termcap or terminfo, except indirectly via ncurses.
+
 The following modules contain code dependencies on the terminal type:
 
 * `tty.c` - high-level terminal support.
@@ -45,14 +48,6 @@ The following modules contain code dependencies on the terminal type:
 
 Changing terminal type consists mostly of changing these files, and the header file `ttydef.h`
 These files are located in separate per-terminal subdirectories of the `tty` directory.
-
-Some terminals have memory mapped displays, or interfaces that
-act as such.  These include ncurses and Windows text consoles.
-Support for these
-displays is enabled by setting the MEMMAP switch in `ttydef.h` to 1.
-This eliminates the fancy Gosling screen update code in `display.c`,
-and enables writing directly to screen memory (or to a screen buffer
-that the terminal interface library later writes to the screen).
 
 To support a new memory-mapped display, you must provide a `putline` function
 for writing lines to the display.  On old DOS-base systems, this code
@@ -70,12 +65,6 @@ or MinGW, use these commands:
     make # gmake on BSD
 
 You can supply one or more optional parameters to the `configure` command:
-
-`--with-termcap`
-
-Use this option to make MicroEMACS use the **terminfo** / **termcap** libraries for
-screen management, instead of the default **ncursesw** library.
-This option will not work on Windows.
 
 `--enable-debug`
 
