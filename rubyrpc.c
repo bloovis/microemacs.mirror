@@ -223,7 +223,7 @@ make_normal_response(
  * id: unique request ID
  *
  * Example JSON:
- *   {"id":4,"error":0,"strings":["success: id 4, method callback"]}
+ *   {"id":4,"error":{"code":-32602,"message":"Invalid parameter"}}
  */
 json_object *
 make_error_response(
