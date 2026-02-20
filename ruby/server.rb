@@ -429,6 +429,14 @@ public
     return Key.new(get_int("key", ""))
   end
 
+  def self.fillcol
+    return get_int("fillcol", "")
+  end
+
+  def self.tabsize
+    return get_int("tabsize", "")
+  end
+
   ####
   #### Non-command calls into MicroEMACS.
   ####

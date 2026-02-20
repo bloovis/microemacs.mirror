@@ -218,8 +218,8 @@ make_normal_response(
 /*
  * make_error_response - make a JSON object for an error response.
  *
- * nstrings: number of strings in the strings array (could be 0)
- * strings: array of strings to pass to the caller
+ * code: error code
+ * message: error message
  * id: unique request ID
  *
  * Example JSON:
@@ -519,9 +519,9 @@ handle_cmd( int id, json_object *params)
  * set_* - set MicroEMACS variables
  *
  * These functions implement requests from the Ruby server to perform
- * "set" operations on virtual variables MicroEMACS.  Some of these
+ * "set" operations on virtual variables in MicroEMACS.  Some of these
  * operations do more that setting a variable, e.g., inserting a
- * string
+ * string.
  */
 json_object *
 set_line (int id, json_object *params)
@@ -551,7 +551,7 @@ set_bind (int id, json_object *params)
     return make_error_response(ERROR_PARAMS, "missing command name", id);
   else
     {
-      /* This is a hack: the name has a prefix "T" or "T", indicating
+      /* This is a hack: the name has a prefix "T" or "F", indicating
        * the value of mode.
        */
       int mode = str[0] == 'T';
