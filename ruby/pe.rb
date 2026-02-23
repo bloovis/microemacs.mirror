@@ -149,6 +149,11 @@ class E
     e_popup(s)
   end
 
+  # Update the screen.
+  def self.update
+    e_update
+  end
+
   # We have to define our own equivalent of bindtokey
   # instead of using the command built into MicroEMACS,
   # because the latter prompts for a keystroke.

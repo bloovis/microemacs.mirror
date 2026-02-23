@@ -491,7 +491,6 @@ my_now (VALUE self)
   return now;
 }
 
-
 /*
  * Convert a symbol to a string
  */
@@ -504,6 +503,18 @@ my_sym2str (VALUE self, VALUE sym)
   return ret;
 }
 
+/*
+ * Update the screen.
+ */
+static VALUE
+my_update (VALUE self)
+{
+  VALUE ret;
+
+  update ();
+  ret = INT2NUM (1);
+  return ret;
+}
 
  /*
  * Get the current buffer's name (not filename).
@@ -988,6 +999,7 @@ rubyinit (int quiet)
   rb_define_global_function("e_setmode", my_setmode, 1);
   rb_define_global_function("e_timenow", my_now, 0);
   rb_define_global_function("e_sym2str", my_sym2str, 1);
+  rb_define_global_function("e_update", my_update, 0);
 
   /* Define some virtual global variables, along with
    * their getters and setters.

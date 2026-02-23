@@ -80,6 +80,9 @@ def xec(n)
     E.echo "You must enter a non-blank command."
     return EFALSE
   end
+
+  E.echo("Running #{cmd}...")
+  E.update
   stdout_str, stderr_str, status = Open3.capture3(cmd)
 
   # Open the special buffer in a second window, and clear it.

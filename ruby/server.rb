@@ -459,6 +459,10 @@ public
     set("mode", 0, s)
   end
 
+  def self.update
+    set("update", 0, "")
+  end
+
   ###
   ### Methods for running commands built into MicroEMACS.
   ###

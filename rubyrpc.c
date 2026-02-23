@@ -636,11 +636,18 @@ set_popup (int id, json_object *params)
   return make_normal_response(0, "", id);
 }
 
+json_object *
+set_update (int id, json_object *params)
+{
+  update ();
+  return make_normal_response(0, "", id);
+}
+
 /* Table of setter functions
  */
 typedef json_object *(*handler)(int id, json_object *params);
 
-#define NSETTERS 9
+#define NSETTERS 10
 
 struct
 {
@@ -657,6 +664,7 @@ struct
   { "mode",     set_mode },
   { "filename", set_filename },
   { "popup",    set_popup },
+  { "update",   set_update },
 };
 
 /*
