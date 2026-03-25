@@ -90,7 +90,7 @@ ttopen (void)
 		0x12, 0xf, 0x17, 0x16
 	      };
 
-  setlocale (LC_ALL, "");
+  setlocale (LC_CTYPE, "");
   tcgetattr (0, &oldtty);
   initscr ();			/* initialize the curses library */
   keypad (stdscr, TRUE);	/* enable keyboard mapping */
