@@ -17,6 +17,7 @@ def readaliases
   $accounts = {}
   File.open('aliases.dat') do |file|
     file.each do |line|
+      line.chomp!
       if line =~ /^alias\s+(\w+)\s+=\s+(\w.*)/
         al = $1
         ac = $2
