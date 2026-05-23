@@ -367,25 +367,20 @@ get_char (VALUE self, VALUE *var)
 {
   VALUE ret;
   VALUE utf8;
-  const uchar *s;
-  int bytes;
-  LINE *lp;
+  char *str;
 
-  lp = curwp->w_dot.p;
-  s = wlgetcptr (lp, curwp->w_dot.o);
-
-  /* If dot is at the end of the line, pretend that char is a newline.
+  /* Make a copy of the character at dot as a string.
    */
-  if (s == lgets (lp) + llength (lp))
-    {
-      s = (const uchar *) "\n";
-      bytes = 1;
-    }
-  else
-    bytes = unblen (s, 1);
-  ret = rb_str_new ((char *) s, bytes);
+  str = ruby_getchar();
+  if (str == NULL)
+    return Qnil;
+
+  /* Make the copy of the char into a Ruby string, and free the copy.
+   */
+  ret = rb_str_new (str, strlen (str));
   utf8 = rb_str_new_cstr("utf-8");
   rb_funcall (ret, rb_intern ("force_encoding"), 1, utf8);
+  free (str);
   return ret;
 }
 
@@ -395,13 +390,15 @@ get_char (VALUE self, VALUE *var)
 static void
 set_char (VALUE val, ID id, VALUE *var)
 {
-  const char *str = StringValueCStr (val);
-  if (forwchar (TRUE, 1, KRANDOM) == TRUE)
-    lreplace (1, str, TRUE);
-  else
-    /* We're at the end of the buffer.  Insert, don't replace.
-     */
-    linsert (strlen (str), 0, (char *) str);
+  const char *str;
+
+  str = StringValueCStr (val);
+  if (str == NULL)
+    {
+      eprintf ("Out of memory in set_line!");
+      return;
+    }
+  ruby_setchar (str);
 }
 
 /*
@@ -1248,6 +1245,41 @@ rubyerror (void)
 }
 
 /*
+ * Get the character at the dot, returning it as a UTF-8 string.
+ * The end of the line is returned as "\n".  Return NULL
+ * on error.  The caller MUST free the string when done.
+ */
+char *
+ruby_getchar (void)
+{
+  int bytes;
+  LINE *lp;
+  const uchar *s;
+  char *str;
+
+  lp = curwp->w_dot.p;
+  s = wlgetcptr (lp, curwp->w_dot.o);
+
+  /* If dot is at the end of the line, pretend that char is a newline.
+   */
+  if (s == lgets (lp) + llength (lp))
+    {
+      str = strdup("\n");
+    }
+  else
+    {
+      bytes = unblen (s, 1);
+      str = (char *) malloc (bytes + 1);
+      if (str == NULL)
+	return NULL;
+      memcpy (str, s, bytes);
+      str[bytes] = '\0';
+    }
+  return str;
+}
+
+
+/*
  * Get the current line's text, with a newline appended
  * if it's not the last line in the buffer.  Return NULL
  * on error.  The caller MUST free the string when done.
@@ -1283,7 +1315,21 @@ ruby_getline (void)
 }
 
 /*
- * Replace the current line with the new string;
+ * Replace the character at dot with the string str.
+ */
+void
+ruby_setchar (const char *str)
+{
+  if (forwchar (TRUE, 1, KRANDOM) == TRUE)
+    lreplace (1, str, TRUE);
+  else
+    /* We're at the end of the buffer.  Insert, don't replace.
+     */
+    linsert (strlen (str), 0, (char *) str);
+}
+
+/*
+ * Replace the current line with the new string *line*.
  */
 void
 ruby_setline (const char *line)

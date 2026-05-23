@@ -381,6 +381,14 @@ public
   # Variables supported: lineno, offset, line, char,
   # filename, tabsize, fillcol, bflag, bname
 
+  def self.char
+    return get_string("char", "")
+  end
+
+  def self.char=(val)
+    set("char", 0, val)
+  end
+
   def self.line
     return get_string("line", "")
   end

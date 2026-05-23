@@ -848,7 +848,9 @@ const char * rubyerror (void);		/* Error string from rubyinit	*/
 void rubymode (void);			/* Call ruby "initmode"		*/
 int rubyloadscript (const char *path);	/* Load a ruby script.		*/
 int runruby (const char * line);	/* Evaluate a line of ruby code */
+char *ruby_getchar(void);		/* Make a copy of char at dot	*/
 char *ruby_getline(void);		/* Make a copy of current line	*/
+void ruby_setchar(const char *s);	/* Set char at dot		*/
 void ruby_setline(const char *s);	/* Set current line		*/
 int ruby_loadhelpers (void);		/* Load local helper scripts.	*/
 int ruby_popup (const char *message);	/* Pop up an error window.	*/

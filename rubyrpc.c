@@ -524,6 +524,14 @@ handle_cmd( int id, json_object *params)
  * string.
  */
 json_object *
+set_char (int id, json_object *params)
+{
+  const char *str = get_string(params, "string");
+  ruby_setchar (str);
+  return make_normal_response(0, "", id);
+}
+
+json_object *
 set_line (int id, json_object *params)
 {
   const char *line = get_string(params, "string");
@@ -647,7 +655,7 @@ set_update (int id, json_object *params)
  */
 typedef json_object *(*handler)(int id, json_object *params);
 
-#define NSETTERS 10
+#define NSETTERS 11
 
 struct
 {
@@ -655,6 +663,7 @@ struct
   handler func;
 } setters [NSETTERS] =
 {
+  { "char",     set_char },
   { "line",     set_line },
   { "lineno",   set_lineno },
   { "bind",     set_bind },
@@ -708,6 +717,15 @@ handle_set(int id, json_object *params)
  * operations do more that getting a variable, e.g., testing
  * that a particular MicroEMACS command exists.
  */
+json_object *
+get_char (int id, json_object *params)
+{
+  char *str = ruby_getchar ();
+  json_object *response = make_normal_response(0, str, id);
+  free (str);
+  return response;
+}
+
 json_object *
 get_line (int id, json_object *params)
 {
@@ -774,7 +792,7 @@ get_key (int id, json_object *params)
   return make_normal_response(getkey (), "", id);
 }
 
-#define NGETTERS 8
+#define NGETTERS 9
 
 struct
 {
@@ -782,6 +800,7 @@ struct
   handler func;
 } getters [NGETTERS] =
 {
+  { "char",     get_char },
   { "line",     get_line },
   { "lineno",   get_lineno },
   { "iscmd",    get_iscmd },
