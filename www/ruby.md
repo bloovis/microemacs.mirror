@@ -254,7 +254,7 @@ more information about modes.
 This function binds the command whose name is the string `name`
 to the keycode `key`.  If the `mode` parameter is present, and is
 `true`, the binding is attached to the current buffer's mode, if any.
-Otherrwise, the binding is made global, i.e., available in
+Otherwise, the binding is made global, i.e., available in
 all buffers. See below for the helper functions
 that provide keycodes.
 
