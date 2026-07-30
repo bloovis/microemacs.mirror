@@ -50,11 +50,14 @@ Dave Conroy released his source code into the public domain.  I have
 changed my version to use the GNU General Public License Version 3.
 
 There is a web version of the MicroEMACS manual [here](https://www.bloovis.com/meguide/).
+
 If you are viewing this README in a Fossil repository, click
-on the Docs link above (or click [here](../trunk/www/index.md)) to view the manual.
+on the Docs link above, or click [here](../trunk/www/index.md) to view the manual.
 
+If you are viewing this README on Github, click
+[here](./blob/master/www/index.md) to view the manual.
 
-To clone this repository:
+To clone this repository from the original Fossil repository:
 
 ```
 fossil clone https://www.bloovis.com/fossil/home/marka/fossils/pe
