@@ -156,13 +156,18 @@ main (int argc, char *argv[])
 	}
       else if (arg[0] != '+')
 	{			/* it's a filename      */
+	  int column = 0;
+	  const char *lp;	/* pointer to line number */
+
+	  /* Strip off file://
+	  */
+	  if (memcmp (arg, "file://", 7) == 0)
+	    arg += 7;
+
 	  /* If the filename is followed by :N, where N is a decimal number,
 	   * go to the specified line number in the file.  If the line
 	   * number is also followed by :N, go to the specified column.
 	   */
-	  int column = 0;
-	  const char *lp;	/* pointer to line number */
-
 	  char *colon = (char *) strchr (arg, ':');
 	  if (colon != NULL && colon[1] >= '0' && colon[1] <= '9')
 	    {

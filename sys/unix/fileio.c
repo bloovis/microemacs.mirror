@@ -40,7 +40,6 @@
 #include	<stdlib.h>
 
 static FILE *ffp, *pfp, *jfp;	/* text, profile, and journal files     */
-static int longline;		/* true if file had long line           */
 
 /* Buffer for ffgetline.  Dynamically allocated to handle any line length.
  */
@@ -55,7 +54,6 @@ ffropen (const char *fn)
 {
   if ((ffp = fopen (fn, "r")) == NULL)
     return (FIOFNF);
-  longline = FALSE;
   return (FIOSUC);
 }
 
