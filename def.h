@@ -489,8 +489,6 @@ extern int noupdatecscope;
 extern int showlinenumbers;
 extern const char *cscope_path;
 extern int mouse;
-extern int xflag;
-extern int zflag;
 
 extern const char *version[];
 extern int mouse_button;

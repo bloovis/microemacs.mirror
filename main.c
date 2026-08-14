@@ -38,8 +38,6 @@ int noupdatecscope;		/* True if -d option specified	*/
 int showlinenumbers;		/* True if -l option specified	*/
 int mouse;			/* True if -m option specified  */
 int rflag;			/* True if -r option specified  */
-int xflag;			/* True if -x option specified  */
-int zflag;			/* True if -z option specified  */
 int casefold = TRUE;		/* True if searches fold case   */
 int fillcol = 70;		/* Fill column for paragraphs.  */
 int tabsize = 8;		/* No. of columns for a tab     */
@@ -126,12 +124,6 @@ main (int argc, char *argv[])
 	      break;
 	    case 'r':
 	      rflag = TRUE;
-	      break;
-	    case 'x':
-	      xflag = TRUE;
-	      break;
-	    case 'z':
-	      zflag = TRUE;
 	      break;
 	    }
 	}
