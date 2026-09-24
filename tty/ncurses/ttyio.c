@@ -47,8 +47,9 @@
 #include	<locale.h>
 
 #if defined(__OpenBSD__)
-/* These flags are defined on Linux but not on OpenBSD. */
 #define IUTF8 0
+#endif
+#if defined(__OpenBSD__) || defined(__FreeBSD__)
 #define CBAUD 0
 #endif
 

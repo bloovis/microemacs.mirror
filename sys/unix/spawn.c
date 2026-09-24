@@ -144,8 +144,13 @@ spawn (char *program, const char *args[])
 {
   int pid;
   int wpid;
+#if defined(__FreeBSD__)
+  register void (*oqsig) ();
+  register void (*oisig) ();
+#else
   __sighandler_t oqsig;
   __sighandler_t oisig;
+#endif
   int status;
   int jobcontrol = FALSE;
   const char *shellp = NULL;
