@@ -193,9 +193,23 @@ doregsrch (int dir)
 
   clp = curwp->w_dot.p;
   cbo = curwp->w_dot.o;
+
+  /* Horrible hack: if this is a forward search, and the pattern starts with ^,
+   * meaning "start of line", but the dot is not at the start of the line,
+   * skip to the next line.
+   */
+  if (dir == SRCH_REGFORW && pat[0] == '^' && cbo != 0)
+    {
+      clp = lforw (clp);
+      cbo = 0;
+    }
+
+  /* If we're already at the end of the buffer, we're done.
+   */
   lastline = curbp->b_linep;
   if (clp == lastline)
     return (FALSE);
+
   for (;;)
     {
       /* Get byte offset of the UTF-8 character at cbo.
@@ -931,11 +945,9 @@ getrepl (int dir, char *news, char *sub, int sublen, int *plen)
   switch (dir)
     {
     case SRCH_FORW:
-    case SRCH_BACK:
       str = news;
       break;
     case SRCH_REGFORW:
-    case SRCH_REGBACK:
       if (regpat == NULL)
 	{
 	  eprintf ("No regular expression!");
@@ -982,8 +994,9 @@ searchandreplace (int f, int query, int dir)
   int c;			/* input character		*/
   const char *oldprompt;	/* regexp or string?		*/
   const char *newprompt;	/* new string or replacement?	*/
+  int eol_hack = 0;		/* regexp pattern ends in '$'?	*/
 
-  if (dir == SRCH_REGFORW || dir == SRCH_REGBACK) {
+  if (dir == SRCH_REGFORW) {
     oldprompt = "Regexp";
     newprompt = "Replacement: ";
   } else {
@@ -1000,12 +1013,19 @@ searchandreplace (int f, int query, int dir)
   /* If this a regular expression operation, compile the pattern into a
    * regexp program.
    */
-  if (dir == SRCH_REGFORW || dir == SRCH_REGBACK)
+  if (dir == SRCH_REGFORW)
     {
       if (regpat != NULL)
 	regfree (regpat);
       if ((regpat = regcomp ((const char *) pat)) == NULL)	/* regerror shows message */
 	return (FALSE);
+
+      /* Horrible hack: if the last character in the pattern is '$',
+       * meaning end of line, set the end-of-line flag to prevent an
+       * infinite loop below.
+       */
+      patlen = strlen((const char *) pat);
+      eol_hack = (dir == SRCH_REGFORW && patlen > 0 && pat[patlen - 1] == '$');
     }
 
   if (query)
@@ -1035,14 +1055,19 @@ searchandreplace (int f, int query, int dir)
   while (dosearch (dir) == TRUE)
     {
     retry:
-      if (!inprof)
-	update ();		/* show current position        */
       if (query)
-	c = getinp ();
+	{
+	  if (!inprof)
+	    update ();		/* show current position        */
+	  c = getinp ();
+	}
       else
 	c = '!';
       switch (c)
 	{
+	case '!':
+	  query = false;
+	  /* Fall into next case. */
 	case ' ':
 	case ',':
 	case 'y':
@@ -1053,6 +1078,15 @@ searchandreplace (int f, int query, int dir)
 	    return (FALSE);
 	  rcnt++;
 	  clp = curwp->w_savep;
+
+	  /* Horrible hack: skip to the next line if this was a regexp
+	   * search ending in '$'.
+	   */
+	  if (eol_hack && curwp->w_dot.o == wllength (curwp->w_dot.p))
+	    {
+	      if (forwchar (FALSE, 1, KRANDOM) == FALSE)
+		return (TRUE);
+	    }
 	  break;
 
 	case '.':
@@ -1066,19 +1100,6 @@ searchandreplace (int f, int query, int dir)
 
 	case CCHR ('G'):
 	  ctrlg (FALSE, 0, KRANDOM);
-	  goto stopsearch;
-
-	case '!':
-	  do
-	    {
-	      curwp->w_savep = clp;
-	      repl = getrepl (dir, news, sub, sizeof (sub), &plen);
-	      if (lreplace (plen, repl, f) == FALSE)
-		return (FALSE);
-	      rcnt++;
-	      clp = curwp->w_savep;
-	    }
-	  while (dosearch (dir) == TRUE);
 	  goto stopsearch;
 
 	case 'n':
