@@ -1066,7 +1066,7 @@ searchandreplace (int f, int query, int dir)
       switch (c)
 	{
 	case '!':
-	  query = false;
+	  query = FALSE;
 	  /* Fall into next case. */
 	case ' ':
 	case ',':
